@@ -1,6 +1,7 @@
-import {MAX_TEAMS,teamCount,hasExtraTeams,teamPointer,teamTable} from './team-count.mjs';
+import {MAX_TEAMS,teamCount,hasExtraTeams,hasPhysicalTeams,teamExists,activeTeamIds,teamPointer,teamTable} from './team-count.mjs';
 import {bootScreenResources,bootScreenPatches} from './boot-screens.mjs';
 import {mainMenuGraphics} from './main-menu.mjs';
+import {screenTextResources,screenTextPatches} from './screen-text.mjs';
 import {compress} from './compression.mjs';
 export {compress} from './compression.mjs';
 import {hasCustomGroups,readGroups,groupPageTitles} from './groups.mjs';
@@ -42,7 +43,7 @@ export function graphicResources(rom, team) {
   result.push(spriteResource(rom,'Jugador completo · sprite compartido',playerRanges,0x988472,112,kit,[0,1]));
   result.push(raw('Balón · atlas compartido',0x9a8000,0x9a8600,8));
   for(let hair=1;hair<=13;hair++) result.push(raw(`Pelo ${hair} · atlas compartido`,0x97cd58+(hair-1)*0x300,0x97cd58+hair*0x300,24));
-  result.push(...bootScreenResources(rom),...selectionGroupGraphics(rom),titleLogo(rom),titleLogo(rom,true),...titlePortraits(rom),...titleLegalResources(rom),...mainMenuGraphics(rom));
+  result.push(...bootScreenResources(rom),...selectionGroupGraphics(rom),titleLogo(rom),titleLogo(rom,true),...titlePortraits(rom),...titleLegalResources(rom),...mainMenuGraphics(rom),...screenTextResources(rom));
   return result;
 }
 
@@ -71,7 +72,7 @@ export function flagMatrix(rom,team) {
   return [0,1].flatMap(part=>tiles(decompress(rom,loRom(bank<<16|word(rom,teamTable(rom,FLAG_TABLE)+(hasExtraTeams(rom)||team<42?team:0)*4+part*2))),4,3));
 }
 export function validateFlagStorage(rom,original) {
-  if(hasExtraTeams(rom)){for(let i=0;i<MAX_TEAMS;i++){const off=loRom(0xb00000|teamPointer(rom,FLAG_TABLE,i,4));if((word(rom,off)&0x7fff)>FLAG_SLOT||(word(rom,off+FLAG_SLOT)&0x7fff)>FLAG_SLOT||decompress(rom,off).length!==96||decompress(rom,off+FLAG_SLOT).length!==96||flagMatrix(rom,i).flat().some(p=>p!==0&&p<12))throw new Error("Bandera ampliada inválida.");}return;}
+  if(hasExtraTeams(rom)){for(let i of hasPhysicalTeams(rom)?activeTeamIds(rom):Array.from({length:MAX_TEAMS},(_,i)=>i)){const off=loRom(0xb00000|teamPointer(rom,FLAG_TABLE,i,4));if((word(rom,off)&0x7fff)>FLAG_SLOT||(word(rom,off+FLAG_SLOT)&0x7fff)>FLAG_SLOT||decompress(rom,off).length!==96||decompress(rom,off+FLAG_SLOT).length!==96||flagMatrix(rom,i).flat().some(p=>p!==0&&p<12))throw new Error("Bandera ampliada inválida.");}return;}
   const bank=flagBank(rom),relocated=bank===0xaf;
   if(bank!==flagBank(original)&&!relocated)throw new Error('Banco de banderas inválido.');
   for(const template of [FLAG_TEMPLATE,0xe715,0xeb80])for(let i=0;i<(template===0xeb80?13:23);i++)if(rom[template+i]!==((template===0xeb80?[6,11]:[6,11,16,21]).includes(i)&&relocated?0xaf:original[template+i]))throw new Error('Cargador de banderas inválido.');
@@ -140,6 +141,7 @@ function spriteResource(rom,label,ranges,address,start,colors,editableParts=[0,1
   return {id:editableParts.length===1?`detail-preview:${parts[2].offset}`:`sprite:${parts[0].offset}`,kind:'sprite',editableParts,editable,label,shared:true,bpp:4,columns:width/8,capacity:parts.reduce((n,p,i)=>n+(editableParts.includes(i)?p.capacity:0),0),parts,owners,matrix,colors};
 }
 export function graphicPatches(original,current,resource,matrix) {
+  if(resource.kind==='screen-text')return screenTextPatches(original,current,resource,matrix);
   if(resource.kind==='boot-screen')return bootScreenPatches(original,current,resource.id,matrix);
   if(resource.kind==='title-legal')return titleLegalPatches(original,current,resource.id,matrix);
   if(resource.kind==='group-label')return groupLabelPatches(original,current,resource,matrix);
@@ -240,7 +242,7 @@ export const LABEL_RULES=[['labels:pool',LABEL_POOL,LABEL_POOL_SIZE],['labels:po
 export function labelBank(rom){return rom[LABEL_TEMPLATE+6];}
 export function smallLabelMatrix(rom,team){return tiles(decompress(rom,loRom(labelBank(rom)<<16|teamPointer(rom,LABEL_TABLE,team))),2,4);}
 export function validateSmallLabelStorage(rom,original){
-  if(hasExtraTeams(rom)){for(let i=0;i<MAX_TEAMS;i++)if((word(rom,loRom(0xaf0000|teamPointer(rom,LABEL_TABLE,i)))&0x7fff)>LABEL_SLOT||decompress(rom,loRom(0xaf0000|teamPointer(rom,LABEL_TABLE,i))).length!==64)throw new Error("Rótulo ampliado inválido.");return;}
+  if(hasExtraTeams(rom)){for(let i of hasPhysicalTeams(rom)?activeTeamIds(rom):Array.from({length:MAX_TEAMS},(_,i)=>i))if((word(rom,loRom(0xaf0000|teamPointer(rom,LABEL_TABLE,i)))&0x7fff)>LABEL_SLOT||decompress(rom,loRom(0xaf0000|teamPointer(rom,LABEL_TABLE,i))).length!==64)throw new Error("Rótulo ampliado inválido.");return;}
   const relocated=labelBank(rom)===0xaf;
   if(labelBank(rom)!==labelBank(original)&&!relocated)throw new Error('Banco de rótulos inválido.');
   for(let i=0;i<13;i++)if(rom[LABEL_TEMPLATE+i]!==([6,11].includes(i)&&relocated?0xaf:original[LABEL_TEMPLATE+i]))throw new Error('Cargador de rótulos inválido.');

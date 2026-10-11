@@ -28,7 +28,7 @@ import {MAX_GROUPS} from '../rom/groups.mjs';
 export default {
   props:{columns:{type:Number,default:3},groups:Array,teams:Array,modified:Boolean},emits:['change','restore'],
   data(){return {maxGroups:MAX_GROUPS,selectedGroup:null,selectedTeams:[],search:''};},
-  computed:{filteredTeams(){return this.teams.map((name,index)=>({name,index})).filter(t=>this.$t(t.name).toLowerCase().includes(this.search.toLowerCase()));}},
+  computed:{filteredTeams(){return this.teams.map((name,index)=>({name,index})).filter(t=>t.name!==null).filter(t=>this.$t(t.name).toLowerCase().includes(this.search.toLowerCase()));}},
   methods:{
     copy(){return this.groups.map(g=>({name:g.name,teams:g.teams.slice()}));},
     addGroup(){const groups=this.copy();let n=1;while(groups.some(g=>g.name===`GRUPO ${n}`))n++;groups.push({name:`GRUPO ${n}`,teams:[]});this.$emit('change',groups);},

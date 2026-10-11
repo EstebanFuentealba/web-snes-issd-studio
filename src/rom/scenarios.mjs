@@ -1,4 +1,5 @@
 // ISSDeluxeEditor/Form1.cs: twelve 15-byte records following DATA_8BFCE0.
+import {teamCount,teamExists} from './team-count.mjs';
 // Offsets refer to the unheadered USA ROM; RomProject handles copier headers.
 export const SCENARIO_OFFSET = 0x5fcf8;
 export const SCENARIO_COUNT = 12;
@@ -37,32 +38,32 @@ export function readScenarios(rom) {
     return scenario;
   });
 }
-function valid(key,value) {
+function valid(key,value,limit=42) {
   if(!Number.isInteger(value)||value<0)return false;
   if(key==='seconds')return value<=59;
   if(key==='minutes')return value<=9;
-  if(key.endsWith('Team'))return value<42;
+  if(key.endsWith('Team'))return value<limit;
   if(key.endsWith('Goals'))return value<=10;
   if(key==='weather')return SCENARIO_WEATHER.some(([id])=>id===value);
   if(key==='stadium')return value<SCENARIO_STADIUMS.length;
   return value<=255;
 }
-export function validateScenarioBytes(bytes,original) {
+export function validateScenarioBytes(bytes,original,limit=42) {
   if(bytes.length!==SCENARIO_SIZE||original.length!==SCENARIO_SIZE)throw new Error('Tamaño de escenario inválido.');
   // The first word is an opaque game field. Preserve it and unknown stock values.
   if(bytes[0]!==original[0]||bytes[1]!==original[1])throw new Error('Cabecera de escenario alterada.');
   for(const [key,position] of Object.entries(fields)){
     if(bytes[position]===original[position])continue;
     const raw=bytes[position],value=key==='seconds'?bcd(raw):key.endsWith('Team')?raw/2:raw;
-    if(!valid(key,value)||(key==='seconds'&&((raw&15)>9||(raw>>>4)>5)))throw new Error('Valor de escenario fuera de rango.');
+    if(!valid(key,value,limit)||(key==='seconds'&&((raw&15)>9||(raw>>>4)>5)))throw new Error('Valor de escenario fuera de rango.');
   }
 }
 export function scenarioPatch(rom,index,changes) {
   const [id,offset]=ruleFor(index),bytes=rom.slice(offset,offset+SCENARIO_SIZE);
   for(const [key,value] of Object.entries(changes)){
-    if(!(key in fields)||!valid(key,value))throw new Error('Valor de escenario fuera de rango.');
+    if(!(key in fields)||!valid(key,value,teamCount(rom))||(key.endsWith('Team')&&!teamExists(rom,value)))throw new Error('Valor de escenario fuera de rango.');
     bytes[fields[key]]=key==='seconds'?encodeBcd(value):key.endsWith('Team')?value*2:value;
   }
-  validateScenarioBytes(bytes,rom.slice(offset,offset+SCENARIO_SIZE));
+  validateScenarioBytes(bytes,rom.slice(offset,offset+SCENARIO_SIZE),teamCount(rom));
   return {id,offset,bytes,label:`SCENARIO ${index+1}`};
 }

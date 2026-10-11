@@ -1,10 +1,10 @@
-import {teamCount,teamPointer} from './team-count.mjs';
+import {teamExists,teamPointer} from './team-count.mjs';
 import {word,loRom} from './binary.mjs';
 export const FORMATION_LABELS=['4-5-1','4-4-2','4-3-3','4-2-4','3-5-2','3-4-3','3-3-4','3-2-5','2-5-3','2-4-4','2-3-5','5-4-1','5-3-2','5-2-3','1-5-4','1-4-5'];
 export const FORMATION_ROLES={1:'Defensa',2:'Medio',3:'Delantero',5:'Defensa ofensivo',6:'Medio ofensivo'};
 // DATA_8BEF48, verified in issd_mod_rom.c and the cartridge disassembly.
 export function readFormation(rom,team) {
-  if(!Number.isInteger(team)||team<0||team>=teamCount(rom))throw new Error('Equipo inválido.');
+  if(!teamExists(rom,team))throw new Error('Equipo inválido.');
   const offset=loRom(0x8b0000|teamPointer(rom,0x5ef48,team));
   if(offset+31>rom.length)throw new Error('Formación fuera de la ROM.');
   const bytes=rom.slice(offset,offset+31),signed=v=>v>127?v-256:v;

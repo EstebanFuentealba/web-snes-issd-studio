@@ -116,6 +116,8 @@ The logo editor reconstructs graphics using original tiles, tilemaps and palette
 
 Compressed graphics must fit within the available ROM storage space.
 
+In **Gráficos**, the mode titles **SHORT LEAGUE**, **SHORT TOURNAMENT**, **INTERNATIONAL**, **WORLD SERIES · 1ST SEASON**, and **ENTER PASSWORD** can be drawn or imported as pixel art. Mode previews combine the native letter masks, textured fill and reflected palettes. The password preview shows the lettering without its animated background. These resources retain their native shared tiles: edits to a title letter or texture also affect its other appearances, and password letters are shared with other menus. Undo/redo, project saving, ROM export and restoring the shared resource are supported.
+
 **Startup screens**
 
 In **Gráficos**, select **Inicio · Logo de Konami** or **Inicio · Pantalla posterior a Konami** to draw or import a replacement image for either screen independently. Both use a 256 × 224 canvas and their original SNES palettes. Imported images are adjusted to one palette per 8 × 8 tile. Scene-specific graphics and maps are relocated into verified free ROM space; the original animation helpers and other scenes retain their native data. Undo/redo, project recovery, reopening an exported ROM and restoring each screen independently are supported. Detailed images may exceed the available unique tiles or compressed storage; the editor rejects them without applying a partial change. The original intro timing and effects remain in place; this edits the two images, rather than introducing a new animation sequence.
@@ -428,7 +430,7 @@ En **Equipos → Nuevo equipo → Agregar equipo** se pueden crear hasta **48 eq
 
 ### Main menu editor
 
-Open **Menú principal** to edit the eight option labels with a live assembled
+Open **Menus → Menú principal** to edit the eight option labels with a live assembled
 preview. Two text lines support **A–Z**, spaces and hyphens, up to 112 pixels per
 line. The original large glyphs are preserved; missing letters are added in
 the same palette. For example, **INICIAR / JUEGO** fits the first option.
@@ -447,3 +449,72 @@ total. Existing projects with the original layout remain supported. Project
 validation, undo/redo, local saving, recovery and ROM checksum export include
 these changes. `tests/main-menu.cjs` verifies A–Z, INICIAR/JUEGO, navigation
 pointers, padding, independence, restoration, import/export and pool isolation.
+
+The other five tabs (**Menú secundario**, **Menú settings**, **Menú training**,
+**Menú handicap**, **Menú juego**) also edit text in the ROM, with a live text
+preview, per-label apply/discard/restore and shared project history. Each field
+shows its native line and character limits; supported characters depend on its
+font. Training descriptions and the handicap instructions support multiple
+lines. The shared training `MODE` label and handicap strength labels retain
+their shared uses. Compact handicap labels use the small character font when
+edited, and game-start replacements use up to 15 characters in the native tall
+font. Restoring recovers the original compact graphics.
+
+The fixed text slots exclude script opcodes and pointers. The game-start BG3
+map is stored in verified free bytes `$AAFC3F..$AAFFFF`; only its loader at
+`$829201` is redirected, leaving halftime and tournament maps intact.
+`tests/menu-text.cjs` verifies every field, independent edits, exact restoration,
+reopening an exported ROM, project import, checksums and invalid patch rejection.
+
+En **Equipos → Eliminar equipo de los grupos** se quita el equipo seleccionado de todos los grupos del selector. Debe quedar al menos un equipo. La operación conserva el plantel, gráficos y referencias de Scenarios, mantiene los IDs de la ROM y no libera uno de los seis espacios adicionales. Puede deshacerse/rehacerse o volver a incluirse el equipo desde **Grupos**; el cambio persiste en el proyecto y en la ROM exportada.
+
+Los nombres de jugadores ocupan **8 bytes** (hasta ocho caracteres admitidos por la codificación del juego). Los nombres grandes de equipo tienen una capacidad propia de cada slot (los nuevos admiten diez caracteres), además del límite de sprites y ancho; los nombres pequeños deben caber en **32 píxeles**. Aumentar un `maxlength` del editor no amplía la ROM: requiere reubicar datos y modificar las rutinas de lectura y dibujo del juego.
+
+## Stadiums
+
+The **Estadios / Stadiums** menu edits the eight USA cartridge slots: Japan,
+U.S.A., Spain, Italy, England, Germany, Brazil and Nigeria. Names accept up to
+seven uppercase letters, spaces and periods. The selection plate and match
+information use the new name independently of team names. The selector displays
+length and width in yards (100–140 × 64–96). Advanced controls edit the match
+coordinate limits (length 1792–2176, width 576–704, in steps of 64); Scenarios
+uses these live dimensions for its ball controls and automatic restarts.
+Changing coordinate limits does not rebuild the stadium's graphic tilemaps:
+review the alignment of markings and walls in the emulator.
+
+The design editor exposes 38 native graphic blocks: stadium banners, walls and
+details, plus shared grass, audience, shadows and weather previews. Field icons are
+edited per stadium inside their native shared container; partial restoration
+preserves the other seven icons.
+Resource cards show assembled native designs rather than tile atlases. The editor
+reconstructs the match Map32 layers and selector tilemaps with their native palettes
+and flips. Choose another view of a resource, draw directly on its design, or import
+an image. Darkened context is protected and repeated source pixels update together;
+subsequent strokes preserve earlier edits. Shared resources absent from the current
+match use a reference stadium. The advanced tile view retains access to all source
+pixels, including resources without a match appearance. Graphics must fit their
+original compressed capacity. Palette controls cover clear, rain, snow, night,
+stands, cameras, penalty kicks and the selector; the assembled match view uses the
+native clear-weather palettes. Shared designs and selector palettes are marked in the
+UI. Restore a single design, palette or stadium, or restore all stadium resources.
+All applied changes participate in autosave, project backups, undo/redo and ROM
+export; unapplied drafts are checked before navigation.
+
+Binary resources: seven-byte encoded names at `0x3CA9B`, selector yards at
+`0x17AED`, and match limits at `0xEC47`. A verified 65816 hook at `$A4A046`
+uses independent label data at `$86CC00` and code at `$86D000`, within the unused
+`$86CB9E..$86D1FF` range. It updates the temporary first team-name OAM frame
+only in stadium selection, preserving X, Y and DB; the native screen loader
+reloads the atlas for subsequent menus. Team names and fonts remain untouched.
+Asset and palette ranges follow `AssetPointersAndFiles.asm`; the catalog contains
+only addresses and descriptions. Run `node tests/stadiums.cjs` for binary ranges,
+CPU hook execution for all eight slots, team expansion compatibility, lossless
+round trips for every exposed graphic, pixel/palette edits, independent partial
+restoration, live scenario geometry, malformed-project rejection, and SMC/header
+and checksum export.
+
+En **Equipos → Eliminar físicamente de la ROM** también se pueden borrar los equipos originales. El parche conserva los IDs originales, marca el espacio libre y borra nombres/atributos y los recursos gráficos, formación y colores que no usa ningún equipo restante. Los nombres compartidos de ALL STARS se convierten en copias independientes antes del borrado; sus jugadores conservan sus nombres. Las referencias de Scenarios se reasignan y los estadios usan rótulos independientes. Las llamadas nativas a IDs eliminados se redirigen al primer equipo existente; los torneos conservan su formato y pueden usar ese reemplazo en sus plazas fijas.
+
+Los equipos adicionales se compactan al eliminar uno intermedio y se borran todos los datos de los espacios sobrantes. **Agregar equipo** reutiliza primero un espacio original libre que admita tanto los caracteres como los sprites del nombre solicitado; si ninguno es compatible, usa un espacio adicional disponible, hasta 48 equipos existentes. Los espacios originales conservan su capacidad de nombre y sus gráficos compartidos. Si Italia fue eliminada, el equipo nuevo copia el primer equipo existente. La ROM conserva sus 2 MiB y el encabezado SMC; liberar un espacio no reduce el tamaño del archivo. Debe quedar al menos un equipo. El proyecto guarda la ROM original y el historial para deshacer/rehacer; la ROM exportada contiene el borrado físico.
+
+En **Crear ROM sin equipos** el editor crea una plantilla con cero equipos activos y cero grupos visibles. Puedes deshacer la operación, guardar el proyecto o exportar y volver a abrir la ROM vacía. Se conserva una plantilla interna oculta para crear el primer plantel sin volver a cargar la ROM original; los siguientes equipos se agregan normalmente. Crea al menos un equipo antes de usar el emulador.

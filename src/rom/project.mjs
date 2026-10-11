@@ -1,11 +1,15 @@
+import {STADIUM_RULES,stadiumGraphicRules,validateStadiumResource,validateStadiums} from './stadiums.mjs';
 import {SCENARIO_SUMMARY_RULES,scenarioSummaryPatch,validateScenarioSummary} from './scenario-summary.mjs';
-import {hasExtraTeams,teamCount,teamPointer,teamTable,attributeOffset} from './team-count.mjs';
+import {hasExtraTeams,hasPhysicalTeams,hasEmptyTeams,teamDataRom,teamExists,activeTeamIds,teamCount,teamPointer,teamTable,attributeOffset} from './team-count.mjs';
+import {emptyTeamPatches,firstTeamPatches,physicalTeamResources,erasedNativeResources,deleteTeamPatches,addPhysicalTeamPatches,physicalFallbackNamePatches} from './physical-teams.mjs';
 import {EXTRA_TEAM_RULES,extraTeamResources,addTeamPatches,validateExtraTeams,upgradeExtraTeamSelector} from './extra-teams.mjs';
 import {SCENARIO_TEXT_RULES,validateScenarioDescription} from './scenario-text.mjs';
 import {SCENARIO_RULES,validateScenarioBytes,SCENARIO_DIFFICULTY_RULES,validateScenarioDifficulty} from './scenarios.mjs';
 import {BOOT_SCREEN_RULES,validateBootScreens} from './boot-screens.mjs';
 import {MAIN_MENU_RULES,validateMainMenu} from './main-menu.mjs';
+import {MENU_TEXT_RULES,validateMenuTexts} from './menu-text.mjs';
 import {GROUP_EDITOR_RULES,validateGroupEditor,upgradeGroupSelector} from './groups.mjs';
+import {removeTeamPatches} from './group-editor.mjs';
 import {GROUP_TEXT_RULES,validateGroupTexts} from './group-text.mjs';
 import {SELECTION_RULES,validateSelection} from './selection.mjs';
 import { openRom, word, loRom, decompress } from './binary.mjs';
@@ -27,9 +31,11 @@ export async function romHash(bytes) {
   return Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');
 }
 function allowedResources(rom) {
+  rom=teamDataRom(rom);
   const registry=new Map();
   const add=(id,offset,size,type,extra={})=>registry.set(id,{offset,size,type,...extra});
-  for(let team=0;team<teamCount(rom);team++) {
+  for(const [id,offset,size] of MENU_TEXT_RULES)add(id,offset,size,'menu-text');
+  for(let team of activeTeamIds(rom)) {
     const formation=readFormation(rom,team);add(formation.id,formation.offset,31,'formation');
     for(let i=0;i<20;i++) {
       const p=playerOffsets(rom,team,i);
@@ -49,6 +55,7 @@ function allowedResources(rom) {
   for(const resource of graphicResources(rom,0)) if(resource.shared || resource.label.includes('portada')) for(const part of resource.parts||[resource]) add(part.id,part.offset,part.capacity,part.compressed?'compressed':'raw',{decodedSize:part.decodedSize});
   for(const [id,offset,size] of [...FLAG_RULES,...LABEL_RULES,...SELECTION_RULES,...GROUP_RULES,...GROUP_TEXT_RULES,...GROUP_EDITOR_RULES,...TITLE_LEGAL_RULES,...MAIN_MENU_RULES,...BOOT_SCREEN_RULES,...EXTRA_TEAM_RULES])add(id,offset,size,'relocated-storage');
   for(const [id,offset,size,type] of extraTeamResources())add(id,offset,size,type);
+  for(const [id,offset,size,type] of physicalTeamResources(rom))add(id,offset,size,type);
   add(`czech-font:${loRom(CZECH_FONT_ADDRESS)}`,loRom(CZECH_FONT_ADDRESS),word(rom,loRom(CZECH_FONT_ADDRESS))&0x7fff,'czech-font');
   add(BIG_LABEL_ID,loRom(BIG_LABEL_ADDRESS),word(rom,loRom(BIG_LABEL_ADDRESS))&0x7fff,'team-labels');
   // Keep previously saved atlas/goalie projects readable after composing the UI.
@@ -61,6 +68,8 @@ function allowedResources(rom) {
   for(const [id,offset,size] of SCENARIO_RULES)add(id,offset,size,'scenario');
   for(const [id,offset,size] of SCENARIO_TEXT_RULES)add(id,offset,size,'scenario-text');
   for(const [id,offset,size] of SCENARIO_SUMMARY_RULES)add(id,offset,size,'scenario-summary');
+  for(const [id,offset,size,type] of STADIUM_RULES)add(id,offset,size,type);
+  for(const r of stadiumGraphicRules(rom))add(r.id,r.offset,r.size,r.type,{decodedSize:r.decodedSize});
   return registry;
 }
 export class RomProject {
@@ -76,25 +85,39 @@ export class RomProject {
   get canUndo() {return !!internals.get(this).undo.length;}
   get canRedo() {return !!internals.get(this).redo.length;}
   get headerSize() {return internals.get(this).header.length;}
-  validate(patches) {
+  validate(patches,context) {
     const {original,registry}=internals.get(this),used=[];
+    if(!context){context=original.slice();for(const p of internals.get(this).patches.values())context.set(p.bytes,p.offset);}
+    const candidate=context.slice();
+    for(const p of patches){const r=registry.get(p.id);if(!r||p.offset!==r.offset||!(p.bytes instanceof Uint8Array)||p.bytes.length!==r.size||p.offset<0||p.offset+p.bytes.length>candidate.length)throw new Error(`Recurso o tamaño no permitido: ${p.id}.`);candidate.set(p.bytes,p.offset);}
+    if(patches.some(p=>p.id.startsWith('menu-text:')))validateMenuTexts(candidate,original);
+    candidate.set(teamDataRom(candidate));
+    const erased=erasedNativeResources(candidate);
+    if(hasPhysicalTeams(candidate))for(let t=teamCount(candidate);t<48;t++)erased.push([loRom(0x87fac8)+(t-42)*160,160,0],[attributeOffset(candidate,t),140,0],[loRom(0x8bfdd0)+(t-42)*31,31,0],[loRom(0x89fa42)+(t-42)*128,128,0]);
     for(const patch of patches) {
       const rule=registry.get(patch.id);
       if(!rule || patch.offset!==rule.offset || !(patch.bytes instanceof Uint8Array) || patch.bytes.length!==rule.size || patch.offset<0 || patch.offset+patch.bytes.length>original.length) throw new Error(`Recurso o tamaño no permitido: ${patch.id}.`);
       const overlap=used.find(p=>patch.offset<p.offset+p.bytes.length && p.offset<patch.offset+patch.bytes.length);
       if(overlap) throw new Error(`Conflicto entre ${patch.id} y ${overlap.id}.`);
       used.push(patch);
+      const cleared=erased.some(([offset,size,header])=>patch.offset>=offset+header&&patch.offset+patch.bytes.length<=offset+size)&&patch.bytes.every(b=>b===255);
+      if(cleared&&['name','attributes','palette','formation','raw'].includes(rule.type))continue;
+      if(rule.type==='native-storage'){
+        const allowed=hasPhysicalTeams(candidate);
+        if(!allowed||patch.bytes[0]!==original[patch.offset]||patch.bytes[1]!==original[patch.offset+1]||patch.bytes.slice(2).some(b=>b!==255))throw new Error('Borrado de recurso nativo inválido.');
+      }
+      if(rule.type.startsWith('stadium-'))validateStadiumResource(rule.type,patch.bytes);
       if(rule.type==='scenario-difficulty')validateScenarioDifficulty(patch.bytes);
       if(rule.type==='scenario-summary')validateScenarioSummary(patch.bytes);
       if(rule.type==='scenario-text')validateScenarioDescription(patch.bytes,original.slice(rule.offset,rule.offset+rule.size));
-      if(rule.type==='scenario')validateScenarioBytes(patch.bytes,original.slice(rule.offset,rule.offset+rule.size));
+      if(rule.type==='scenario')validateScenarioBytes(patch.bytes,original.slice(rule.offset,rule.offset+rule.size),teamCount(candidate));
       if(rule.type==='name' && (deluxeText(patch.bytes).includes('�')||!deluxeText(patch.bytes))) throw new Error('Nombre con codificación inválida.');
       if(rule.type==='attributes') {
         const p=deluxeAttributes(patch.bytes);
         if(p.no<1||p.no>20||p.position<1||p.position>6||p.hair>13||p.skin>1||Object.entries(p).some(([k,v])=>!['no','position','hair','skin'].includes(k)&&v>10)) throw new Error('Atributos fuera del rango del juego.');
       }
       if(rule.type==='formation') {
-        const originalFormations=Array.from({length:42},(_,i)=>readFormation(original,i).bytes);
+        const originalFormations=activeTeamIds(teamDataRom(original)).map(i=>readFormation(teamDataRom(original),i).bytes);
         if(!originalFormations.some(bytes=>equal(bytes,patch.bytes))) throw new Error('Solo se permiten formaciones originales verificadas.');
       }
       if(rule.type==='palette' && patch.bytes[1]&0x80) throw new Error('Paleta BGR555 inválida.');
@@ -112,6 +135,7 @@ export class RomProject {
   transaction(changes) {
     const s=internals.get(this),next=new Map(s.patches);
     this.validate(changes.map(copyPatch));
+    if(changes.some(p=>p.id==='stadium:label-hook'))next.delete('teams:read:a4a046');
     if(changes.some(p=>p.id==='teams:metadata')&&!hasExtraTeams(s.original)){for(const id of ['labels:pool','labels:pointers','labels:select-loader','flags:pool','flags:pointers','flags:select-map'])next.delete(id);}
     for(const change of changes) {
       const p=copyPatch(change);
@@ -119,8 +143,11 @@ export class RomProject {
       if(legacy&&p.offset>=legacy.offset&&p.offset+p.bytes.length<=legacy.offset+legacy.bytes.length){const merged=copyPatch(legacy);merged.bytes.set(p.bytes,p.offset-merged.offset);if(equal(merged.bytes,s.original.slice(merged.offset,merged.offset+merged.bytes.length)))next.delete(merged.id);else next.set(merged.id,merged);next.delete(p.id);continue;}
       if(equal(p.bytes,s.original.slice(p.offset,p.offset+p.bytes.length))) next.delete(p.id);else next.set(p.id,p);
     }
-    this.validate([...next.values()]);
+    this.validate([...next.values()],s.original);
     const candidate=s.original.slice();for(const patch of next.values())candidate.set(patch.bytes,patch.offset);
+    if(hasPhysicalTeams(candidate))for(const p of physicalFallbackNamePatches(candidate)){
+      candidate.set(p.bytes,p.offset);if(equal(p.bytes,s.original.slice(p.offset,p.offset+p.bytes.length)))next.delete(p.id);else next.set(p.id,p);
+    }
     // The selector labels are literal strings, separate from match data.
     // Include their updates in the same history entry, also upgrading older
     // saved projects that only contain scenario condition patches.
@@ -130,7 +157,7 @@ export class RomProject {
       candidate.set(p.bytes,p.offset);
       if(equal(p.bytes,s.original.slice(p.offset,p.offset+p.bytes.length)))next.delete(p.id);else next.set(p.id,p);
     }
-    if(scenarioIndexes.size)this.validate([...next.values()]);
+    if(scenarioIndexes.size)this.validate([...next.values()],s.original);
     if(changes.some(p=>p.id.startsWith('main-menu:')))validateMainMenu(candidate,s.original);
     if(changes.some(p=>p.id.startsWith('flags:')))validateFlagStorage(candidate,s.original);
     if(changes.some(p=>p.id.startsWith('labels:')))validateSmallLabelStorage(candidate,s.original);
@@ -140,14 +167,24 @@ export class RomProject {
     if(changes.some(p=>p.id.startsWith('selection:')))validateSelection(candidate,s.original);
     if(changes.some(p=>p.id.startsWith('groups:')||p.id.startsWith('group-editor:')))validateGroupStorage(candidate,s.original);
     if(changes.some(p=>p.id==='groups:text'))validateGroupTexts(candidate,s.original);
+    validateStadiums(candidate,s.original);
     validateExtraTeams(candidate,s.original);
-    for(let team=0;team<teamCount(candidate);team++)if(new Set(Array.from({length:20},(_,i)=>candidate[attributeOffset(candidate,team,i)+5])).size!==20)throw new Error('Los identificadores/dorsales de cada equipo deben ser únicos.');
+    for(let team of activeTeamIds(candidate))if(new Set(Array.from({length:20},(_,i)=>candidate[attributeOffset(candidate,team,i)+5])).size!==20)throw new Error('Los identificadores/dorsales de cada equipo deben ser únicos.');
     if(JSON.stringify([...next])===JSON.stringify([...s.patches])) return false;
     s.undo.push(s.patches);s.undo=s.undo.slice(-100);s.redo=[];s.patches=next;this.updatedAt=new Date().toISOString();return true;
   }
-  addTeam(name){return this.transaction(addTeamPatches(this.original,this.bytes(),name));}
+  createEmptyRom(){return this.transaction(emptyTeamPatches(this.original,this.bytes()));}
+  addTeam(name){const current=this.bytes();if(hasEmptyTeams(current))return this.transaction(firstTeamPatches(this.original,current,name));return this.transaction(hasPhysicalTeams(current)?addPhysicalTeamPatches(this.original,current,name).patches:addTeamPatches(this.original,current,name));}
+  deleteTeam(team){return this.transaction(deleteTeamPatches(this.original,this.bytes(),team));}
+  removeTeam(team){return this.transaction(removeTeamPatches(this.original,this.bytes(),team));}
   restorePatches(id) {
-    const s=internals.get(this),rule=s.registry.get(id);if(!rule)throw new Error('Recurso desconocido.');
+    const state=internals.get(this),s={...state,original:teamDataRom(state.original)},rule=s.registry.get(id);if(!rule)throw new Error('Recurso desconocido.');
+    const pristine=s.original.slice(rule.offset,rule.offset+rule.size),defaultTeam=activeTeamIds(s.original)[0];
+    if(pristine.every(b=>b===255)){
+      if(rule.type==='name')for(const [base,n,first] of [[loRom(0x87818e),36,0],[loRom(0x8af8a0),6,36],[loRom(0x87fac8),6,42]])if(rule.offset>=base&&rule.offset<base+n*160){const team=Math.floor((rule.offset-base)/160)+first,i=Math.floor((rule.offset-base)%160/8),offset=playerOffsets(s.original,teamExists(s.original,team)?team:defaultTeam,i).name;return [{id,offset:rule.offset,bytes:s.original.slice(offset,offset+8),label:'Restaurar jugador'}];}
+      if(rule.type==='formation')return [{id,offset:rule.offset,bytes:readFormation(s.original,defaultTeam).bytes,label:'Restaurar formación'}];
+      if(rule.type==='palette'){const current=this.bytes();for(const team of activeTeamIds(current))for(const [table,n] of [[0x1027a,16],[0x102d0,16],[0x10326,11],[0x1037c,5],[0x103d2,1],[0xe7d8,4]]){const ptr=teamPointer(current,table,team);if(!ptr)continue;const base=loRom(0x890000|ptr)+2;if(rule.offset>=base&&rule.offset<base+n*2){const source=teamPointer(s.original,table,defaultTeam),offset=source?loRom(0x890000|source)+2+rule.offset-base:0;return [{id,offset:rule.offset,bytes:source?s.original.slice(offset,offset+2):new Uint8Array(2),label:'Restaurar paleta'}];}}}
+    }
     if(id.startsWith('group-editor:')||(id==='selection:all-stars'||id.startsWith('groups:'))&&this.patches.some(p=>p.id.startsWith('group-editor:')))return [...GROUP_EDITOR_RULES,...SELECTION_RULES,...GROUP_RULES,...GROUP_TEXT_RULES].map(([id,offset,size])=>({id,offset,bytes:s.original.slice(offset,offset+size),label:'Restaurar grupos'}));
     if(id.startsWith('main-menu:'))return MAIN_MENU_RULES.map(([id,offset,size])=>({id,offset,bytes:s.original.slice(offset,offset+size),label:'Restaurar menú principal'}));
     if(id.startsWith('title-legal:')&&legacyTitleLegal(s.original)){const notice=titleLegalResources(s.original)[0];return titleLegalPatches(s.original,s.original,notice.id,notice.matrix,notice.text,true);}
@@ -159,7 +196,7 @@ export class RomProject {
     if(rule.type==='attributes') {
       const extra=rule.offset>=loRom(0x8af558)&&rule.offset<loRom(0x8af558)+840;
       const relative=rule.offset-(extra?loRom(0x8af558):0x50000),team=Math.floor(relative/140)+(extra?42:0),index=(relative%140)/7;
-      if(extra&&!hasExtraTeams(s.original))return playerPatches(this.bytes(),team,index,deluxeAttributes(s.original.slice(attributeOffset(s.original,0,index),attributeOffset(s.original,0,index)+7)));
+      if(!teamExists(s.original,team))return playerPatches(this.bytes(),team,index,deluxeAttributes(s.original.slice(attributeOffset(s.original,defaultTeam,index),attributeOffset(s.original,defaultTeam,index)+7)));
       return playerPatches(this.bytes(),team,index,deluxeAttributes(s.original.slice(rule.offset,rule.offset+7)));
     }
     return [{id,offset:rule.offset,bytes:s.original.slice(rule.offset,rule.offset+rule.size),label:id}];
@@ -168,9 +205,10 @@ export class RomProject {
   reset() {const s=internals.get(this);if(!s.patches.size)return;s.undo.push(s.patches);s.redo=[];s.patches=new Map();this.updatedAt=new Date().toISOString();}
   undo() {const s=internals.get(this);if(!s.undo.length)return;s.redo.push(s.patches);s.patches=s.undo.pop();this.updatedAt=new Date().toISOString();}
   redo() {const s=internals.get(this);if(!s.redo.length)return;s.undo.push(s.patches);s.patches=s.redo.pop();this.updatedAt=new Date().toISOString();}
-  bytes() {const s=internals.get(this),bytes=s.original.slice();this.validate(this.patches);for(const p of s.patches.values()) bytes.set(p.bytes,p.offset);return bytes;}
+  bytes() {const s=internals.get(this),bytes=s.original.slice();this.validate(this.patches,s.original);for(const p of s.patches.values()) bytes.set(p.bytes,p.offset);return bytes;}
   exportRom() {
     const s=internals.get(this),rom=this.bytes();
+    validateStadiums(rom,s.original);
     if(this.patches.some(p=>p.id.startsWith('group-editor:')))validateGroupEditor(rom,s.original);
     if(this.patches.some(p=>p.id.startsWith('title-legal:')))validateTitleLegal(rom,s.original);
     if(this.patches.some(p=>p.id.startsWith('boot-')))validateBootScreens(rom,s.original);
@@ -182,7 +220,7 @@ export class RomProject {
       rom.set([complement&255,complement>>>8,checksum&255,checksum>>>8],0x7fdc);
       openRom(rom);
       validateExtraTeams(rom,s.original);
-      for(let team=0;team<teamCount(rom);team++) readDeluxeTeam(rom,team);
+      for(let team of activeTeamIds(rom)) readDeluxeTeam(rom,team);
     }
     const file=new Uint8Array(s.header.length+rom.length);file.set(s.header);file.set(rom,s.header.length);return file;
   }

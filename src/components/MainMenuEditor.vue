@@ -42,7 +42,7 @@ export default {
   graphicModified(){return JSON.stringify(this.graphic.matrix)!==JSON.stringify(this.originalGraphic.matrix);},
   buttonModified(){return JSON.stringify(menuButtonLines(this.rom,this.selected))!==JSON.stringify(menuButtonLines(this.original,this.selected));},
  },
- watch:{rom(){this.discard();}},mounted(){this.discard();},
+ watch:{rom(){if(this.textPending&&JSON.stringify(this.lines.map(line=>line.trim().toUpperCase()))!==JSON.stringify(menuButtonLines(this.rom,this.selected)))this.prepare();else this.discard();}},mounted(){this.discard();},
  methods:{
   discard(){this.lines=menuButtonLines(this.rom,this.selected);this.draft=null;this.textError='';},
   allow(){return !this.dirty||confirm(this.$t('Hay una previsualización que todavía no se aplicó a la ROM. ¿Descartar esa previsualización?'));},

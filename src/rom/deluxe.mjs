@@ -1,4 +1,4 @@
-import {teamCount,hasExtraTeams,teamPointer,teamTable,attributeOffset as playerAttributeOffset} from './team-count.mjs';
+import {teamCount,teamExists,hasPhysicalTeams,PHYSICAL_STAR_NAMES,hasExtraTeams,teamPointer,teamTable,attributeOffset as playerAttributeOffset} from './team-count.mjs';
 import { word, loRom, decompress, tiles, palette } from './binary.mjs';
 import { flagBank, labelBank } from './graphics.mjs';
 import { deluxeAppearance } from './appearance.mjs';
@@ -25,7 +25,7 @@ export function deluxeAttributes(bytes) {
 }
 
 export function readDeluxeTeam(rom, index) {
-  if (!Number.isInteger(index) || index < 0 || index >= teamCount(rom)) throw new Error('Equipo inválido.');
+  if (!teamExists(rom,index)) throw new Error('Equipo inválido.');
   const players = Array.from({ length: 20 }, (_, player) => {
     const nameOffset = deluxePlayerNameOffset(rom,index,player), attributeOffset = playerAttributeOffset(rom,index,player);
     const attributes = deluxeAttributes(rom.slice(attributeOffset, attributeOffset + 7));
@@ -41,11 +41,12 @@ export function readDeluxeTeam(rom, index) {
   colors.splice(12, 4, ...palette(rom, loRom(0x890000 | teamPointer(rom,0xe7d8,index)) + 2, 4));
   const nameAddress = labelBank(rom)<<16 | teamPointer(rom,0xe6c1,index);
   const teamMatrix = tiles(decompress(rom, loRom(nameAddress)), 2, 4);
-  return { name: DELUXE_TEAMS[index]||`TEAM ${index+1}`, sharedPlayerNames:index>=36&&index<42, players, flag, colors, teamMatrix, teamColors: ['transparent', '#ffffff', '#b8b8b8', '#555555'] };
+  return { name: DELUXE_TEAMS[index]||`TEAM ${index+1}`, sharedPlayerNames:index>=36&&index<42&&!hasPhysicalTeams(rom), players, flag, colors, teamMatrix, teamColors: ['transparent', '#ffffff', '#b8b8b8', '#555555'] };
 }
 
 // CODE_A49C89 / DATA_A4F643: star teams assemble names from national squads.
 export function deluxePlayerNameOffset(rom,team,player){
+  if(hasPhysicalTeams(rom)&&team>=36&&team<42)return loRom(PHYSICAL_STAR_NAMES)+(team-36)*160+player*8;
   if(team>=36&&team<42){
     const refs=loRom(0xa40000|word(rom,loRom(0xa4f643)+(team-36)*2))+player*4;
     const source=word(rom,refs)/2,slot=word(rom,refs+2)/8;

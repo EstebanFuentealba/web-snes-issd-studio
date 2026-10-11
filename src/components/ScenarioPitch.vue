@@ -24,10 +24,10 @@
 <script>
 import {scenarioPosition,scenarioPitchSize,scenarioPositionChanges,positionOnPitch,scenarioAutomaticPosition} from '../rom/scenario-position.mjs';
 export default {
-  props:{scenario:Object},emits:['change'],data(){return {draft:null,pointer:null};},
-  computed:{automatic(){return scenarioAutomaticPosition(this.scenario);},size(){return scenarioPitchSize(this.scenario.stadium);},position(){return this.draft||this.automatic||scenarioPosition(this.scenario);},outside(){const p=this.position;return p.x<0||p.x>this.size.length||p.y<0||p.y>this.size.width;},marker(){return {x:30+Math.max(0,Math.min(1,this.position.x/this.size.length))*660,y:25+Math.max(0,Math.min(1,this.position.y/this.size.width))*250};}},
+  props:{scenario:Object,rom:Uint8Array},emits:['change'],data(){return {draft:null,pointer:null};},
+  computed:{automatic(){return scenarioAutomaticPosition(this.scenario,this.rom);},size(){return scenarioPitchSize(this.scenario.stadium,this.rom);},position(){return this.draft||this.automatic||scenarioPosition(this.scenario);},outside(){const p=this.position;return p.x<0||p.x>this.size.length||p.y<0||p.y>this.size.width;},marker(){return {x:30+Math.max(0,Math.min(1,this.position.x/this.size.length))*660,y:25+Math.max(0,Math.min(1,this.position.y/this.size.width))*250};}},
   methods:{
-    point(event){const svg=this.$refs.pitch,p=svg.createSVGPoint();p.x=event.clientX;p.y=event.clientY;const local=p.matrixTransform(svg.getScreenCTM().inverse());return positionOnPitch({x:(local.x-30)/660,y:(local.y-25)/250},this.scenario.stadium);},
+    point(event){const svg=this.$refs.pitch,p=svg.createSVGPoint();p.x=event.clientX;p.y=event.clientY;const local=p.matrixTransform(svg.getScreenCTM().inverse());return positionOnPitch({x:(local.x-30)/660,y:(local.y-25)/250},this.scenario.stadium,this.rom);},
     begin(event){if(this.automatic||!event.isPrimary||event.button!==0)return;event.preventDefault();this.pointer=event.pointerId;this.$refs.pitch.setPointerCapture(event.pointerId);this.draft=this.point(event);this.$refs.pitch.querySelector('.ball').focus();},
     move(event){if(this.pointer===event.pointerId)this.draft=this.point(event);},
     finish(event){if(this.pointer!==event.pointerId)return;const p=this.point(event);this.pointer=null;this.draft=null;this.$emit('change',scenarioPositionChanges(p.x,p.y));},

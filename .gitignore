@@ -6,3 +6,10 @@ dist-ssr
 roms/
 issd-*-preview.png
 issd-*-preview.jpg
+issd-*-restored.jpg
+issd-*-restored.png
+issd-*-reviewed.jpg
+issd-*-reviewed.png
+issd-*-fixed.jpg
+issd-*-fixed.png
+public/menu-references

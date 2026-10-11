@@ -3633,5 +3633,715 @@
     "es": "Desde PRESS START: pulsa Start, luego A en OPEN GAME, A en el modo individual y A en 1P contra CPU. Espera a que aparezca cada menú antes de continuar.",
     "en": "From PRESS START: press Start, then A on OPEN GAME, A on single game mode and A on 1P versus CPU. Wait for each menu to appear before continuing.",
     "pt": "A partir de PRESS START: pressione Start, depois A em OPEN GAME, A no modo individual e A em 1P contra CPU. Espere cada menu aparecer antes de continuar."
+  },
+  "Eliminar equipo de los grupos": {
+    "es": "Eliminar equipo de los grupos",
+    "en": "Remove team from groups",
+    "pt": "Remover equipe dos grupos"
+  },
+  "equipos en los grupos seleccionables": {
+    "es": "equipos en los grupos seleccionables",
+    "en": "teams in selectable groups",
+    "pt": "equipes nos grupos selecionáveis"
+  },
+  "Eliminar quita el equipo de todos los grupos. Sus datos y referencias en Scenarios se conservan; no libera un espacio adicional. Puedes deshacer o volver a incluirlo desde Grupos.": {
+    "es": "Eliminar quita el equipo de todos los grupos. Sus datos y referencias en Scenarios se conservan; no libera un espacio adicional. Puedes deshacer o volver a incluirlo desde Grupos.",
+    "en": "Removing a team takes it out of every group. Its data and Scenario references are preserved; it does not free an additional slot. Undo or add it back through Groups.",
+    "pt": "Remover tira a equipe de todos os grupos. Seus dados e referências em Scenarios são preservados; não libera um espaço adicional. Você pode desfazer ou incluí-la novamente em Grupos."
+  },
+  "Este equipo está fuera de los grupos seleccionables.": {
+    "es": "Este equipo está fuera de los grupos seleccionables.",
+    "en": "This team is outside the selectable groups.",
+    "pt": "Esta equipe está fora dos grupos selecionáveis."
+  },
+  "Los nombres de jugadores admiten 8 caracteres. Los nombres grandes de equipos dependen del espacio gráfico de cada slot; los pequeños deben caber en 32 píxeles. Ampliar estos límites requiere modificar las rutinas de la ROM.": {
+    "es": "Los nombres de jugadores admiten 8 caracteres. Los nombres grandes de equipos dependen del espacio gráfico de cada slot; los pequeños deben caber en 32 píxeles. Ampliar estos límites requiere modificar las rutinas de la ROM.",
+    "en": "Player names support 8 characters. Large team names depend on each slot’s graphic capacity; small names must fit in 32 pixels. Increasing these limits requires changes to ROM routines.",
+    "pt": "Os nomes de jogadores aceitam 8 caracteres. Os nomes grandes de equipes dependem do espaço gráfico de cada slot; os pequenos devem caber em 32 pixels. Ampliar esses limites exige modificar as rotinas da ROM."
+  },
+  "¿Quitar este equipo de todos los grupos seleccionables? Puedes deshacer este cambio.": {
+    "es": "¿Quitar este equipo de todos los grupos seleccionables? Puedes deshacer este cambio.",
+    "en": "Remove this team from every selectable group? You can undo this change.",
+    "pt": "Remover esta equipe de todos os grupos selecionáveis? Você pode desfazer esta alteração."
+  },
+  "El equipo ya está fuera de los grupos seleccionables.": {
+    "es": "El equipo ya está fuera de los grupos seleccionables.",
+    "en": "The team is already outside the selectable groups.",
+    "pt": "A equipe já está fora dos grupos selecionáveis."
+  },
+  "Menus": {
+    "es": "Menus",
+    "pt": "Menus",
+    "en": "Menus"
+  },
+  "Menú secundario": {
+    "es": "Menú secundario",
+    "pt": "Menu secundário",
+    "en": "Secondary menu"
+  },
+  "Menú settings": {
+    "es": "Menú settings",
+    "pt": "Menu settings",
+    "en": "Settings menu"
+  },
+  "Menú training": {
+    "es": "Menú training",
+    "pt": "Menu training",
+    "en": "Training menu"
+  },
+  "Menú handicap": {
+    "es": "Menú handicap",
+    "pt": "Menu handicap",
+    "en": "Handicap menu"
+  },
+  "Menú juego": {
+    "es": "Menú juego",
+    "pt": "Menu de jogo",
+    "en": "Game menu"
+  },
+  "Captura de referencia. La edición de este menú en la ROM todavía no está disponible.": {
+    "es": "Captura de referencia. La edición de este menú en la ROM todavía no está disponible.",
+    "pt": "Captura de referência. A edição deste menu na ROM ainda não está disponível.",
+    "en": "Reference screenshot. Editing this menu in the ROM is not available yet."
+  },
+  "Texto armado con sus tiles y paletas originales. Puedes dibujar o importar una imagen. Las letras y sus reflejos reutilizan píxeles; editar la fuente de los títulos también cambia sus otras apariciones. El texto de contraseña comparte letras con otros menús. Los colores se ajustan a la paleta de cada zona.": {
+    "es": "Texto armado con sus tiles y paletas originales. Puedes dibujar o importar una imagen. Las letras y sus reflejos reutilizan píxeles; editar la fuente de los títulos también cambia sus otras apariciones. El texto de contraseña comparte letras con otros menús. Los colores se ajustan a la paleta de cada zona.",
+    "en": "Text assembled with its original tiles and palettes. Draw or import an image. Letters and reflections reuse pixels; editing the title font also changes its other appearances. Password letters are shared with other menus. Colors are matched to each area’s palette.",
+    "pt": "Texto montado com seus tiles e paletas originais. Desenhe ou importe uma imagem. Letras e reflexos reutilizam pixels; editar a fonte dos títulos também altera suas outras aparições. O texto de senha compartilha letras com outros menus. As cores são ajustadas à paleta de cada área."
+  },
+  "Título de modo · SHORT LEAGUE": {
+    "es": "Título de modo · SHORT LEAGUE",
+    "en": "Mode title · SHORT LEAGUE",
+    "pt": "Título de modo · SHORT LEAGUE"
+  },
+  "Título de modo · SHORT TOURNAMENT": {
+    "es": "Título de modo · SHORT TOURNAMENT",
+    "en": "Mode title · SHORT TOURNAMENT",
+    "pt": "Título de modo · SHORT TOURNAMENT"
+  },
+  "Título de modo · INTERNATIONAL": {
+    "es": "Título de modo · INTERNATIONAL",
+    "en": "Mode title · INTERNATIONAL",
+    "pt": "Título de modo · INTERNATIONAL"
+  },
+  "Título de modo · WORLD SERIES · 1ST SEASON": {
+    "es": "Título de modo · WORLD SERIES · 1ST SEASON",
+    "en": "Mode title · WORLD SERIES · 1ST SEASON",
+    "pt": "Título de modo · WORLD SERIES · 1ST SEASON"
+  },
+  "Contraseña · ENTER PASSWORD": {
+    "es": "Contraseña · ENTER PASSWORD",
+    "en": "Password · ENTER PASSWORD",
+    "pt": "Senha · ENTER PASSWORD"
+  },
+  "Estadios": {
+    "es": "Estadios",
+    "pt": "Estádios",
+    "en": "Stadiums"
+  },
+  "Restaurar estadio": {
+    "es": "Restaurar estadio",
+    "pt": "Restaurar estádio",
+    "en": "Restore stadium"
+  },
+  "Restaurar todos los estadios": {
+    "es": "Restaurar todos los estadios",
+    "pt": "Restaurar todos os estádios",
+    "en": "Restore all stadiums"
+  },
+  "Seleccionar estadio": {
+    "es": "Seleccionar estadio",
+    "pt": "Selecionar estádio",
+    "en": "Select stadium"
+  },
+  "yardas": {
+    "es": "yardas",
+    "pt": "jardas",
+    "en": "yards"
+  },
+  "yardas de ancho": {
+    "es": "yardas de ancho",
+    "pt": "jardas de largura",
+    "en": "yards wide"
+  },
+  "Nombre del estadio en el selector": {
+    "es": "Nombre del estadio en el selector",
+    "pt": "Nome do estádio no seletor",
+    "en": "Stadium name in the selector"
+  },
+  "Vista previa de las medidas": {
+    "es": "Vista previa de las medidas",
+    "pt": "Prévia das medidas",
+    "en": "Dimension preview"
+  },
+  "Nombre y medidas del selector": {
+    "es": "Nombre y medidas del selector",
+    "pt": "Nome e medidas do seletor",
+    "en": "Selector name and dimensions"
+  },
+  "Nombre del estadio": {
+    "es": "Nombre del estadio",
+    "pt": "Nome do estádio",
+    "en": "Stadium name"
+  },
+  "Largo en yardas": {
+    "es": "Largo en yardas",
+    "pt": "Comprimento em jardas",
+    "en": "Length in yards"
+  },
+  "Ancho en yardas": {
+    "es": "Ancho en yardas",
+    "pt": "Largura em jardas",
+    "en": "Width in yards"
+  },
+  "Hasta 7 caracteres A–Z, puntos y espacios. El nombre se actualiza en la selección y en la información del partido.": {
+    "es": "Hasta 7 caracteres A–Z, puntos y espacios. El nombre se actualiza en la selección y en la información del partido.",
+    "pt": "Até 7 caracteres: A–Z, pontos e espaços. O nome é atualizado na seleção e nas informações da partida.",
+    "en": "Up to 7 characters: A–Z, periods and spaces. The name updates in stadium selection and match information."
+  },
+  "Las yardas se muestran en el selector. Las medidas de juego se editan por separado.": {
+    "es": "Las yardas se muestran en el selector. Las medidas de juego se editan por separado.",
+    "pt": "As jardas são exibidas no seletor. As medidas de jogo são editadas separadamente.",
+    "en": "Yards are displayed in the selector. Match dimensions are edited separately."
+  },
+  "Medidas de juego · avanzado": {
+    "es": "Medidas de juego · avanzado",
+    "pt": "Medidas de jogo · avançado",
+    "en": "Match dimensions · advanced"
+  },
+  "Estas unidades definen los límites de la cancha y las posiciones de Scenarios. Cambiarlas no redibuja las líneas, muros ni gradas; revisa el resultado en el emulador.": {
+    "es": "Estas unidades definen los límites de la cancha y las posiciones de Scenarios. Cambiarlas no redibuja las líneas, muros ni gradas; revisa el resultado en el emulador.",
+    "pt": "Estas unidades definem os limites do campo e as posições dos cenários. Alterá-las não redesenha linhas, muros ou arquibancadas; confira o resultado no emulador.",
+    "en": "These units define pitch boundaries and scenario positions. Changing them does not redraw lines, walls or stands; check the result in the emulator."
+  },
+  "Largo de juego": {
+    "es": "Largo de juego",
+    "pt": "Comprimento de jogo",
+    "en": "Match length"
+  },
+  "Ancho de juego": {
+    "es": "Ancho de juego",
+    "pt": "Largura de jogo",
+    "en": "Match width"
+  },
+  "Aplicar nombre y medidas": {
+    "es": "Aplicar nombre y medidas",
+    "pt": "Aplicar nome e medidas",
+    "en": "Apply name and dimensions"
+  },
+  "Descartar cambios": {
+    "es": "Descartar cambios",
+    "pt": "Descartar alterações",
+    "en": "Discard changes"
+  },
+  "Diseños y colores": {
+    "es": "Diseños y colores",
+    "pt": "Desenhos e cores",
+    "en": "Designs and colors"
+  },
+  "Recurso del estadio": {
+    "es": "Recurso del estadio",
+    "pt": "Recurso do estádio",
+    "en": "Stadium asset"
+  },
+  "Paleta del estadio": {
+    "es": "Paleta del estadio",
+    "pt": "Paleta do estádio",
+    "en": "Stadium palette"
+  },
+  "Fila de paleta": {
+    "es": "Fila de paleta",
+    "pt": "Linha da paleta",
+    "en": "Palette row"
+  },
+  "Compartido": {
+    "es": "Compartido",
+    "pt": "Compartilhado",
+    "en": "Shared"
+  },
+  "Edita los tiles de carteles, muros, césped y vistas del selector. Los tiles se repiten en el juego; cada bloque usa una fila de 16 colores.": {
+    "es": "Edita los tiles de carteles, muros, césped y vistas del selector. Los tiles se repiten en el juego; cada bloque usa una fila de 16 colores.",
+    "pt": "Edite os tiles de cartazes, muros, gramado e prévias do seletor. Os tiles se repetem no jogo; cada bloco usa uma linha de 16 cores.",
+    "en": "Edit tiles for banners, walls, grass and selector previews. Tiles repeat in the game; each block uses one row of 16 colors."
+  },
+  "Este diseño es compartido por varios estadios. Sus cambios se aplican a todas sus apariciones.": {
+    "es": "Este diseño es compartido por varios estadios. Sus cambios se aplican a todas sus apariciones.",
+    "pt": "Este desenho é compartilhado por vários estádios. As alterações afetam todas as suas aparições.",
+    "en": "This design is shared by several stadiums. Changes affect all its appearances."
+  },
+  "Esta paleta es compartida por el selector de estadios.": {
+    "es": "Esta paleta es compartida por el selector de estadios.",
+    "pt": "Esta paleta é compartilhada pelo seletor de estádios.",
+    "en": "This palette is shared by the stadium selector."
+  },
+  "Color del estadio": {
+    "es": "Color del estadio",
+    "pt": "Cor do estádio",
+    "en": "Stadium color"
+  },
+  "Restaurar diseño": {
+    "es": "Restaurar diseño",
+    "pt": "Restaurar desenho",
+    "en": "Restore design"
+  },
+  "Restaurar paleta": {
+    "es": "Restaurar paleta",
+    "pt": "Restaurar paleta",
+    "en": "Restore palette"
+  },
+  "Aplica o descarta el dibujo pendiente antes de cambiar la paleta.": {
+    "es": "Aplica o descarta el dibujo pendiente antes de cambiar la paleta.",
+    "pt": "Aplique ou descarte o desenho pendente antes de mudar a paleta.",
+    "en": "Apply or discard the pending drawing before changing the palette."
+  },
+  "Aplica o descarta el dibujo pendiente antes de aplicar los datos del estadio.": {
+    "es": "Aplica o descarta el dibujo pendiente antes de aplicar los datos del estadio.",
+    "pt": "Aplique ou descarte o desenho pendente antes de aplicar os dados do estádio.",
+    "en": "Apply or discard the pending drawing before applying stadium data."
+  },
+  "Aplica o descarta el nombre y las medidas antes de editar los diseños.": {
+    "es": "Aplica o descarta el nombre y las medidas antes de editar los diseños.",
+    "pt": "Aplique ou descarte o nome e as medidas antes de editar os desenhos.",
+    "en": "Apply or discard the name and dimensions before editing designs."
+  },
+  "Aplica o descarta los cambios pendientes antes de editar los colores.": {
+    "es": "Aplica o descarta los cambios pendientes antes de editar los colores.",
+    "pt": "Aplique ou descarte as alterações pendentes antes de editar as cores.",
+    "en": "Apply or discard pending changes before editing colors."
+  },
+  "Estadio inválido.": {
+    "es": "Estadio inválido.",
+    "pt": "Estádio inválido.",
+    "en": "Invalid stadium."
+  },
+  "El nombre admite hasta 7 caracteres A–Z, puntos y espacios.": {
+    "es": "El nombre admite hasta 7 caracteres A–Z, puntos y espacios.",
+    "pt": "O nome admite até 7 caracteres: A–Z, pontos e espaços.",
+    "en": "The name supports up to 7 characters: A–Z, periods and spaces."
+  },
+  "Medidas de estadio inválidas.": {
+    "es": "Medidas de estadio inválidas.",
+    "pt": "Medidas de estádio inválidas.",
+    "en": "Invalid stadium dimensions."
+  },
+  "Medidas de estadio fuera de rango.": {
+    "es": "Medidas de estadio fuera de rango.",
+    "pt": "Medidas de estádio fora do intervalo.",
+    "en": "Stadium dimensions out of range."
+  },
+  "Medidas en yardas fuera de rango (100–140 × 64–96).": {
+    "es": "Medidas en yardas fuera de rango (100–140 × 64–96).",
+    "pt": "Medidas em jardas fora do intervalo (100–140 × 64–96).",
+    "en": "Yard dimensions out of range (100–140 × 64–96)."
+  },
+  "La cancha admite largo 1792–2176 y ancho 576–704, en pasos de 64.": {
+    "es": "La cancha admite largo 1792–2176 y ancho 576–704, en pasos de 64.",
+    "pt": "O campo admite comprimento 1792–2176 e largura 576–704, em passos de 64.",
+    "en": "The pitch supports length 1792–2176 and width 576–704, in steps of 64."
+  },
+  "Nombre de estadio inválido.": {
+    "es": "Nombre de estadio inválido.",
+    "pt": "Nome de estádio inválido.",
+    "en": "Invalid stadium name."
+  },
+  "Cargador de estadios no compatible.": {
+    "es": "Cargador de estadios no compatible.",
+    "pt": "Carregador de estádios incompatível.",
+    "en": "Unsupported stadium loader."
+  },
+  "El espacio reservado para nombres de estadios está ocupado.": {
+    "es": "El espacio reservado para nombres de estadios está ocupado.",
+    "pt": "O espaço reservado para nomes de estádios está ocupado.",
+    "en": "The space reserved for stadium names is occupied."
+  },
+  "Rótulos de estadios inválidos.": {
+    "es": "Rótulos de estadios inválidos.",
+    "pt": "Rótulos de estádios inválidos.",
+    "en": "Invalid stadium labels."
+  },
+  "Rótulos de estadios incompletos.": {
+    "es": "Rótulos de estadios incompletos.",
+    "pt": "Rótulos de estádios incompletos.",
+    "en": "Incomplete stadium labels."
+  },
+  "Color de estadio inválido.": {
+    "es": "Color de estadio inválido.",
+    "pt": "Cor de estádio inválida.",
+    "en": "Invalid stadium color."
+  },
+  "El diseño requiere {0} bytes; hay {1}. Reduce el detalle.": {
+    "es": "El diseño requiere {0} bytes; hay {1}. Reduce el detalle.",
+    "pt": "O desenho requer {0} bytes; há {1} disponíveis. Reduza o detalhe.",
+    "en": "The design requires {0} bytes; {1} are available. Reduce detail."
+  },
+  "Despejado · campo y gradas": {
+    "es": "Despejado · campo y gradas",
+    "pt": "Tempo bom · campo e arquibancadas",
+    "en": "Clear · field and stands"
+  },
+  "Noche despejada · campo": {
+    "es": "Noche despejada · campo",
+    "pt": "Noite clara · campo",
+    "en": "Clear night · field"
+  },
+  "Lluvia · campo y gradas": {
+    "es": "Lluvia · campo y gradas",
+    "pt": "Chuva · campo e arquibancadas",
+    "en": "Rain · field and stands"
+  },
+  "Lluvia · detalles": {
+    "es": "Lluvia · detalles",
+    "pt": "Chuva · detalhes",
+    "en": "Rain · details"
+  },
+  "Nieve · campo y gradas": {
+    "es": "Nieve · campo y gradas",
+    "pt": "Neve · campo e arquibancadas",
+    "en": "Snow · field and stands"
+  },
+  "Nieve · detalles": {
+    "es": "Nieve · detalles",
+    "pt": "Neve · detalhes",
+    "en": "Snow · details"
+  },
+  "Noche · campo y gradas": {
+    "es": "Noche · campo y gradas",
+    "pt": "Noite · campo e arquibancadas",
+    "en": "Night · field and stands"
+  },
+  "Noche · detalles": {
+    "es": "Noche · detalles",
+    "pt": "Noite · detalhes",
+    "en": "Night · details"
+  },
+  "Camarógrafos": {
+    "es": "Camarógrafos",
+    "pt": "Cinegrafistas",
+    "en": "Camera operators"
+  },
+  "Gradas y carteles": {
+    "es": "Gradas y carteles",
+    "pt": "Arquibancadas e cartazes",
+    "en": "Stands and banners"
+  },
+  "Penales · sombra de la red": {
+    "es": "Penales · sombra de la red",
+    "pt": "Pênaltis · sombra da rede",
+    "en": "Penalty kicks · net shadow"
+  },
+  "Penales · césped": {
+    "es": "Penales · césped",
+    "pt": "Pênaltis · gramado",
+    "en": "Penalty kicks · grass"
+  },
+  "Penales · carteles": {
+    "es": "Penales · carteles",
+    "pt": "Pênaltis · cartazes",
+    "en": "Penalty kicks · banners"
+  },
+  "Vista de gradas · carteles": {
+    "es": "Vista de gradas · carteles",
+    "pt": "Vista das arquibancadas · cartazes",
+    "en": "Stands view · banners"
+  },
+  "Selector · climas": {
+    "es": "Selector · climas",
+    "pt": "Seletor · clima",
+    "en": "Selector · weather"
+  },
+  "Selector · cancha": {
+    "es": "Selector · cancha",
+    "pt": "Seletor · campo",
+    "en": "Selector · pitch"
+  },
+  "Selector · nombres": {
+    "es": "Selector · nombres",
+    "pt": "Seletor · nomes",
+    "en": "Selector · names"
+  },
+  "Capa 1 · Cartel 1": {
+    "es": "Capa 1 · Cartel 1",
+    "pt": "Camada 1 · Cartaz 1",
+    "en": "Layer 1 · Banner 1"
+  },
+  "Capa 1 · Cartel 2": {
+    "es": "Capa 1 · Cartel 2",
+    "pt": "Camada 1 · Cartaz 2",
+    "en": "Layer 1 · Banner 2"
+  },
+  "Capa 1 · Cartel 3": {
+    "es": "Capa 1 · Cartel 3",
+    "pt": "Camada 1 · Cartaz 3",
+    "en": "Layer 1 · Banner 3"
+  },
+  "Capa 1 · Cartel 4": {
+    "es": "Capa 1 · Cartel 4",
+    "pt": "Camada 1 · Cartaz 4",
+    "en": "Layer 1 · Banner 4"
+  },
+  "Capa 1 · Cartel 5": {
+    "es": "Capa 1 · Cartel 5",
+    "pt": "Camada 1 · Cartaz 5",
+    "en": "Layer 1 · Banner 5"
+  },
+  "Capa 1 · Cartel s4": {
+    "es": "Capa 1 · Cartel s4",
+    "pt": "Camada 1 · Cartazes 4",
+    "en": "Layer 1 · Banners 4"
+  },
+  "Capa 1 · Cartel s3": {
+    "es": "Capa 1 · Cartel s3",
+    "pt": "Camada 1 · Cartazes 3",
+    "en": "Layer 1 · Banners 3"
+  },
+  "Capa 1 · Detalles": {
+    "es": "Capa 1 · Detalles",
+    "pt": "Camada 1 · Detalhes",
+    "en": "Layer 1 · Details"
+  },
+  "Capa 2 · Tierra y muros diagonales": {
+    "es": "Capa 2 · Tierra y muros diagonales",
+    "pt": "Camada 2 · Terra e muros diagonais",
+    "en": "Layer 2 · Dirt and diagonal walls"
+  },
+  "Capa 2 · Césped": {
+    "es": "Capa 2 · Césped",
+    "pt": "Camada 2 · Gramado",
+    "en": "Layer 2 · Grass"
+  },
+  "Capa 1 · Muros y público": {
+    "es": "Capa 1 · Muros y público",
+    "pt": "Camada 1 · Muros e público",
+    "en": "Layer 1 · Walls and audience"
+  },
+  "Capa 1 · Cámaras sobre el césped": {
+    "es": "Capa 1 · Cámaras sobre el césped",
+    "pt": "Camada 1 · Câmeras sobre o gramado",
+    "en": "Layer 1 · Cameras above grass"
+  },
+  "Capa 1 · Sombras de muros sobre el césped": {
+    "es": "Capa 1 · Sombras de muros sobre el césped",
+    "pt": "Camada 1 · Sombras de muros sobre o gramado",
+    "en": "Layer 1 · Wall shadows on grass"
+  },
+  "Capa 1 · Selector · Climas": {
+    "es": "Capa 1 · Selector · Climas",
+    "pt": "Camada 1 · Seletor · Clima",
+    "en": "Layer 1 · Selector · Weather"
+  },
+  "Capa 1 · Selector · Miniaturas de canchas": {
+    "es": "Capa 1 · Selector · Miniaturas de canchas",
+    "pt": "Camada 1 · Seletor · Miniaturas de campos",
+    "en": "Layer 1 · Selector · Pitch thumbnails"
+  },
+  "Capa 2 · Muros diagonales": {
+    "es": "Capa 2 · Muros diagonales",
+    "pt": "Camada 2 · Muros diagonais",
+    "en": "Layer 2 · Diagonal walls"
+  },
+  "Capa 1 · Muros diagonales rojos": {
+    "es": "Capa 1 · Muros diagonales rojos",
+    "pt": "Camada 1 · Muros diagonais vermelhos",
+    "en": "Layer 1 · Red diagonal walls"
+  },
+  "Edita los rótulos y las descripciones de este menú. Cada opción conserva su función en el juego.": {
+    "es": "Edita los rótulos y las descripciones de este menú. Cada opción conserva su función en el juego.",
+    "pt": "Edite os rótulos e as descrições deste menu. Cada opção mantém sua função no jogo.",
+    "en": "Edit this menu’s labels and descriptions. Each option keeps its function in the game."
+  },
+  "Previsualización de textos con la fuente de la ROM.": {
+    "es": "Previsualización de textos con la fuente de la ROM.",
+    "pt": "Prévia dos textos com a fonte da ROM.",
+    "en": "Text preview using the ROM’s font."
+  },
+  "Texto del rótulo": {
+    "es": "Texto del rótulo",
+    "pt": "Texto do rótulo",
+    "en": "Label text"
+  },
+  "Hasta {0} líneas de {1} caracteres por línea.": {
+    "es": "Hasta {0} líneas de {1} caracteres por línea.",
+    "pt": "Até {0} linhas de {1} caracteres por linha.",
+    "en": "Up to {0} lines of {1} characters per line."
+  },
+  "Usa letras sin tildes, números, espacios y puntuación compatible con la fuente del menú.": {
+    "es": "Usa letras sin tildes, números, espacios y puntuación compatible con la fuente del menú.",
+    "pt": "Use letras sem acentos, números, espaços e pontuação compatível com a fonte do menu.",
+    "en": "Use unaccented letters, numbers, spaces and punctuation supported by the menu font."
+  },
+  "Los rótulos originales compactos se conservan al restaurar. Los textos nuevos usan la fuente de caracteres del juego.": {
+    "es": "Los rótulos originales compactos se conservan al restaurar. Los textos nuevos usan la fuente de caracteres del juego.",
+    "pt": "Os rótulos originais compactos são preservados ao restaurar. Os novos textos usam a fonte de caracteres do jogo.",
+    "en": "Restoring preserves the compact original labels. New text uses the game’s character font."
+  },
+  "Este texto es compartido: el cambio se aplica a todos sus usos en el juego.": {
+    "es": "Este texto es compartido: el cambio se aplica a todos sus usos en el juego.",
+    "pt": "Este texto é compartilhado: a alteração se aplica a todos os seus usos no jogo.",
+    "en": "This text is shared: changes apply wherever it is used in the game."
+  },
+  "El texto excede las líneas o los caracteres disponibles para este rótulo.": {
+    "es": "El texto excede las líneas o los caracteres disponibles para este rótulo.",
+    "pt": "O texto excede as linhas ou os caracteres disponíveis para este rótulo.",
+    "en": "Text exceeds the lines or characters available for this label."
+  },
+  "El rótulo no puede quedar vacío.": {
+    "es": "El rótulo no puede quedar vacío.",
+    "pt": "O rótulo não pode ficar vazio.",
+    "en": "The label cannot be empty."
+  },
+  "Menú inválido.": {
+    "es": "Menú inválido.",
+    "pt": "Menu inválido.",
+    "en": "Invalid menu."
+  },
+  "Texto de menú inválido.": {
+    "es": "Texto de menú inválido.",
+    "pt": "Texto de menu inválido.",
+    "en": "Invalid menu text."
+  },
+  "Composición del menú juego inválida.": {
+    "es": "Composición del menú juego inválida.",
+    "pt": "Composição do menu de jogo inválida.",
+    "en": "Invalid game menu layout."
+  },
+  "Rótulo del menú juego inválido.": {
+    "es": "Rótulo del menú juego inválido.",
+    "pt": "Rótulo do menu de jogo inválido.",
+    "en": "Invalid game menu label."
+  },
+  "El texto del menú juego excede su espacio comprimido. Acorta los rótulos.": {
+    "es": "El texto del menú juego excede su espacio comprimido. Acorta los rótulos.",
+    "pt": "O texto do menu de jogo excede seu espaço comprimido. Encurte os rótulos.",
+    "en": "Game menu text exceeds its compressed space. Shorten the labels."
+  },
+  "El espacio reservado para el menú juego está ocupado.": {
+    "es": "El espacio reservado para el menú juego está ocupado.",
+    "pt": "O espaço reservado para o menu de jogo está ocupado.",
+    "en": "The reserved game menu space is occupied."
+  },
+  "Descripción de training": {
+    "es": "Descripción de training",
+    "pt": "Descrição de training",
+    "en": "Training description"
+  },
+  "Descripción de challenge": {
+    "es": "Descripción de challenge",
+    "pt": "Descrição de challenge",
+    "en": "Challenge description"
+  },
+  "Instrucciones de handicap": {
+    "es": "Instrucciones de handicap",
+    "pt": "Instruções de handicap",
+    "en": "Handicap instructions"
+  },
+  "Eliminar físicamente de la ROM": {
+    "es": "Eliminar físicamente de la ROM",
+    "en": "Delete physically from the ROM",
+    "pt": "Excluir fisicamente da ROM"
+  },
+  "La eliminación física borra los datos exclusivos del equipo y libera su espacio para crear otro. Los datos compartidos se conservan y las referencias del juego se redirigen a un equipo existente. Puedes deshacer el cambio.": {
+    "es": "La eliminación física borra los datos exclusivos del equipo y libera su espacio para crear otro. Los datos compartidos se conservan y las referencias del juego se redirigen a un equipo existente. Puedes deshacer el cambio.",
+    "en": "Physical deletion erases the team’s exclusive data and frees its slot for a new team. Shared data is preserved and game references are redirected to an existing team. You can undo the change.",
+    "pt": "A exclusão física apaga os dados exclusivos da equipe e libera seu espaço para criar outra. Os dados compartilhados são preservados e as referências do jogo são redirecionadas para uma equipe existente. Você pode desfazer a alteração."
+  },
+  "Capa 1 · Carteles 3": {
+    "es": "Capa 1 · Carteles 3",
+    "pt": "Camada 1 · Cartazes 3",
+    "en": "Layer 1 · Banners 3"
+  },
+  "Capa 1 · Carteles 4": {
+    "es": "Capa 1 · Carteles 4",
+    "pt": "Camada 1 · Cartazes 4",
+    "en": "Layer 1 · Banners 4"
+  },
+  "¿Borrar físicamente este equipo de la ROM y liberar su espacio? Sus referencias se redirigirán a otro equipo. Puedes deshacer el cambio.": {
+    "es": "¿Borrar físicamente este equipo de la ROM y liberar su espacio? Sus referencias se redirigirán a otro equipo. Puedes deshacer el cambio.",
+    "en": "Physically delete this team from the ROM and free its slot? Its references will be redirected to another team. You can undo the change.",
+    "pt": "Excluir fisicamente esta equipe da ROM e liberar seu espaço? Suas referências serão redirecionadas para outra equipe. Você pode desfazer a alteração."
+  },
+  "Debe quedar al menos un equipo en la ROM.": {
+    "es": "Debe quedar al menos un equipo en la ROM.",
+    "en": "At least one team must remain in the ROM.",
+    "pt": "Deve restar pelo menos uma equipe na ROM."
+  },
+  "Un grupo referencia un equipo eliminado.": {
+    "es": "Un grupo referencia un equipo eliminado.",
+    "en": "A group references a deleted team.",
+    "pt": "Um grupo referencia uma equipe excluída."
+  },
+  "El espacio para la eliminación física está ocupado.": {
+    "es": "El espacio para la eliminación física está ocupado.",
+    "en": "The space reserved for physical deletion is occupied.",
+    "pt": "O espaço reservado para a exclusão física está ocupado."
+  },
+  "El equipo nuevo copia Italia si está disponible; si fue eliminada, copia el primer equipo existente. Se elige un espacio libre compatible con el nombre. Los espacios originales reutilizados conservan los recursos gráficos compartidos.": {
+    "es": "El equipo nuevo copia Italia si está disponible; si fue eliminada, copia el primer equipo existente. Se elige un espacio libre compatible con el nombre. Los espacios originales reutilizados conservan los recursos gráficos compartidos.",
+    "en": "A new team copies Italy when available; if it was deleted, it copies the first existing team. A free slot compatible with the name is selected. Reused original slots preserve shared graphics.",
+    "pt": "Uma nova equipe copia a Itália quando disponível; se ela foi excluída, copia a primeira equipe existente. Um espaço livre compatível com o nome é selecionado. Os espaços originais reutilizados preservam os gráficos compartilhados."
+  },
+  "Edita sobre el diseño armado. Las zonas oscuras sirven de contexto y no se modifican. Los fragmentos repetidos se actualizan juntos.": {
+    "es": "Edita sobre el diseño armado. Las zonas oscuras sirven de contexto y no se modifican. Los fragmentos repetidos se actualizan juntos.",
+    "en": "Edit the assembled design. Dark areas provide context and cannot be changed. Repeated fragments update together.",
+    "pt": "Edite o desenho montado. As áreas escuras servem de contexto e não são alteradas. Os fragmentos repetidos são atualizados juntos."
+  },
+  "Vista del diseño": {
+    "es": "Vista del diseño",
+    "en": "Design view",
+    "pt": "Vista do desenho"
+  },
+  "Ver diseño armado": {
+    "es": "Ver diseño armado",
+    "en": "View assembled design",
+    "pt": "Ver desenho montado"
+  },
+  "Ver tiles · avanzado": {
+    "es": "Ver tiles · avanzado",
+    "en": "View tiles · advanced",
+    "pt": "Ver tiles · avançado"
+  },
+  "Este recurso no aparece en la vista de partido de este estadio. Disponible en modo avanzado.": {
+    "es": "Este recurso no aparece en la vista de partido de este estadio. Disponible en modo avanzado.",
+    "en": "This resource does not appear in this stadium’s match view. Available in advanced mode.",
+    "pt": "Este recurso não aparece na vista de partida deste estádio. Disponível no modo avançado."
+  },
+  "Resetear Todo": {
+    "es": "Resetear Todo",
+    "en": "Reset all",
+    "pt": "Redefinir tudo"
+  },
+  "Vista": {
+    "es": "Vista",
+    "en": "View",
+    "pt": "Vista"
+  },
+  "Este recurso compartido se muestra en un estadio donde aparece durante el partido.": {
+    "es": "Este recurso compartido se muestra en un estadio donde aparece durante el partido.",
+    "en": "This shared resource is shown in a stadium where it appears during a match.",
+    "pt": "Este recurso compartilhado é mostrado em um estádio onde aparece durante a partida."
+  },
+  "Este recurso contiene el público visible por encima del muro, tal como aparece en el partido.": {
+    "es": "Este recurso contiene el público visible por encima del muro, tal como aparece en el partido.",
+    "en": "This resource contains the crowd visible above the wall, as it appears during a match.",
+    "pt": "Este recurso contém o público visível acima do muro, tal como aparece na partida."
+  },
+  "Crear ROM sin equipos": {
+    "es": "Crear ROM sin equipos",
+    "en": "Create ROM without teams",
+    "pt": "Criar ROM sem equipes"
+  },
+  "La ROM no tiene equipos. Agrega el primero desde Equipos para comenzar.": {
+    "es": "La ROM no tiene equipos. Agrega el primero desde Equipos para comenzar.",
+    "en": "The ROM has no teams. Add the first one from Teams to begin.",
+    "pt": "A ROM não tem equipes. Adicione a primeira em Equipes para começar."
+  },
+  "¿Crear una ROM sin equipos? Podrás agregar equipos nuevos y deshacer esta operación.": {
+    "es": "¿Crear una ROM sin equipos? Podrás agregar equipos nuevos y deshacer esta operación.",
+    "en": "Create a ROM without teams? You can add new teams and undo this operation.",
+    "pt": "Criar uma ROM sem equipes? Você poderá adicionar novas equipes e desfazer esta operação."
+  },
+  "Plantilla de ROM vacía inválida.": {
+    "es": "Plantilla de ROM vacía inválida.",
+    "en": "Invalid empty ROM template.",
+    "pt": "Modelo de ROM vazia inválido."
   }
 }

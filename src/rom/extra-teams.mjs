@@ -1,11 +1,12 @@
 import {loRom,word,decompress} from './binary.mjs';
-import {MAX_TEAMS,TEAM_METADATA,TEAM_TABLES,hasExtraTeams,teamCount,teamTable,teamPointer,attributeOffset,EXTRA_BIG_LABEL_ADDRESS,EXTRA_BIG_LABEL_CAPACITY} from './team-count.mjs';
+import {MAX_TEAMS,TEAM_METADATA,TEAM_TABLES,hasExtraTeams,hasPhysicalTeams,teamExists,activeTeamIds,IDENTITY_MAP,ATTRIBUTE_MAP,teamCount,teamTable,teamPointer,attributeOffset,EXTRA_BIG_LABEL_ADDRESS,EXTRA_BIG_LABEL_CAPACITY} from './team-count.mjs';
 import {TEAM_TABLE_READS} from './team-hooks.mjs';
 import {flagMatrix,smallLabelMatrix,encodeTiles,compress,FLAG_SLOT,LABEL_POOL,LABEL_SLOT,FLAG_RULES,LABEL_RULES,selectionFlagAddress,validateFlagStorage,validateSmallLabelStorage} from './graphics.mjs';
 import {labelLayout,extendedLabelLayout,smallTeamNamePatches,bigTeamNamePatches,teamNameTexts} from './team-labels.mjs';
 import {deluxePlayerNameOffset} from './deluxe.mjs';
 import {readFormation} from './formations.mjs';
 import {editGroupsPatches,editableGroups} from './group-editor.mjs';
+import {validatePhysicalTeams} from './physical-teams.mjs';
 
 const TABLE_POOL=loRom(0xb0c400),FLAG_POOL=loRom(0xb0ca40),CODE=0xb0fc40;
 const paletteSpecs=[[0x1027a,16],[0x102d0,16],[0x10326,11],[0x1037c,5],[0x103d2,1],[0xe7d8,4]];
@@ -44,24 +45,31 @@ export function extraTeamResources(){
  }
  return out;
 }
-function code(){
+function code(physical=false){
  const b=[],labels={},fix=[];const emit=(...v)=>b.push(...v),label=n=>labels[n]=b.length,branch=(op,n)=>{emit(op,0);fix.push([b.length-1,n]);};
- label('attributes');emit(0xc9,0xf8,0x96);branch(0x90,'attributes-done');emit(0xc9,0x40,0x9a);branch(0xb0,'attributes-challenge');emit(0x18,0x69,0x60,0x5e);branch(0x80,'attributes-done');label('attributes-challenge');emit(0x38,0xe9,0x48,3);label('attributes-done');emit(0x6b);
+ label('attributes');
+ if(physical){
+  // Preserve X and the player remainder while resolving removed native IDs.
+  emit(0xda,0x38,0xe9,0,0x80,0xa2,0,0);label('attribute-id');emit(0xc9,140,0);branch(0x90,'attribute-map');emit(0x38,0xe9,140,0,0xe8,0xe8);branch(0x80,'attribute-id');label('attribute-map');emit(0x48,0xbf,...asBytes(ATTRIBUTE_MAP),0x85,0,0x68,0x18,0x65,0,0xfa,0x6b);
+ }else{emit(0xc9,0xf8,0x96);branch(0x90,'attributes-done');emit(0xc9,0x40,0x9a);branch(0xb0,'attributes-challenge');emit(0x18,0x69,0x60,0x5e);branch(0x80,'attributes-done');label('attributes-challenge');emit(0x38,0xe9,0x48,3);label('attributes-done');emit(0x6b);}
  label('match-attributes');emit(0x18,0x69,0x74,0x7f,0x22,...asBytes(CODE+labels.attributes),0x85,0,0x6b);
  label('preview-attributes');emit(0x22,...asBytes(CODE+labels.attributes),0x8d,0x38,0x0d,0xa9,0x8a,0,0x6b);
- label('names');emit(0xc9,96,0);branch(0x90,'normal-name-id');emit(0x38,0xe9,12,0);branch(0x80,'star-names');label('normal-name-id');emit(0xc9,84,0);branch(0x90,'star-names');emit(0xaa,0xbf,...asBytes(TEAM_TABLES[0x38138]),0xaa,0xa9,0x9f,0,0x8b,0x54,0x7e,0x87,0xab,0x6b);
+ label('names');if(physical)emit(0xaa,0xbf,...asBytes(IDENTITY_MAP));emit(0xc9,96,0);branch(0x90,'normal-name-id');emit(0x38,0xe9,12,0);branch(0x80,'star-names');label('normal-name-id');
+ if(physical){emit(0xc9,72,0);branch(0x90,'bank87-names');emit(0xc9,84,0);branch(0xb0,'bank87-names');emit(0xaa,0xbf,...asBytes(TEAM_TABLES[0x38138]),0xaa,0xa9,0x9f,0,0x8b,0x54,0x7e,0x8a,0xab,0x6b);label('bank87-names');}
+ else{emit(0xc9,84,0);branch(0x90,'star-names');}
+ emit(0xaa,0xbf,...asBytes(TEAM_TABLES[0x38138]),0xaa,0xa9,0x9f,0,0x8b,0x54,0x7e,0x87,0xab,0x6b);
  label('star-names');emit(0x84,0x12,0x38,0xe9,0x48,0,0x5c,...asBytes(0xa49c8f));
  // New squads inherit Italy's shared portrait assets. Only the six native
  // All-Star IDs may index the cartridge's special portrait tables.
- label('portrait-team');emit(0xad,0xa0,0x0d,0xc9,84,0);branch(0x90,'portrait-done');emit(0xc9,96,0);branch(0xb0,'portrait-challenge');emit(0xa9,0,0);branch(0x80,'portrait-done');label('portrait-challenge');emit(0xa9,84,0);label('portrait-done');emit(0xc9,72,0,0x6b);
+ label('portrait-team');emit(0xad,0xa0,0x0d);if(physical)emit(0xda,0xaa,0xbf,...asBytes(IDENTITY_MAP),0xfa);emit(0xc9,84,0);branch(0x90,'portrait-done');emit(0xc9,96,0);branch(0xb0,'portrait-challenge');emit(0xa9,0,0);branch(0x80,'portrait-done');label('portrait-challenge');emit(0xa9,84,0);label('portrait-done');emit(0xc9,72,0,0x6b);
  for(const [p,n] of fix){const d=labels[n]-p-1;if(d< -128||d>127)throw new Error('Código de equipos fuera de rango.');b[p]=d&255;}
  const bytes=new Uint8Array(448).fill(0xea);bytes.set(b);return {bytes,addresses:Object.fromEntries(Object.entries(labels).map(([n,p])=>[n,CODE+p]))};
 }
-export function extraTeamCodePatches(original){
- const result=[],c=code();result.push(patch('teams:code',loRom(CODE),c.bytes));
+export function extraTeamCodePatches(original,current=original){
+ const result=[],c=code(hasPhysicalTeams(current));result.push(patch('teams:code',loRom(CODE),c.bytes));
  for(const [old,reads] of Object.entries(TEAM_TABLE_READS)){
   const address=Number(old),table=loRom(address),next=TEAM_TABLES[table];
-  for(const a of reads){const expected=Uint8Array.of(0xbf,...asBytes(address)),offset=loRom(a);if(!hasExtraTeams(original)&&expected.some((v,i)=>v!==original[offset+i]))throw new Error('Rutina de equipos no compatible.');result.push(patch(`teams:read:${a.toString(16)}`,offset,[0xbf,...asBytes(next)]));}
+  for(const a of reads){const expected=Uint8Array.of(0xbf,...asBytes(address)),offset=loRom(a);if(a===0xa4a046&&[0x22,0,0xd0,0x86].every((v,i)=>current[offset+i]===v))continue;if(!hasExtraTeams(original)&&expected.some((v,i)=>v!==original[offset+i]))throw new Error('Rutina de equipos no compatible.');result.push(patch(`teams:read:${a.toString(16)}`,offset,[0xbf,...asBytes(next)]));}
  }
  for(const [old,next,,reads] of TEAM_PHOTO_TABLES)for(const [a,delta] of reads){const offset=loRom(a),expected=[0xbf,...asBytes(old+delta)];if(!hasExtraTeams(original)&&expected.some((v,i)=>v!==original[offset+i]))throw new Error('Fotografía de selección no compatible.');result.push(patch(`teams:photo-read:${a.toString(16)}`,offset,[0xbf,...asBytes(next+delta)]));}
  for(const [a,op,old,next] of challengeHooks){const offset=loRom(a);if(!hasExtraTeams(original)&&(original[offset]!==op||word(original,offset+1)!==old))throw new Error('Modo Challenge no compatible.');result.push(patch(`teams:challenge:${a.toString(16)}`,offset,[op,next,0]));}
@@ -148,7 +156,7 @@ export function addTeamPatches(original,current,name){
    let dest=loRom(0x89fa42)+(i-42)*paletteStride;
    for(const [table,n] of paletteSpecs){const pointer=teamPointer(current,table,0);put(table,i,pointer?0xfa42+(i-42)*paletteStride+dest-(loRom(0x89fa42)+(i-42)*paletteStride):0);const data=pointer?current.slice(loRom(0x890000|pointer),loRom(0x890000|pointer)+2+n*2):new Uint8Array(2+n*2);data[0]=n*2-1;data[1]=0;changes.push(patch(`teams:palette-header:${dest}`,dest,data.slice(0,2)));for(let c=0;c<n;c++)changes.push(patch(`palette:${dest+2+c*2}`,dest+2+c*2,data.slice(2+c*2,4+c*2)));dest+=2+n*2;}
   }
-  changes.push(patch('teams:tables',TABLE_POOL,tables),patch('teams:flags',FLAG_POOL,flags),patch('teams:big-labels',loRom(EXTRA_BIG_LABEL_ADDRESS),bigBytes),...labels,...extraTeamCodePatches(original));
+  changes.push(patch('teams:tables',TABLE_POOL,tables),patch('teams:flags',FLAG_POOL,flags),patch('teams:big-labels',loRom(EXTRA_BIG_LABEL_ADDRESS),bigBytes),...labels,...extraTeamCodePatches(original,current));
   // Reuse the existing source-bank loaders and entry IDs so previously
   // relocated flags/labels are replaced atomically rather than overlapping.
   for(const id of ['flags:loader','flags:match-loader','flags:single-loader']){const [,offset,size]=FLAG_RULES.find(([key])=>key===id),bytes=current.slice(offset,offset+size);for(const n of id==='flags:single-loader'?[6,11]:[6,11,16,21])bytes[n]=0xb0;changes.push(patch(id,offset,bytes));}
@@ -171,8 +179,11 @@ export function addTeamPatches(original,current,name){
 }
 export function validateExtraTeams(rom,original){
  if(!hasExtraTeams(rom))return;
+ if(hasPhysicalTeams(rom)){
+  validatePhysicalTeams(rom,original);validateFlagStorage(rom,original);validateSmallLabelStorage(rom,original);return;
+ }
  if(rom[TEAM_METADATA+4]!==1||teamCount(rom)<43||teamCount(rom)>48||rom.slice(TEAM_METADATA+6,TEAM_METADATA+256).some(Boolean))throw new Error('Cantidad de equipos inválida.');
- for(const p of extraTeamCodePatches(original))if(p.bytes.some((b,i)=>rom[p.offset+i]!==b))throw new Error(`Rutina de equipos alterada: ${p.id}.`);
+ for(const p of extraTeamCodePatches(original,rom))if(p.bytes.some((b,i)=>rom[p.offset+i]!==b))throw new Error(`Rutina de equipos alterada: ${p.id}.`);
  for(let t=0;t<48;t++){
   if(teamPointer(rom,0xe730,t,4)!==0xca40+t*2*FLAG_SLOT||teamPointer(rom,0xe6c1,t)!==0xdf00+t*LABEL_SLOT)throw new Error('Punteros de equipos inválidos.');
   if(t>=42&&(teamPointer(rom,0x38138,t)!==0xfac8+(t-42)*160||teamPointer(rom,0x5ef48,t)!==0xfdd0+(t-42)*31))throw new Error('Plantel o formación inválido.');

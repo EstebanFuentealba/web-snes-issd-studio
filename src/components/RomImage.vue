@@ -1,9 +1,9 @@
 <template><canvas ref="canvas" :aria-label="$t(label)" role="img" :class="{ compact }" /></template>
 <script>
 export default {
-  props: { matrix: Array, colors: Array, label: String, compact: Boolean },
+  props: { matrix: Array, colors: Array, label: String, compact: Boolean, pixelColor: Function },
   mounted() { this.draw(); },
-  watch: { matrix: { handler() { this.draw(); }, deep: true }, colors: { handler() { this.draw(); }, deep: true } },
+  watch: { pixelColor() { this.draw(); }, matrix: { handler() { this.draw(); }, deep: true }, colors: { handler() { this.draw(); }, deep: true } },
   methods: {
     draw() {
       const canvas = this.$refs.canvas;
@@ -12,7 +12,7 @@ export default {
       canvas.height = this.matrix?.length || 0;
       const ctx = canvas.getContext('2d');
       this.matrix?.forEach((row, y) => row.forEach((pixel, x) => {
-        const color = this.colors[pixel];
+        const color = this.pixelColor ? this.pixelColor(pixel, x, y, this.colors) : this.colors[pixel];
         if (color && color !== 'transparent') { ctx.fillStyle = color; ctx.fillRect(x, y, 1, 1); }
       }));
     },
