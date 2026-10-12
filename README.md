@@ -1,7 +1,7 @@
 # ⚽ Web ISSD Studio
 
 <p align="center">
-  <img src="public/issd-logo.webp" width="600" alt="Web ISSD Studio" />
+  <img src="public/logo-issd-studio.png" width="600" alt="Web ISSD Studio" />
 </p>
 
 Open-source, browser-based ROM editor for **International Superstar Soccer Deluxe** on SNES, with support for the original **International Superstar Soccer**. Work in progress.
