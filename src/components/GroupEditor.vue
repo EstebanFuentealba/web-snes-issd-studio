@@ -1,9 +1,9 @@
 <template>
-  <section class="group-editor">
-    <div class="group-toolbar"><h2>{{ $t('Grupos') }} <small>{{ groups.length }} / {{ maxGroups }}</small></h2><button class="primary" :disabled="groups.length>=maxGroups" @click="addGroup">{{ $t('Agregar grupo') }}</button><button @click="$emit('restore')" :disabled="!modified">{{ $t('Restaurar grupos originales') }}</button></div>
+  <section class="group-editor"><p v-if="readOnly" class="notice">Los grupos de este hack se muestran en modo de consulta.</p>
+    <div class="group-toolbar"><h2>{{ $t('Grupos') }} <small>{{ groups.length }} / {{ maxGroups }}</small></h2><button v-if="!readOnly" class="primary" :disabled="groups.length>=maxGroups" @click="addGroup">{{ $t('Agregar grupo') }}</button><button v-if="!readOnly" @click="$emit('restore')" :disabled="!modified">{{ $t('Restaurar grupos originales') }}</button></div>
     <p>{{ $t('Agrega o quita equipos en cada grupo. Un equipo puede participar en varios grupos.') }}</p>
     <label class="columns-setting">{{ $t('Columnas en Grupos') }}
-      <select :value="columns" @change="$emit('columns-change',Number($event.target.value))">
+      <select :disabled="readOnly" :value="columns" @change="$emit('columns-change',Number($event.target.value))">
         <option :value="3">{{ $t('3 columnas · 2 filas') }}</option>
         <option :value="4">{{ $t('4 columnas · 1 fila') }}</option>
       </select>
@@ -11,13 +11,13 @@
     <p class="notice">{{ $t('La ROM exportada usa esta distribución. Los grupos se dividen en páginas de seis o cuatro equipos según la opción elegida.') }}</p>
     <div class="group-grid">
       <article v-for="(group,index) in groups" :key="index" class="group-card">
-        <div class="group-toolbar"><label>{{ $t('Nombre del grupo') }} <input :value="group.name" maxlength="15" @change="rename(index,$event)" /></label><button :aria-label="$t('Quitar grupo')+' '+group.name" :disabled="groups.length===1" @click="removeGroup(index)">{{ $t('Quitar grupo') }}</button></div>
+        <div class="group-toolbar"><label>{{ $t('Nombre del grupo') }} <input :readonly="readOnly" :value="group.name" maxlength="15" @change="rename(index,$event)" /></label><button v-if="!readOnly" :aria-label="$t('Quitar grupo')+' '+group.name" :disabled="groups.length===1" @click="removeGroup(index)">{{ $t('Quitar grupo') }}</button></div>
         <p>{{ group.teams.length }} {{ $t('equipos en el grupo') }}</p>
         <div v-if="group.teams.length" class="group-page">
-          <GroupPreview :name="group.name" :title="titles[index]" :team-ids="group.teams" :artwork="artwork" :teams="teams" :columns="columns" @remove="removeTeam(index,$event)" />
+          <GroupPreview :name="group.name" :title="titles[index]" :read-only="readOnly" :team-ids="group.teams" :artwork="artwork" :teams="teams" :columns="columns" @remove="removeTeam(index,$event)" />
         </div>
         <p v-if="!group.teams.length" class="empty">{{ $t('Este grupo todavía no tiene equipos.') }}</p>
-        <button @click="openTeams(index)">{{ $t('Agregar o elegir equipos') }}</button>
+        <button v-if="!readOnly" @click="openTeams(index)">{{ $t('Agregar o elegir equipos') }}</button>
       </article>
     </div>
     <dialog ref="teamDialog" class="team-dialog" @cancel="closeTeams">
@@ -26,12 +26,14 @@
         <input v-model="search" :placeholder="$t('Buscar equipo')" :aria-label="$t('Buscar equipo')" />
         <p>{{ selectedTeams.length }} {{ $t('equipos seleccionados') }}</p>
         <div class="team-options"><label v-for="option in filteredTeams" :key="option.index"><input type="checkbox" :value="option.index" v-model="selectedTeams" />{{ $t(option.name) }}</label></div>
-        <div class="group-toolbar"><button class="primary" @click="applyTeams">{{ $t('Guardar equipos del grupo') }}</button><button @click="closeTeams">{{ $t('Cancelar') }}</button></div>
+        <div class="group-toolbar"><button v-if="!readOnly" class="primary" @click="applyTeams">{{ $t('Guardar equipos del grupo') }}</button><button @click="closeTeams">{{ $t('Cancelar') }}</button></div>
       </template>
     </dialog>
   </section>
 </template>
 <script>
+import {externalDeluxeLayout} from '../rom/external-layout.mjs';
+import {wc26TeamPresentation} from '../rom/wc26-data.mjs';
 import {MAX_GROUPS} from '../rom/groups.mjs';
 import {flagMatrix,smallLabelMatrix,selectionGroupGraphics} from '../rom/graphics.mjs';
 import {palette,loRom} from '../rom/binary.mjs';
@@ -39,11 +41,12 @@ import {teamPointer} from '../rom/team-count.mjs';
 import GroupPreview from './GroupPreview.vue';
 export default {
   components:{GroupPreview},
-  props:{rom:Uint8Array,columns:{type:Number,default:3},groups:Array,teams:Array,modified:Boolean},emits:['change','restore','columns-change'],
+  props:{rom:Uint8Array,columns:{type:Number,default:3},groups:Array,teams:Array,modified:Boolean,readOnly:Boolean},emits:['change','restore','columns-change'],
   data(){return {maxGroups:MAX_GROUPS,selectedGroup:null,selectedTeams:[],search:''};},
   computed:{
-    titles(){return selectionGroupGraphics(this.rom);},
+    titles(){if(this.readOnly)return [];return selectionGroupGraphics(this.rom);},
     artwork(){return Object.fromEntries([...new Set(this.groups.flatMap(g=>g.teams))].map(team=>{
+      if(externalDeluxeLayout(this.rom)){const p=wc26TeamPresentation(this.rom,team);return [team,{flag:{matrix:p.flag,colors:p.colors},label:{matrix:p.teamMatrix,colors:p.teamColors}}];}
       const colors=new Array(16).fill('transparent');
       colors.splice(12,4,...palette(this.rom,loRom(0x890000|teamPointer(this.rom,0xe7d8,team))+2,4));
       return [team,{flag:{matrix:flagMatrix(this.rom,team),colors},label:{matrix:smallLabelMatrix(this.rom,team),colors:['transparent','#ffffff','#b8b8b8','#555555']}}];

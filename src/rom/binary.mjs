@@ -1,3 +1,4 @@
+import { externalDeluxeLayout } from './external-layout.mjs';
 export function word(rom, offset) {
   if (!Number.isInteger(offset) || offset < 0 || offset + 2 > rom.length) throw new Error('Dirección fuera de la ROM.');
   return rom[offset] | (rom[offset + 1] << 8);
@@ -8,21 +9,59 @@ export function loRom(address) {
   return ((address >>> 16) & 0x7f) * 0x8000 + (address & 0x7fff);
 }
 
+// Independent engine routines survive common data/graphics/voice hacks. A title
+// or file extension alone is insufficient to identify an erased/changed header.
+const ISSD_ENGINE_ANCHORS = [
+  [0, [0x18,0xfb,0x78,0xd8,0xc2,0x30,0xa2,0xaf,0x01,0x9a,0xc2,0x30,0x8b,0xa9,0x00,0x00]],
+  [0x20000, [0x9c,0xe0,0x11,0xa9,0x90,0x1b,0x5b,0x22,0xa9,0xdc,0x80,0xa9,0x00,0x00,0x5b,0xa5]],
+  [0x30000, [0xa2,0x00,0x00,0xa0,0x00,0x00,0x48,0xda,0xa9,0x92,0x80,0xa2,0x86,0x00,0x22,0xa3]],
+];
+function compatibleDeluxeHack(rom) {
+  if (rom.length !== 0x200000 || ISSD_ENGINE_ANCHORS.filter(([offset, bytes]) => bytes.every((b,i) => rom[offset+i] === b)).length < 2) return false;
+  if(externalDeluxeLayout(rom,true))return true;
+  try {
+    const fits = (bank, pointer, size) => {
+      const offset = loRom(bank << 16 | pointer);
+      if (offset + size > rom.length) throw new Error('Recurso fuera de la ROM.');
+      return offset;
+    };
+    for (let team = 0; team < 42; team++) {
+      if (team < 36) fits(0x87, word(rom, 0x38138 + team*2), 160);
+      fits(0x8b, word(rom, 0x5ef48 + team*2), 31);
+      for (const table of [0x1027a, 0x102d0, 0x10326, 0x1037c, 0x103d2, 0xe7d8]) {
+        const pointer = word(rom, table + team*2);
+        if (pointer || table === 0x1027a || table === 0xe7d8) fits(0x89, pointer, 2);
+      }
+      const label = decompress(rom, fits(rom[0xe6ba], word(rom, 0xe6c1 + team*2), 2));
+      if (![64, 128].includes(label.length)) return false;
+      for (let part = 0; part < 2; part++) {
+        const flag = decompress(rom, fits(rom[loRom(0x82f7a4)+6], word(rom, 0xe730 + team*4 + part*2), 2));
+        if (flag.length !== 96) return false;
+      }
+    }
+    return true;
+  } catch { return false; }
+}
+
 export function openRom(input) {
   const bytes = input instanceof Uint8Array ? input : new Uint8Array(input);
   const headerSize = bytes.length % 0x8000 === 512 ? 512 : 0;
   const rom = Uint8Array.from(bytes.subarray(headerSize));
   const title = String.fromCharCode(...rom.slice(0x7fc0, 0x7fd5)).trim();
-  let game, label, size;
+  let game, label, size, isHack = false;
   if (title === 'SUPERSTAR SOCCER 2') {
     game = 'issd'; label = 'International Superstar Soccer Deluxe (USA)'; size = 0x200000;
   } else if (title === 'Super Star Soccer') {
     game = 'iss'; label = 'International Superstar Soccer (USA)'; size = 0x100000;
-  } else throw new Error('ROM no compatible. Abre ISS (USA) o ISS Deluxe (USA).');
-  if (rom.length !== size || rom[0x7fd9] !== 1 || (rom[0x7fd5] & 0x0f) !== 0) {
-    throw new Error('Tamaño, región o formato de ROM no compatible. Se requiere la versión USA LoROM.');
   }
-  return { rom, game, label, title, headerSize };
+  const standard = game && rom.length === size && rom[0x7fd9] === 1 && (rom[0x7fd5] & 0x0f) === 0;
+  if (!standard && compatibleDeluxeHack(rom)) {
+    game = 'issd'; label = 'ISS Deluxe · hack compatible'; isHack = true;
+  } else if (!standard) {
+    if (game) throw new Error('Tamaño, región o formato de ROM no compatible. Se requiere la versión USA LoROM o un hack con estructura ISSD compatible.');
+    throw new Error('ROM no compatible. Abre ISS (USA), ISS Deluxe (USA) o un hack con estructura ISSD compatible.');
+  }
+  return { rom, game, label, title, headerSize, isHack, layout:externalDeluxeLayout(rom)?.id || 'native' };
 }
 
 // Konami's five command modes; see issd-native/ISSDNative/issd_decompress.c.

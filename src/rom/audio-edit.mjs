@@ -126,7 +126,7 @@ export function normalizedAudioPatches(rom,patches) {
   for(const sample of AUDIO_SAMPLES){
     const region=audioRegion(rom,sample),id=`audio:${region.offset}`;
     if(!modified.has(id))continue;
-    if(region.reason)throw new Error(region.reason);
+    if(region.reason)continue;
     const bytes=encodeBrr(normalizeAudio(decodeBrr(region.bytes,region.segmented)),region.capacity);
     for(let i=0;i<bytes.length;i+=9)bytes[i]=(bytes[i]&0xfc)|(region.bytes[i]&3);
     changes.push({id,label:`Audio normalizado · ${sample.name}`,offset:region.offset,bytes});

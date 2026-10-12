@@ -1,3 +1,4 @@
+import {externalDeluxeLayout} from './external-layout.mjs';
 import {loRom,word,decompress,tiles} from './binary.mjs';
 import {compress} from './compression.mjs';
 import {mainMenuBackground} from './main-menu.mjs';
@@ -48,7 +49,7 @@ const equal=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
 export function menuScreen(id){const screen=MENU_SCREENS.find(s=>s.id===id);if(!screen)throw new Error('Menú inválido.');return screen;}
 function fieldFor(screenId,key){const screen=menuScreen(screenId),field=screen.fields.find(f=>f.key===key);if(!field)throw new Error('Texto de menú inválido.');return {...field,id:`menu-text:${screenId}:${key}`};}
 function tallPair(rom,code){return [rom[loRom(0x87be6a)+code*2],rom[loRom(0x87be6a)+code*2+1]];}
-function mapAddress(rom){const address=word(rom,MAP_LOADER)|rom[MAP_LOADER+2]<<16;if(![MAP_ADDRESS,MAP_POOL_ADDRESS].includes(address))throw new Error('Composición del menú juego inválida.');return loRom(address);}
+function mapAddress(rom){const address=word(rom,MAP_LOADER)|rom[MAP_LOADER+2]<<16;if(!externalDeluxeLayout(rom)&&![MAP_ADDRESS,MAP_POOL_ADDRESS].includes(address))throw new Error('Composición del menú juego inválida.');return loRom(address);}
 function gameMap(rom){return decompress(rom,mapAddress(rom));}
 function mapText(rom,field){
  const map=gameMap(rom),codes=[...tall],result=[];

@@ -1,15 +1,16 @@
+import {externalDeluxeLayout} from './external-layout.mjs';
 import {teamExists,attributeOffset} from './team-count.mjs';
 import { word, loRom } from './binary.mjs';
 import { deluxeAttributes, deluxePlayerNameOffset } from './deluxe.mjs';
 export const POSITIONS={1:'Portero',2:'Defensa',3:'Medio defensivo',4:'Mediocampo',5:'Medio ofensivo',6:'Delantero'};
 export const STATS=['acceleration','speed','shotPower','curl','balance','intelligence','dribbling','jump','energy'];
-export function encodeName(name) {
-  if(typeof name!=='string' || !name.trim() || name.length>8) throw new Error('El nombre admite entre 1 y 8 caracteres.');
-  const bytes=new Uint8Array(8);
+export function encodeName(name,length=8) {
+  if(typeof name!=='string' || !name.trim() || name.length>length) throw new Error(`El nombre admite entre 1 y ${length} caracteres.`);
+  const bytes=new Uint8Array(length);
   Array.from(name).forEach((c,i)=> {
     if(c>='A' && c<='Z') bytes[i]=c.charCodeAt(0)-65+0x68;
     else if(c>='a' && c<='z') bytes[i]=c.charCodeAt(0)-97+0x82;
-    else if(Object.hasOwnProperty.call({' ':0,'.':0x54,'"':0x56,"'":0x5c,'/':0x5f},c)) bytes[i]={' ':0,'.':0x54,'"':0x56,"'":0x5c,'/':0x5f}[c];
+    else if(Object.hasOwnProperty.call({' ':0,'.':0x54,...(length===10?{'-':0x57}:{}),'"':0x56,"'":0x5c,'/':0x5f},c)) bytes[i]={' ':0,'.':0x54,...(length===10?{'-':0x57}:{}),'"':0x56,"'":0x5c,'/':0x5f}[c];
     else throw new Error(`El juego no admite el carácter «${c}». Usa letras sin acentos, espacio, punto, comillas o /.`);
   });return bytes;
 }
@@ -19,7 +20,7 @@ export function playerOffsets(rom,team,index) {
 }
 export function playerPatches(rom,team,index,changes,swapNumber=true) {
   const offsets=playerOffsets(rom,team,index), patches=[];
-  if(changes.name!==undefined) patches.push({id:`name:${offsets.name}`,label:`Nombre · equipo ${team+1}, jugador ${index+1}`,offset:offsets.name,bytes:encodeName(changes.name)});
+  if(changes.name!==undefined) patches.push({id:`name:${offsets.name}`,label:`Nombre · equipo ${team+1}, jugador ${index+1}`,offset:offsets.name,bytes:encodeName(changes.name,externalDeluxeLayout(rom)?.nameLength||8)});
   const keys=['acceleration','speed','shotPower','curl','balance','intelligence','dribbling','jump','position','energy'];
   const bytes=rom.slice(offsets.attributes,offsets.attributes+7), current=deluxeAttributes(bytes);
   for(const [key,value] of Object.entries(changes)) {

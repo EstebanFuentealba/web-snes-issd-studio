@@ -1,3 +1,5 @@
+import {wc26TeamPresentation} from './wc26-data.mjs';
+import {externalDeluxeLayout} from './external-layout.mjs';
 import {teamCount,teamExists,hasPhysicalTeams,PHYSICAL_STAR_NAMES,hasExtraTeams,teamPointer,teamTable,attributeOffset as playerAttributeOffset} from './team-count.mjs';
 import { word, loRom, decompress, tiles, palette } from './binary.mjs';
 import { flagBank, labelBank } from './graphics.mjs';
@@ -10,7 +12,7 @@ export function deluxeText(bytes) {
   return Array.from(bytes, byte => {
     if (byte >= 0x68 && byte <= 0x81) return String.fromCharCode(65 + byte - 0x68);
     if (byte >= 0x82 && byte <= 0x9b) return String.fromCharCode(97 + byte - 0x82);
-    return ({ 0: ' ', 0x54: '.', 0x56: '"', 0x5a: "'", 0x5c: "'", 0x5f: '/' })[byte] ?? '�';
+    return ({ 0: ' ', 0x54: '.', 0x57: '-', 0x56: '"', 0x5a: "'", 0x5c: "'", 0x5f: '/' })[byte] ?? '�';
   }).join('').trim();
 }
 
@@ -26,6 +28,8 @@ export function deluxeAttributes(bytes) {
 
 export function readDeluxeTeam(rom, index) {
   if (!teamExists(rom,index)) throw new Error('Equipo inválido.');
+  const external=externalDeluxeLayout(rom);
+  if(external)return {...wc26TeamPresentation(rom,index),players:Array.from({length:20},(_,p)=>({name:deluxeText(rom.slice(deluxePlayerNameOffset(rom,index,p),deluxePlayerNameOffset(rom,index,p)+external.nameLength)),...deluxeAttributes(rom.slice(playerAttributeOffset(rom,index,p),playerAttributeOffset(rom,index,p)+7)),...deluxeAppearance(rom,index,deluxeAttributes(rom.slice(playerAttributeOffset(rom,index,p),playerAttributeOffset(rom,index,p)+7)))}))};
   const players = Array.from({ length: 20 }, (_, player) => {
     const nameOffset = deluxePlayerNameOffset(rom,index,player), attributeOffset = playerAttributeOffset(rom,index,player);
     const attributes = deluxeAttributes(rom.slice(attributeOffset, attributeOffset + 7));
@@ -46,6 +50,7 @@ export function readDeluxeTeam(rom, index) {
 
 // CODE_A49C89 / DATA_A4F643: star teams assemble names from national squads.
 export function deluxePlayerNameOffset(rom,team,player){
+  const external=externalDeluxeLayout(rom);if(external)return loRom(external.nameBank<<16|word(rom,external.nameTable+team*2))+player*external.nameLength;
   if(hasPhysicalTeams(rom)&&team>=36&&team<42)return loRom(PHYSICAL_STAR_NAMES)+(team-36)*160+player*8;
   if(team>=36&&team<42){
     const refs=loRom(0xa40000|word(rom,loRom(0xa4f643)+(team-36)*2))+player*4;

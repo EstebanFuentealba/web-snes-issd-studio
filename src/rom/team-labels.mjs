@@ -255,7 +255,8 @@ const SMALL_NAMES=['ITALY','HOLLAND','ENGLAND','NORWAY','SPAIN','IRELAND','PORTU
 const STAR_BIG_NAMES=['ALL STAR','EUROSTAR.A','EUROSTAR.B','ASIAN STAR','AFRICAN STAR','ALL AMERICAN STAR'];
 export function teamNameTexts(original,current,team){
   const small=smallLabelMatrix(current,team),baseline=smallLabelMatrix(original,team);
-  const a=labelLayout(original,hasExtraTeams(current)),b=labelLayout(current),frame=labelFrame(a,team);
+  let a,b,frame;
+  try{a=labelLayout(original,hasExtraTeams(current));b=labelLayout(current);frame=labelFrame(a,team);}catch{return {small:small.length===8&&JSON.stringify(small)===JSON.stringify(baseline)?SMALL_NAMES[team]||'':'',large:''};}
   const sameFrame=Array.from({length:4},(_,p)=>p).every(p=>Array.from({length:frame.count},(_,i)=>a.data[a.base+frame.start+i+p*a.sprites]).every((v,i)=>v===b.data[b.base+frame.start+i+p*b.sprites]));
   return {small:team<42&&JSON.stringify(small)===JSON.stringify(baseline)?SMALL_NAMES[team]:decodeCompactName(original,small),large:sameFrame&&team>=36&&team<42?STAR_BIG_NAMES[team-36]:frameText(current,team)||''};
 }

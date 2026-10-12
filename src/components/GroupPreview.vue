@@ -12,7 +12,7 @@
       <li v-for="team in teamIds" :key="team" class="preview-team">
         <div class="flag-wrap">
           <RomImage :matrix="artwork[team].flag.matrix" :colors="artwork[team].flag.colors" :label="teams[team]" />
-          <button class="remove-team" :aria-label="$t('Quitar equipo') + ' ' + $t(teams[team])" @click="$emit('remove', team)">×</button>
+          <button v-if="!readOnly" class="remove-team" :aria-label="$t('Quitar equipo') + ' ' + $t(teams[team])" @click="$emit('remove', team)">×</button>
         </div>
         <RomImage class="team-label" :matrix="artwork[team].label.matrix" :colors="artwork[team].label.colors" :label="teams[team]" />
       </li>
@@ -23,7 +23,7 @@
 import RomImage from './RomImage.vue';
 export default {
   components: { RomImage },
-  props: { name: String, title: Object, teamIds: Array, artwork: Object, teams: Array, columns: Number },
+  props: { name: String, title: Object, teamIds: Array, artwork: Object, teams: Array, columns: Number, readOnly: Boolean },
   emits: ['remove'],
 };
 </script>

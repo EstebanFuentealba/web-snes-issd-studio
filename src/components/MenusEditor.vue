@@ -1,6 +1,6 @@
 <template>
   <section class="menus-editor">
-    <h2>{{ $t('Menus') }}</h2>
+    <p v-if="readOnly">Los menús de este hack se muestran en modo de consulta.</p><h2>{{ $t('Menus') }}</h2>
     <div class="menu-tabs" role="tablist" :aria-label="$t('Menus')">
       <button v-for="(tab,index) in tabs" :id="`menu-tab-${tab.id}`" :key="tab.id"
         type="button" role="tab" :aria-selected="active===tab.id" :aria-controls="`menu-panel-${tab.id}`"
@@ -8,11 +8,11 @@
         @click="active=tab.id" @keydown="navigateTabs($event,index)">{{ $t(tab.label) }}</button>
     </div>
     <div v-show="active==='main'" id="menu-panel-main" role="tabpanel" aria-labelledby="menu-tab-main" tabindex="0" class="menu-panel">
-      <MainMenuEditor ref="mainEditor" :rom="rom" :original="original" :error="error" @change="$emit('change',$event)" />
+      <MainMenuEditor ref="mainEditor" :rom="rom" :original="original" :read-only="readOnly" :error="error" @change="$emit('change',$event)" />
     </div>
     <div v-for="tab in tabs.slice(1)" v-show="active===tab.id" :id="`menu-panel-${tab.id}`" :key="tab.id"
       role="tabpanel" :aria-labelledby="`menu-tab-${tab.id}`" tabindex="0" class="menu-panel">
-      <MenuTextEditor :ref="editor=>setTextEditor(tab.id,editor)" :screen-id="tab.id" :rom="rom" :original="original" :error="error" @change="$emit('change',$event)" />
+      <MenuTextEditor :ref="editor=>setTextEditor(tab.id,editor)" :screen-id="tab.id" :rom="rom" :original="original" :read-only="readOnly" :error="error" @change="$emit('change',$event)" />
     </div>
   </section>
 </template>
@@ -24,7 +24,7 @@ import MenuTextEditor from './MenuTextEditor.vue';
 
 export default {
   components:{MainMenuEditor,MenuTextEditor},
-  props:{rom:Uint8Array,original:Uint8Array,error:String},
+  props:{rom:Uint8Array,original:Uint8Array,error:String,readOnly:Boolean},
   emits:['change'],
   data(){return {
     textEditors:{},tabs:MENU_TABS,

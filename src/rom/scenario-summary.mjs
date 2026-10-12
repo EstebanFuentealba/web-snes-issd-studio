@@ -1,3 +1,5 @@
+import {externalDeluxeLayout} from './external-layout.mjs';
+import {wc26TeamName} from './wc26-data.mjs';
 import {scenarioRestart} from './scenario-position.mjs';
 import {word,loRom} from './binary.mjs';
 import {readScenarios} from './scenarios.mjs';
@@ -22,6 +24,7 @@ export function readScenarioSummary(rom,index){
   return {id,offset,bytes,lines:[0,1].map(row=>Array.from(bytes.slice(row*WIDTH,(row+1)*WIDTH),b=>letters.get(b)??'�').join('').trimEnd())};
 }
 function teamName(index,rom){
+  if(externalDeluxeLayout(rom))return wc26TeamName(rom,index);
   if(rom&&(hasPhysicalTeams(rom)||index>=42)){const text=frameText(rom,index);if(text)return text;}
   return ({15:'SWITZERLAND',22:'CZECH.REP.',36:'WORLD STARS',37:'EURO A',38:'EURO B',39:'ASIA STARS',40:'AFRICA STARS',41:'AMERICA STARS'})[index]||DELUXE_TEAMS[index]?.toUpperCase()||'TEAM';
 }

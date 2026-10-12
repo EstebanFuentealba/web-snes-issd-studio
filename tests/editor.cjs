@@ -107,7 +107,7 @@ global.crypto ||= require('crypto').webcrypto;global.Blob ||= require('buffer').
  const reopenedLabels=await RomProject.create(labels.exportRom());assert.deepEqual(smallLabelMatrix(reopenedLabels.bytes(),0),randomLabel);
  labels.transaction(smallLabelPatches(original,labels.bytes(),0,smallLabelMatrix(original,0)));assert.deepEqual(labels.exportRom(),original);
  const sprites=await RomProject.create(original);
- for(const resource of graphicResources(original,0).filter(r=>r.kind==='sprite')) {
+ for(const resource of graphicResources(original,0).filter(r=>r.kind==='sprite'&&!r.global)) {
    assert.equal(resource.matrix.length,48);assert.equal(resource.matrix[0].length,resource.label.startsWith('Portero')?24:32);
    sprites.transaction(graphicPatches(original,sprites.bytes(),resource,resource.matrix));assert.deepEqual(sprites.exportRom(),original);
    const matrix=resource.matrix.map(row=>row.slice());let done=false;

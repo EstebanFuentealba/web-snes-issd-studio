@@ -51,7 +51,7 @@ global.Blob ||= require('buffer').Blob;
       assert.equal(headered.headerSize,512); assert.deepEqual(headered.rom,session.rom);
       assert.throws(() => openRom(bytes.subarray(0,bytes.length-1)), /Tamaño/);
       const wrongRegion = Uint8Array.from(bytes); wrongRegion[0x7fd9]=2;
-      assert.throws(() => openRom(wrongRegion), /región/);
+      if(game==='issd')assert.equal(openRom(wrongRegion).isHack,true);else assert.throws(() => openRom(wrongRegion), /región/);
       const originalLog = console.log;
       try {
         console.log = () => {};

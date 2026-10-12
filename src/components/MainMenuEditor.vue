@@ -6,16 +6,16 @@
       <div class="menu-preview"><RomImage :matrix="preview.matrix" :colors="preview.colors" :label="$t('Previsualización del menú principal')" /><p>{{ $t('Selecciona una opción para ver su estado resaltado.') }}</p></div>
       <div class="menu-controls">
         <div class="menu-buttons"><button v-for="(button,i) in buttons" :key="button.frame" :class="{selected:selected===i}" @click="choose(i)">{{button.label}}</button></div>
-        <label>{{ $t('Primera línea') }} <input v-model="lines[0]" maxlength="20" @input="prepare" /></label>
-        <label>{{ $t('Segunda línea') }} <input v-model="lines[1]" maxlength="20" @input="prepare" /></label>
+        <label>{{ $t('Primera línea') }} <input :readonly="readOnly" v-model="lines[0]" maxlength="20" @input="prepare" /></label>
+        <label>{{ $t('Segunda línea') }} <input :readonly="readOnly" v-model="lines[1]" maxlength="20" @input="prepare" /></label>
         <p>{{ $t('Fuente ampliada: A–Z, espacios y guiones. Hasta 112 píxeles por línea.') }}</p>
         <p v-if="textError" role="alert" class="error">{{$t(textError)}}</p>
-        <button :disabled="!draft||!!textError" @click="applyText">{{ $t('Aplicar rótulo a la ROM') }}</button>
+        <button :disabled="readOnly||!draft||!!textError" @click="applyText">{{ $t('Aplicar rótulo a la ROM') }}</button>
         <button v-if="textPending" @click="discard">{{ $t('Descartar previsualización') }}</button>
-        <button :disabled="!buttonModified" @click="restoreButton">{{ $t('Restaurar esta opción') }}</button>
+        <button :disabled="readOnly||!buttonModified" @click="restoreButton">{{ $t('Restaurar esta opción') }}</button>
       </div>
     </div>
-    <details @toggle="$event.target.open && (graphicsOpen=true)">
+    <details v-if="!readOnly" @toggle="$event.target.open && (graphicsOpen=true)">
       <summary>{{ $t('Editar gráficos del menú') }}</summary>
       <template v-if="graphicsOpen">
         <select :value="graphicIndex" :aria-label="$t('Seleccionar gráfico')" @change="chooseGraphic($event)"><option v-for="(r,i) in graphics" :value="i" :key="r.id">{{$t(r.label)}}</option></select>
@@ -33,7 +33,7 @@ import PixelEditor from './PixelEditor.vue';
 import {MENU_BUTTONS,menuButtonLines,mainMenuTextPatches,restoreMenuButtonPatches,mainMenuPreview,mainMenuGraphics} from '../rom/main-menu.mjs';
 import {graphicPatch,graphicPatches} from '../rom/graphics.mjs';
 export default {
- components:{RomImage,PixelEditor},props:{rom:Uint8Array,original:Uint8Array,error:String},emits:['change'],
+ components:{RomImage,PixelEditor},props:{rom:Uint8Array,original:Uint8Array,error:String,readOnly:Boolean},emits:['change'],
  data(){return {buttons:MENU_BUTTONS,selected:0,lines:['',''],draft:null,textError:'',graphicIndex:0,graphicsOpen:false};},
  computed:{
   textPending(){return !!this.draft||!!this.textError;},dirty(){return this.textPending||!!this.$refs.pixel?.dirty||!!this.$refs.pixel?.importImage;},

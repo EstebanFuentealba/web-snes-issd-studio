@@ -1,3 +1,4 @@
+import {externalDeluxeLayout} from './external-layout.mjs';
 import {MAX_TEAMS,teamCount,hasExtraTeams,hasPhysicalTeams,teamExists,activeTeamIds,teamPointer,teamTable} from './team-count.mjs';
 import {bootScreenResources,bootScreenPatches} from './boot-screens.mjs';
 import {mainMenuGraphics} from './main-menu.mjs';
@@ -7,6 +8,7 @@ export {compress} from './compression.mjs';
 import {hasCustomGroups,readGroups,groupPageTitles} from './groups.mjs';
 import { decompress, tiles, word, loRom, palette } from './binary.mjs';
 import { titleLegalResources, titleLegalPatches } from './title-legal.mjs';
+import {dogRefereeSheet} from './dog-referee-graphics.mjs';
 
 import {encodeTiles} from './encode-tiles.mjs';
 export {encodeTiles} from './encode-tiles.mjs';
@@ -18,7 +20,7 @@ export function rgb555(hex) {
   return Uint8Array.of(value&255,value>>>8);
 }
 
-export function graphicResources(rom, team) {
+export function graphicResources(rom, team, warnings = []) {
   const compressed=(label,address,bpp,columns,colors)=> {
     const offset=loRom(address), capacity=word(rom,offset)&0x7fff, data=decompress(rom,offset);
     return {id:`graphic:${offset}`,label,offset,capacity,bpp,columns,compressed:true,interleaved:!!(word(rom,offset)&0x8000),matrix:tiles(data,bpp,columns),colors,decodedSize:data.length};
@@ -26,7 +28,7 @@ export function graphicResources(rom, team) {
   const flagColors=new Array(16).fill('transparent');
   flagColors.splice(12,4,...palette(rom,loRom(0x890000|teamPointer(rom,0xe7d8,team))+2,4));
   const result=[{id:`flag:${team}`,label:'Bandera completa · independiente',kind:'flag',team,bpp:4,columns:3,capacity:204,colors:flagColors,matrix:flagMatrix(rom,team)}];
-  result.push({id:`team-label:${team}`,kind:'label',team,label:'Rótulo del equipo',bpp:2,columns:4,capacity:69,matrix:smallLabelMatrix(rom,team),colors:['transparent','#ffffff','#b8b8b8','#555555']});
+  result.push({id:`team-label:${team}`,kind:'label',team,label:'Rótulo del equipo',bpp:2,columns:4,capacity:smallLabelMatrix(rom,team).length===8?69:word(rom,loRom(labelBank(rom)<<16|teamPointer(rom,0xe6c1,team)))&0x7fff,matrix:smallLabelMatrix(rom,team),colors:['transparent','#ffffff','#b8b8b8','#555555']});
   const kit=palette(rom,loRom(0x890000|teamPointer(rom,0x1027a,team))+2,16);kit[0]='transparent';
   const raw=(label,start,end,columns,colors=kit)=> {
     const offset=loRom(start),capacity=loRom(end)-offset;
@@ -42,8 +44,10 @@ export function graphicResources(rom, team) {
   result.push(spriteResource(rom,'Portero completo · sprite compartido',[[0x90ccf2,224],[0x90cdd4,192]],0x988846,39,goalie));
   result.push(spriteResource(rom,'Jugador completo · sprite compartido',playerRanges,0x988472,112,kit,[0,1]));
   result.push(raw('Balón · atlas compartido',0x9a8000,0x9a8600,8));
+  result.push(dogRefereeSheet(rom));
   for(let hair=1;hair<=13;hair++) result.push(raw(`Pelo ${hair} · atlas compartido`,0x97cd58+(hair-1)*0x300,0x97cd58+hair*0x300,24));
-  result.push(...bootScreenResources(rom),...selectionGroupGraphics(rom),titleLogo(rom),titleLogo(rom,true),...titlePortraits(rom),...titleLegalResources(rom),...mainMenuGraphics(rom),...screenTextResources(rom));
+  const optional=(resource,read)=>{try{return read();}catch(error){warnings.push({resource,reason:error.message});return [];}};
+  result.push(...bootScreenResources(rom),...selectionGroupGraphics(rom),...optional('Logo completo de portada',()=>[titleLogo(rom)]),...optional('Fondo rojo de portada',()=>[titleLogo(rom,true)]),...titlePortraits(rom),...titleLegalResources(rom),...mainMenuGraphics(rom),...optional('Títulos de modo y contraseña',()=>screenTextResources(rom)));
   return result;
 }
 
@@ -66,10 +70,10 @@ export const FLAG_RULES=[['flags:pool',FLAG_POOL,FLAG_POOL_SIZE],['flags:pointer
 // Selection also keeps stadium tiles at $7F2280..$7F33BF. Retain the old
 // flag buffer for 32 countries; extra countries use the menu's unused $3400 area.
 export function selectionFlagAddress(team){return team<32?0xa80+team*192:0x3400+(team-32)*192;}
-export function flagBank(rom) {return rom[FLAG_TEMPLATE+6];}
+export function flagBank(rom) {if(externalDeluxeLayout(rom))return externalDeluxeLayout(rom).flagBank;return rom[FLAG_TEMPLATE+6];}
 export function flagMatrix(rom,team) {
   const bank=flagBank(rom)===0xaf && rom[0xe715+6]!==0xaf && team>=36?0xa7:flagBank(rom);
-  return [0,1].flatMap(part=>tiles(decompress(rom,loRom(bank<<16|word(rom,teamTable(rom,FLAG_TABLE)+(hasExtraTeams(rom)||team<42?team:0)*4+part*2))),4,3));
+  return [0,1].flatMap(part=>tiles(decompress(rom,loRom(bank<<16|word(rom,teamTable(rom,FLAG_TABLE)+(externalDeluxeLayout(rom)||hasExtraTeams(rom)||team<42?team:0)*4+part*2))),4,3));
 }
 export function validateFlagStorage(rom,original) {
   if(hasExtraTeams(rom)){for(let i of hasPhysicalTeams(rom)?activeTeamIds(rom):Array.from({length:MAX_TEAMS},(_,i)=>i)){const off=loRom(0xb00000|teamPointer(rom,FLAG_TABLE,i,4));if((word(rom,off)&0x7fff)>FLAG_SLOT||(word(rom,off+FLAG_SLOT)&0x7fff)>FLAG_SLOT||decompress(rom,off).length!==96||decompress(rom,off+FLAG_SLOT).length!==96||flagMatrix(rom,i).flat().some(p=>p!==0&&p<12))throw new Error("Bandera ampliada inválida.");}return;}
@@ -117,7 +121,7 @@ export function flagPatches(original,current,team,matrix,legacy=false,force=fals
 // Dynamic DMA sends the first tile row to VRAM $6000 and the second to $6100.
 // OAM records supply signed positions, 8/16 pixel sizes and horizontal flips.
 // The cumulative sprite indices correspond to WRAM $40E0 and $4958.
-function spriteResource(rom,label,ranges,address,start,colors,editableParts=[0,1]) {
+export function spriteResource(rom,label,ranges,address,start,colors,editableParts=[0,1]) {
   const parts=ranges.map(([address,size])=>{const offset=loRom(address);return {id:`${ranges.length>2&&address===ranges[2][0]?'detail':'graphic'}:${offset}`,offset,capacity:size,bpp:4,columns:size/32,decodedSize:size,compressed:false};});
   const strips=parts.map(p=>tiles(rom.subarray(p.offset,p.offset+p.capacity),4,p.columns));
   const data=decompress(rom,loRom(address)),count=word(data,1),base=3+data[0];
@@ -179,7 +183,7 @@ function closestLayerColor(colors,pixel,base) {
 }
 // Title: DATA_829975/829987, two BG tilemaps and direct OAM DATA_88ED58.
 // DATA_81F5FF positions the text object at ($60,$40), palette E0.
-function titleLogo(rom,backgroundOnly=false) {
+export function titleLogo(rom,backgroundOnly=false) {
   const parts=[0xaa8000,0xaa8f56].map(address=>{const offset=loRom(address),data=decompress(rom,offset);return {id:`graphic:${offset}`,offset,capacity:word(rom,offset)&0x7fff,bpp:4,columns:1,compressed:true,interleaved:!!(word(rom,offset)&0x8000),decodedSize:data.length};});
   const strips=parts.map(p=>tiles(decompress(rom,p.offset),4,1));
   const colors=[...palette(rom,loRom(0x89c292),16),...palette(rom,loRom(0x89c2b4),16),...palette(rom,loRom(0x89c318),16)];colors[0]='transparent';colors[16]=colors[32]='transparent';
@@ -187,7 +191,8 @@ function titleLogo(rom,backgroundOnly=false) {
   for(const address of backgroundOnly?[0xaa8d0c]:[0xaa8d0c,0xaa8e61]) {
     const map=decompress(rom,loRom(address));
     for(let y=0;y<128;y++)for(let x=0;x<256;x++) {
-      const entry=word(map,((y>>3)*32+(x>>3))*2),tile=entry&1023,xx=entry&0x4000?7-x%8:x%8,yy=entry&0x8000?7-y%8:y%8,base=((entry>>10)&7)*16,pixel=strips[0][tile*8+yy][xx];
+      const entry=word(map,((y>>3)*32+(x>>3))*2),tile=entry&1023,xx=entry&0x4000?7-x%8:x%8,yy=entry&0x8000?7-y%8:y%8,base=((entry>>10)&7)*16,pixel=strips[0][tile*8+yy]?.[xx];
+      if(pixel===undefined || base+15>=colors.length)throw new Error('La portada del hack usa tiles o paletas fuera del esquema compatible.');
       if(tile!==1&&tile!==110)layers[y][x].push({part:0,x:xx,y:tile*8+yy,paletteBase:base});
       if(pixel){matrix[y][x]=base+pixel;if(tile!==1)owners[y][x]={part:0,x:xx,y:tile*8+yy,paletteBase:base};}
       else if(tile!==1&&tile!==110&&!owners[y][x])owners[y][x]={part:0,x:xx,y:tile*8+yy,paletteBase:base};
@@ -197,7 +202,8 @@ function titleLogo(rom,backgroundOnly=false) {
   for(let i=backgroundOnly?-1:rom[offset]-1;i>=0;i--) {
     let [y,x,tile,attr]=rom.subarray(offset+1+i*4,offset+5+i*4);x=96+(x>127?x-256:x);y=64+(y>127?y-256:y);const size=attr&16?16:8;
     for(let j=0;j<size;j++)for(let k=0;k<size;k++) {
-      const fx=attr&64?size-1-k:k,fy=attr&128?size-1-j:j,t=tile+(fx>>3)+(fy>>3)*16,sx=fx%8,sy=t*8+fy%8,pixel=strips[1][sy][sx];
+      const fx=attr&64?size-1-k:k,fy=attr&128?size-1-j:j,t=tile+(fx>>3)+(fy>>3)*16,sx=fx%8,sy=t*8+fy%8,pixel=strips[1][sy]?.[sx];
+      if(pixel===undefined || !layers[y+j]?.[x+k])throw new Error('La portada del hack usa sprites fuera del esquema compatible.');
       layers[y+j][x+k].push({part:1,x:sx,y:sy,paletteBase:32});
       if(pixel||!owners[y+j][x+k]){if(pixel)matrix[y+j][x+k]=32+pixel;owners[y+j][x+k]={part:1,x:sx,y:sy,paletteBase:32};}
     }
@@ -212,7 +218,7 @@ function titleLogo(rom,backgroundOnly=false) {
 // Mode 3 BG1 portraits: DATA_82996D uploads 232 8bpp tiles to VRAM $4000.
 // DATA_81F61C..81F740 are row scripts: FE starts a new tilemap address,
 // FF ends the script. DATA_81864E uploads 144 colors at CGRAM index $20.
-function titlePortraits(rom) {
+export function titlePortraits(rom) {
   const offset=loRom(0xa5cb7f),data=decompress(rom,offset);
   const part={id:`graphic:${offset}`,offset,capacity:word(rom,offset)&0x7fff,bpp:8,columns:1,compressed:true,interleaved:!!(word(rom,offset)&0x8000),decodedSize:data.length};
   const strip=tiles(data,8,1),colors=Array(256).fill('transparent');
@@ -243,7 +249,7 @@ function titlePortraits(rom) {
 export const LABEL_POOL=loRom(0xafdf00),LABEL_SLOT=69,LABEL_POOL_SIZE=42*LABEL_SLOT;
 export const LABEL_TEMPLATE=0xe6b4,LABEL_TABLE=0xe6c1;
 export const LABEL_RULES=[['labels:pool',LABEL_POOL,LABEL_POOL_SIZE],['labels:pointers',LABEL_TABLE,84],['labels:loader',LABEL_TEMPLATE,13],['labels:select-loader',loRom(0x828f21),256]];
-export function labelBank(rom){return rom[LABEL_TEMPLATE+6];}
+export function labelBank(rom){if(externalDeluxeLayout(rom))return externalDeluxeLayout(rom).labelBank;return rom[LABEL_TEMPLATE+6];}
 export function smallLabelMatrix(rom,team){return tiles(decompress(rom,loRom(labelBank(rom)<<16|teamPointer(rom,LABEL_TABLE,team))),2,4);}
 export function validateSmallLabelStorage(rom,original){
   if(hasExtraTeams(rom)){for(let i of hasPhysicalTeams(rom)?activeTeamIds(rom):Array.from({length:MAX_TEAMS},(_,i)=>i))if((word(rom,loRom(0xaf0000|teamPointer(rom,LABEL_TABLE,i)))&0x7fff)>LABEL_SLOT||decompress(rom,loRom(0xaf0000|teamPointer(rom,LABEL_TABLE,i))).length!==64)throw new Error("Rótulo ampliado inválido.");return;}
@@ -260,7 +266,17 @@ export function validateSmallLabelStorage(rom,original){
   }
 }
 export function smallLabelPatches(original,current,team,matrix){
+  // Some legacy hacks keep 32 × 16 labels. Their native allocation and loader
+  // must remain intact; the Studio's relocated 32 × 8 pool cannot hold them.
+  const native=smallLabelMatrix(original,team);
+  if(native.length!==8){
+    if(matrix.length!==native.length||matrix.some(row=>row.length!==32))throw new Error('Este hack usa rótulos de 32 × 16. Edita el dibujo en Gráficos conservando su resolución.');
+    const offset=loRom(labelBank(current)<<16|teamPointer(current,LABEL_TABLE,team));
+    const resource={id:`graphic:${offset}`,label:'Rótulo del equipo',offset,capacity:word(original,offset)&0x7fff,bpp:2,compressed:true,interleaved:!!(word(original,offset)&0x8000),decodedSize:encodeTiles(native,2).length};
+    return [graphicPatch(original,resource,matrix)];
+  }
   if(!Number.isInteger(team)||team<0||team>=teamCount(current)||matrix.length!==8||matrix.some(row=>row.length!==32))throw new Error('El rótulo debe medir 32 × 8.');
+  if(!hasExtraTeams(current)&&Array.from({length:42},(_,i)=>smallLabelMatrix(original,i).length).some(height=>height!==8))throw new Error('Este hack mezcla resoluciones de rótulos; la reubicación no es compatible.');
   encodeTiles(matrix,2); // Validate every palette index before allocating.
   if(hasExtraTeams(current)){const encoded=compress(encodeTiles(matrix,2));if(encoded.length>LABEL_SLOT)throw new Error("El rótulo excede su espacio reservado.");const offset=LABEL_POOL+team*LABEL_SLOT,bytes=new Uint8Array(LABEL_SLOT).fill(255);bytes.set(encoded);return [{id:`teams:label:${team}`,offset,bytes,label:"Rótulo independiente"}];}
   const all=Array.from({length:42},(_,i)=>i===team?matrix:smallLabelMatrix(current,i));

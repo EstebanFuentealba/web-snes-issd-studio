@@ -6,11 +6,12 @@
   <main>
     <label for="rom" class="rom-drop" :class="{ dragging: romDragging && !loading }" @dragover.prevent="romDragging = !loading" @dragleave.prevent="romDragging = false" @drop.prevent="onDropRom">
       <strong>{{ $t("Subir o arrastrar un ROM") }}</strong>
-      <span>{{ $t("SFC o SMC · ISS / ISS Deluxe (USA)") }}</span>
-      <input id="rom" type="file" accept=".sfc,.smc" @change="onChangeFile" :disabled="loading" />
+      <span>{{ $t("SFC, SMC o FIG · ISS / ISS Deluxe y hacks compatibles") }}</span>
+      <input id="rom" type="file" accept=".sfc,.smc,.fig" @change="onChangeFile" :disabled="loading" />
     </label>
     <p v-if="loading" role="status">{{ $t("Leyendo ROM…") }}</p>
     <p v-if="error" role="alert" class="error">{{ $t(error) }}</p>
+    <p v-if="session?.isHack" class="notice">{{ $t("Hack ISSD detectado por su estructura. Se conservan los datos y la cabecera del archivo original; los recursos con un formato distinto pueden no estar disponibles para edición.") }}</p>
     <StudioEditor ref="editor" v-if="session?.game === 'issd'" :input="session.input" @import-rom="loadFile($event, true)" />
     <template v-if="session && session.game !== 'issd'">
       <p>{{ $t(session.label) }} · {{ teams.length }} {{ $t("equipos ·") }} {{ $t(session.headerSize ? 'Cabecera SMC detectada' : 'Sin cabecera SMC') }}</p>
@@ -96,6 +97,8 @@ export default {
         const session = { ...openRom(input), input };
         const data = await readTeam(session, 0);
         if (version !== this.loadVersion) return;
+        // Navigate before mounting the new editor, so it starts on the dashboard.
+        if(save){await this.$router.replace({name:'Home'});if(version!==this.loadVersion)return;}
         this.session = markRaw(session); this.teams = teamNames(session.game); this.teamIndex = 0; this.teamData = data;
         if (save && this.storage.database) this.storage.set(file);
       } catch (error) { if (version === this.loadVersion) this.error = error.message; }

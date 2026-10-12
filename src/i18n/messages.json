@@ -4563,5 +4563,460 @@
     "es": "Restaurar tile transparente compartido",
     "en": "Restore shared transparent tile",
     "pt": "Restaurar tile transparente compartilhado"
+  },
+  "Mostrar árbitro perro": {
+    "es": "Mostrar árbitro perro",
+    "pt": "Mostrar árbitro cachorro",
+    "en": "Show dog referee"
+  },
+  "Activa el árbitro perro y sus ladridos en la ROM exportada. Desmarca la casilla para usar árbitros humanos.": {
+    "es": "Activa el árbitro perro y sus ladridos en la ROM exportada. Desmarca la casilla para usar árbitros humanos.",
+    "pt": "Ativa o árbitro cachorro e seus latidos na ROM exportada. Desmarque a caixa para usar árbitros humanos.",
+    "en": "Enables the dog referee and its barks in the exported ROM. Uncheck to use human referees."
+  },
+  "Código del árbitro perro no compatible.": {
+    "es": "Código del árbitro perro no compatible.",
+    "pt": "Código do árbitro cachorro incompatível.",
+    "en": "Unsupported dog referee code."
+  },
+  "Configuración del árbitro perro inválida.": {
+    "es": "Configuración del árbitro perro inválida.",
+    "pt": "Configuração do árbitro cachorro inválida.",
+    "en": "Invalid dog referee configuration."
+  },
+  "Restaurar árbitro perro": {
+    "es": "Restaurar árbitro perro",
+    "pt": "Restaurar árbitro cachorro",
+    "en": "Restore dog referee"
+  },
+  "Sprites globales del árbitro perro. Los fotogramas y las direcciones reflejadas reutilizan tiles; los cambios se aplican a todas sus apariciones.": {
+    "es": "Sprites globales del árbitro perro. Los fotogramas y las direcciones reflejadas reutilizan tiles; los cambios se aplican a todas sus apariciones.",
+    "en": "Global dog referee sprites. Frames and mirrored directions reuse tiles; changes apply to every appearance.",
+    "pt": "Sprites globais do árbitro cachorro. Os quadros e as direções espelhadas reutilizam tiles; as alterações se aplicam a todas as aparições."
+  },
+  "Composición del árbitro perro no compatible.": {
+    "es": "Composición del árbitro perro no compatible.",
+    "en": "Unsupported dog referee composition.",
+    "pt": "Composição do árbitro cachorro incompatível."
+  },
+  "Árbitro perro · arriba · quieto 1": {
+    "es": "Árbitro perro · arriba · quieto 1",
+    "en": "Dog referee · up · standing 1",
+    "pt": "Árbitro cachorro · cima · parado 1"
+  },
+  "Árbitro perro · arriba · quieto 2": {
+    "es": "Árbitro perro · arriba · quieto 2",
+    "en": "Dog referee · up · standing 2",
+    "pt": "Árbitro cachorro · cima · parado 2"
+  },
+  "Árbitro perro · arriba · quieto 3": {
+    "es": "Árbitro perro · arriba · quieto 3",
+    "en": "Dog referee · up · standing 3",
+    "pt": "Árbitro cachorro · cima · parado 3"
+  },
+  "Árbitro perro · arriba · quieto 4": {
+    "es": "Árbitro perro · arriba · quieto 4",
+    "en": "Dog referee · up · standing 4",
+    "pt": "Árbitro cachorro · cima · parado 4"
+  },
+  "Árbitro perro · arriba · carrera 1": {
+    "es": "Árbitro perro · arriba · carrera 1",
+    "en": "Dog referee · up · running 1",
+    "pt": "Árbitro cachorro · cima · corrida 1"
+  },
+  "Árbitro perro · arriba · carrera 2": {
+    "es": "Árbitro perro · arriba · carrera 2",
+    "en": "Dog referee · up · running 2",
+    "pt": "Árbitro cachorro · cima · corrida 2"
+  },
+  "Árbitro perro · arriba · carrera 3": {
+    "es": "Árbitro perro · arriba · carrera 3",
+    "en": "Dog referee · up · running 3",
+    "pt": "Árbitro cachorro · cima · corrida 3"
+  },
+  "Árbitro perro · arriba · carrera 4": {
+    "es": "Árbitro perro · arriba · carrera 4",
+    "en": "Dog referee · up · running 4",
+    "pt": "Árbitro cachorro · cima · corrida 4"
+  },
+  "Árbitro perro · arriba · carrera 5": {
+    "es": "Árbitro perro · arriba · carrera 5",
+    "en": "Dog referee · up · running 5",
+    "pt": "Árbitro cachorro · cima · corrida 5"
+  },
+  "Árbitro perro · diagonal arriba · quieto 1": {
+    "es": "Árbitro perro · diagonal arriba · quieto 1",
+    "en": "Dog referee · diagonally up · standing 1",
+    "pt": "Árbitro cachorro · diagonal para cima · parado 1"
+  },
+  "Árbitro perro · diagonal arriba · quieto 2": {
+    "es": "Árbitro perro · diagonal arriba · quieto 2",
+    "en": "Dog referee · diagonally up · standing 2",
+    "pt": "Árbitro cachorro · diagonal para cima · parado 2"
+  },
+  "Árbitro perro · diagonal arriba · quieto 3": {
+    "es": "Árbitro perro · diagonal arriba · quieto 3",
+    "en": "Dog referee · diagonally up · standing 3",
+    "pt": "Árbitro cachorro · diagonal para cima · parado 3"
+  },
+  "Árbitro perro · diagonal arriba · quieto 4": {
+    "es": "Árbitro perro · diagonal arriba · quieto 4",
+    "en": "Dog referee · diagonally up · standing 4",
+    "pt": "Árbitro cachorro · diagonal para cima · parado 4"
+  },
+  "Árbitro perro · diagonal arriba · carrera 1": {
+    "es": "Árbitro perro · diagonal arriba · carrera 1",
+    "en": "Dog referee · diagonally up · running 1",
+    "pt": "Árbitro cachorro · diagonal para cima · corrida 1"
+  },
+  "Árbitro perro · diagonal arriba · carrera 2": {
+    "es": "Árbitro perro · diagonal arriba · carrera 2",
+    "en": "Dog referee · diagonally up · running 2",
+    "pt": "Árbitro cachorro · diagonal para cima · corrida 2"
+  },
+  "Árbitro perro · diagonal arriba · carrera 3": {
+    "es": "Árbitro perro · diagonal arriba · carrera 3",
+    "en": "Dog referee · diagonally up · running 3",
+    "pt": "Árbitro cachorro · diagonal para cima · corrida 3"
+  },
+  "Árbitro perro · diagonal arriba · carrera 4": {
+    "es": "Árbitro perro · diagonal arriba · carrera 4",
+    "en": "Dog referee · diagonally up · running 4",
+    "pt": "Árbitro cachorro · diagonal para cima · corrida 4"
+  },
+  "Árbitro perro · diagonal arriba · carrera 5": {
+    "es": "Árbitro perro · diagonal arriba · carrera 5",
+    "en": "Dog referee · diagonally up · running 5",
+    "pt": "Árbitro cachorro · diagonal para cima · corrida 5"
+  },
+  "Árbitro perro · lateral · quieto 1": {
+    "es": "Árbitro perro · lateral · quieto 1",
+    "en": "Dog referee · side · standing 1",
+    "pt": "Árbitro cachorro · lateral · parado 1"
+  },
+  "Árbitro perro · lateral · quieto 2": {
+    "es": "Árbitro perro · lateral · quieto 2",
+    "en": "Dog referee · side · standing 2",
+    "pt": "Árbitro cachorro · lateral · parado 2"
+  },
+  "Árbitro perro · lateral · quieto 3": {
+    "es": "Árbitro perro · lateral · quieto 3",
+    "en": "Dog referee · side · standing 3",
+    "pt": "Árbitro cachorro · lateral · parado 3"
+  },
+  "Árbitro perro · lateral · quieto 4": {
+    "es": "Árbitro perro · lateral · quieto 4",
+    "en": "Dog referee · side · standing 4",
+    "pt": "Árbitro cachorro · lateral · parado 4"
+  },
+  "Árbitro perro · lateral · carrera 1": {
+    "es": "Árbitro perro · lateral · carrera 1",
+    "en": "Dog referee · side · running 1",
+    "pt": "Árbitro cachorro · lateral · corrida 1"
+  },
+  "Árbitro perro · lateral · carrera 2": {
+    "es": "Árbitro perro · lateral · carrera 2",
+    "en": "Dog referee · side · running 2",
+    "pt": "Árbitro cachorro · lateral · corrida 2"
+  },
+  "Árbitro perro · lateral · carrera 3": {
+    "es": "Árbitro perro · lateral · carrera 3",
+    "en": "Dog referee · side · running 3",
+    "pt": "Árbitro cachorro · lateral · corrida 3"
+  },
+  "Árbitro perro · lateral · carrera 4": {
+    "es": "Árbitro perro · lateral · carrera 4",
+    "en": "Dog referee · side · running 4",
+    "pt": "Árbitro cachorro · lateral · corrida 4"
+  },
+  "Árbitro perro · lateral · carrera 5": {
+    "es": "Árbitro perro · lateral · carrera 5",
+    "en": "Dog referee · side · running 5",
+    "pt": "Árbitro cachorro · lateral · corrida 5"
+  },
+  "Árbitro perro · diagonal abajo · quieto 1": {
+    "es": "Árbitro perro · diagonal abajo · quieto 1",
+    "en": "Dog referee · diagonally down · standing 1",
+    "pt": "Árbitro cachorro · diagonal para baixo · parado 1"
+  },
+  "Árbitro perro · diagonal abajo · quieto 2": {
+    "es": "Árbitro perro · diagonal abajo · quieto 2",
+    "en": "Dog referee · diagonally down · standing 2",
+    "pt": "Árbitro cachorro · diagonal para baixo · parado 2"
+  },
+  "Árbitro perro · diagonal abajo · quieto 3": {
+    "es": "Árbitro perro · diagonal abajo · quieto 3",
+    "en": "Dog referee · diagonally down · standing 3",
+    "pt": "Árbitro cachorro · diagonal para baixo · parado 3"
+  },
+  "Árbitro perro · diagonal abajo · quieto 4": {
+    "es": "Árbitro perro · diagonal abajo · quieto 4",
+    "en": "Dog referee · diagonally down · standing 4",
+    "pt": "Árbitro cachorro · diagonal para baixo · parado 4"
+  },
+  "Árbitro perro · diagonal abajo · carrera 1": {
+    "es": "Árbitro perro · diagonal abajo · carrera 1",
+    "en": "Dog referee · diagonally down · running 1",
+    "pt": "Árbitro cachorro · diagonal para baixo · corrida 1"
+  },
+  "Árbitro perro · diagonal abajo · carrera 2": {
+    "es": "Árbitro perro · diagonal abajo · carrera 2",
+    "en": "Dog referee · diagonally down · running 2",
+    "pt": "Árbitro cachorro · diagonal para baixo · corrida 2"
+  },
+  "Árbitro perro · diagonal abajo · carrera 3": {
+    "es": "Árbitro perro · diagonal abajo · carrera 3",
+    "en": "Dog referee · diagonally down · running 3",
+    "pt": "Árbitro cachorro · diagonal para baixo · corrida 3"
+  },
+  "Árbitro perro · diagonal abajo · carrera 4": {
+    "es": "Árbitro perro · diagonal abajo · carrera 4",
+    "en": "Dog referee · diagonally down · running 4",
+    "pt": "Árbitro cachorro · diagonal para baixo · corrida 4"
+  },
+  "Árbitro perro · diagonal abajo · carrera 5": {
+    "es": "Árbitro perro · diagonal abajo · carrera 5",
+    "en": "Dog referee · diagonally down · running 5",
+    "pt": "Árbitro cachorro · diagonal para baixo · corrida 5"
+  },
+  "Árbitro perro · abajo · quieto 1": {
+    "es": "Árbitro perro · abajo · quieto 1",
+    "en": "Dog referee · down · standing 1",
+    "pt": "Árbitro cachorro · baixo · parado 1"
+  },
+  "Árbitro perro · abajo · quieto 2": {
+    "es": "Árbitro perro · abajo · quieto 2",
+    "en": "Dog referee · down · standing 2",
+    "pt": "Árbitro cachorro · baixo · parado 2"
+  },
+  "Árbitro perro · abajo · quieto 3": {
+    "es": "Árbitro perro · abajo · quieto 3",
+    "en": "Dog referee · down · standing 3",
+    "pt": "Árbitro cachorro · baixo · parado 3"
+  },
+  "Árbitro perro · abajo · quieto 4": {
+    "es": "Árbitro perro · abajo · quieto 4",
+    "en": "Dog referee · down · standing 4",
+    "pt": "Árbitro cachorro · baixo · parado 4"
+  },
+  "Árbitro perro · abajo · carrera 1": {
+    "es": "Árbitro perro · abajo · carrera 1",
+    "en": "Dog referee · down · running 1",
+    "pt": "Árbitro cachorro · baixo · corrida 1"
+  },
+  "Árbitro perro · abajo · carrera 2": {
+    "es": "Árbitro perro · abajo · carrera 2",
+    "en": "Dog referee · down · running 2",
+    "pt": "Árbitro cachorro · baixo · corrida 2"
+  },
+  "Árbitro perro · abajo · carrera 3": {
+    "es": "Árbitro perro · abajo · carrera 3",
+    "en": "Dog referee · down · running 3",
+    "pt": "Árbitro cachorro · baixo · corrida 3"
+  },
+  "Árbitro perro · abajo · carrera 4": {
+    "es": "Árbitro perro · abajo · carrera 4",
+    "en": "Dog referee · down · running 4",
+    "pt": "Árbitro cachorro · baixo · corrida 4"
+  },
+  "Árbitro perro · abajo · carrera 5": {
+    "es": "Árbitro perro · abajo · carrera 5",
+    "en": "Dog referee · down · running 5",
+    "pt": "Árbitro cachorro · baixo · corrida 5"
+  },
+  "El paquete transfiere las 76 muestras BRR del catálogo sin reconvertirlas. No incluye música secuenciada ni sonidos fuera del catálogo. La importación se puede deshacer.": {
+    "es": "El paquete transfiere las 76 muestras BRR del catálogo sin reconvertirlas. No incluye música secuenciada ni sonidos fuera del catálogo. La importación se puede deshacer.",
+    "en": "The pack transfers the 76 catalog BRR samples without re-encoding. It excludes sequenced music and uncatalogued sounds. Import can be undone.",
+    "pt": "O pacote transfere as 76 amostras BRR do catálogo sem recodificação. Não inclui música sequenciada nem sons fora do catálogo. A importação pode ser desfeita."
+  },
+  "Exportar paquete de audio JSON": {
+    "es": "Exportar paquete de audio JSON",
+    "en": "Export audio JSON pack",
+    "pt": "Exportar pacote de áudio JSON"
+  },
+  "Importar paquete de audio JSON": {
+    "es": "Importar paquete de audio JSON",
+    "en": "Import audio JSON pack",
+    "pt": "Importar pacote de áudio JSON"
+  },
+  "SFC, SMC o FIG · ISS / ISS Deluxe y hacks compatibles": {
+    "es": "SFC, SMC o FIG · ISS / ISS Deluxe y hacks compatibles",
+    "en": "SFC, SMC or FIG · ISS / ISS Deluxe and compatible hacks",
+    "pt": "SFC, SMC ou FIG · ISS / ISS Deluxe e hacks compatíveis"
+  },
+  "Hack ISSD detectado por su estructura. Se conservan los datos y la cabecera del archivo original; los recursos con un formato distinto pueden no estar disponibles para edición.": {
+    "es": "Hack ISSD detectado por su estructura. Se conservan los datos y la cabecera del archivo original; los recursos con un formato distinto pueden no estar disponibles para edición.",
+    "en": "ISSD hack identified by its structure. Original data and header are preserved; resources using a different format may be unavailable for editing.",
+    "pt": "Hack ISSD identificado pela estrutura. Os dados e o cabeçalho originais são preservados; recursos com formatos diferentes podem não estar disponíveis para edição."
+  },
+  "Recurso no disponible para edición:": {
+    "es": "Recurso no disponible para edición:",
+    "en": "Resource unavailable for editing:",
+    "pt": "Recurso indisponível para edição:"
+  },
+  "Este hack usa un formato de menús distinto. La edición de esta sección no está disponible.": {
+    "es": "Este hack usa un formato de menús distinto. La edición de esta sección no está disponible.",
+    "en": "This hack uses a different menu format. Editing this section is unavailable.",
+    "pt": "Este hack usa um formato de menus diferente. A edição desta seção não está disponível."
+  },
+  "Este hack usa un formato de desafíos distinto. La edición de esta sección no está disponible.": {
+    "es": "Este hack usa un formato de desafíos distinto. La edición de esta sección no está disponible.",
+    "en": "This hack uses a different challenge format. Editing this section is unavailable.",
+    "pt": "Este hack usa um formato de desafios diferente. A edição desta seção não está disponível."
+  },
+  "Este hack usa un formato de nombres grandes distinto. La edición de ese recurso no está disponible.": {
+    "es": "Este hack usa un formato de nombres grandes distinto. La edición de ese recurso no está disponible.",
+    "en": "This hack uses a different large team name format. Editing this resource is unavailable.",
+    "pt": "Este hack usa um formato diferente para nomes grandes de equipes. A edição deste recurso não está disponível."
+  },
+  "Nombres grandes de equipos": {
+    "es": "Nombres grandes de equipos",
+    "en": "Large team names",
+    "pt": "Nomes grandes de equipes"
+  },
+  "Títulos de modo y contraseña": {
+    "es": "Títulos de modo y contraseña",
+    "en": "Mode titles and password",
+    "pt": "Títulos de modo e senha"
+  },
+  "ISS Deluxe · hack compatible": {
+    "es": "ISS Deluxe · hack compatible",
+    "en": "ISS Deluxe · compatible hack",
+    "pt": "ISS Deluxe · hack compatível"
+  },
+  "La portada del hack usa tiles o paletas fuera del esquema compatible.": {
+    "es": "La portada del hack usa tiles o paletas fuera del esquema compatible.",
+    "en": "The hack title screen uses tiles or palettes outside the supported layout.",
+    "pt": "A tela de título do hack usa tiles ou paletas fora do esquema compatível."
+  },
+  "La portada del hack usa sprites fuera del esquema compatible.": {
+    "es": "La portada del hack usa sprites fuera del esquema compatible.",
+    "en": "The hack title screen uses sprites outside the supported layout.",
+    "pt": "A tela de título do hack usa sprites fora do esquema compatível."
+  },
+  "Este hack usa rótulos de 32 × 16. Edita el dibujo en Gráficos conservando su resolución.": {
+    "es": "Este hack usa rótulos de 32 × 16. Edita el dibujo en Gráficos conservando su resolución.",
+    "en": "This hack uses 32 × 16 labels. Edit the drawing in Graphics while preserving its resolution.",
+    "pt": "Este hack usa rótulos de 32 × 16. Edite o desenho em Gráficos mantendo a resolução."
+  },
+  "ROM no compatible. Abre ISS (USA), ISS Deluxe (USA) o un hack con estructura ISSD compatible.": {
+    "es": "ROM no compatible. Abre ISS (USA), ISS Deluxe (USA) o un hack con estructura ISSD compatible.",
+    "en": "Unsupported ROM. Open ISS (USA), ISS Deluxe (USA), or a hack with a compatible ISSD structure.",
+    "pt": "ROM incompatível. Abra ISS (USA), ISS Deluxe (USA) ou um hack com estrutura ISSD compatível."
+  },
+  "Tamaño, región o formato de ROM no compatible. Se requiere la versión USA LoROM o un hack con estructura ISSD compatible.": {
+    "es": "Tamaño, región o formato de ROM no compatible. Se requiere la versión USA LoROM o un hack con estructura ISSD compatible.",
+    "en": "Unsupported ROM size, region or format. A USA LoROM version or a hack with a compatible ISSD structure is required.",
+    "pt": "Tamanho, região ou formato de ROM incompatível. É necessária a versão USA LoROM ou um hack com estrutura ISSD compatível."
+  },
+  "Árbitro perro · todos los sprites": {
+    "es": "Árbitro perro · todos los sprites",
+    "en": "Dog referee · all sprites",
+    "pt": "Árbitro cachorro · todos os sprites"
+  },
+  "Lámina completa: cada fila corresponde a una dirección (arriba, diagonal arriba, lateral, diagonal abajo y abajo). Las primeras cuatro columnas son poses quietas y las últimas cinco son de carrera. Los tiles compartidos cambian en todas sus apariciones.": {
+    "es": "Lámina completa: cada fila corresponde a una dirección (arriba, diagonal arriba, lateral, diagonal abajo y abajo). Las primeras cuatro columnas son poses quietas y las últimas cinco son de carrera. Los tiles compartidos cambian en todas sus apariciones.",
+    "en": "Complete sheet: each row represents a direction (up, diagonally up, side, diagonally down and down). The first four columns are standing poses and the last five are running frames. Shared tiles change in every appearance.",
+    "pt": "Folha completa: cada linha corresponde a uma direção (cima, diagonal para cima, lateral, diagonal para baixo e baixo). As primeiras quatro colunas são poses paradas e as últimas cinco são de corrida. Os tiles compartilhados mudam em todas as aparições."
+  },
+  "Studio · perfil WC26 de 56 equipos": {
+    "es": "Studio · perfil WC26 de 56 equipos",
+    "en": "Studio · 56-team WC26 profile",
+    "pt": "Studio · perfil WC26 de 56 equipes"
+  },
+  "Este perfil permite editar los 56 planteles y nombres de hasta 10 caracteres. Gráficos, audio, menús, desafíos y ampliación de equipos todavía no están verificados para esta estructura.": {
+    "es": "Este perfil permite editar los 56 planteles y nombres de hasta 10 caracteres. Gráficos, audio, menús, desafíos y ampliación de equipos todavía no están verificados para esta estructura.",
+    "en": "This profile supports editing all 56 squads and names up to 10 characters. Graphics, audio, menus, challenges and team expansion are not yet verified for this layout.",
+    "pt": "Este perfil permite editar os 56 elencos e nomes de até 10 caracteres. Gráficos, áudio, menus, desafios e expansão de equipes ainda não foram verificados para esta estrutura."
+  },
+  "56 equipos · 20 jugadores por equipo · 10 caracteres por nombre": {
+    "es": "56 equipos · 20 jugadores por equipo · 10 caracteres por nombre",
+    "en": "56 teams · 20 players per team · 10 characters per name",
+    "pt": "56 equipes · 20 jogadores por equipe · 10 caracteres por nome"
+  },
+  "La ROM original es la base del proyecto. Exportar sin cambios conserva todos sus bytes. Los cambios de jugadores se pueden deshacer.": {
+    "es": "La ROM original es la base del proyecto. Exportar sin cambios conserva todos sus bytes. Los cambios de jugadores se pueden deshacer.",
+    "en": "The original ROM is the project baseline. Exporting without changes preserves every byte. Player changes can be undone.",
+    "pt": "A ROM original é a base do projeto. Exportar sem alterações preserva todos os bytes. Alterações de jogadores podem ser desfeitas."
+  },
+  "La edición de esta sección todavía no está verificada para el perfil WC26.": {
+    "es": "La edición de esta sección todavía no está verificada para el perfil WC26.",
+    "en": "Editing this section is not yet verified for the WC26 profile.",
+    "pt": "A edição desta seção ainda não foi verificada para o perfil WC26."
+  },
+  "Los equipos, banderas, rótulos, paletas, formaciones, grupos, desafíos, estadios y audios se leen de esta ROM. Los menús se pueden inspeccionar; su edición y la ampliación de equipos requieren soporte adicional.": {
+    "es": "Los equipos, banderas, rótulos, paletas, formaciones, grupos, desafíos, estadios y audios se leen de esta ROM. Los menús se pueden inspeccionar; su edición y la ampliación de equipos requieren soporte adicional.",
+    "en": "Teams, flags, labels, palettes, formations, groups, challenges, stadiums and audio are read from this ROM. Menus can be inspected; menu editing and team expansion require additional support.",
+    "pt": "Equipes, bandeiras, rótulos, paletas, formações, grupos, desafios, estádios e áudio são lidos desta ROM. Os menus podem ser inspecionados; sua edição e a expansão de equipes exigem suporte adicional."
+  },
+  "La ROM original es la base del proyecto. Exportar sin cambios conserva todos sus bytes. Los cambios se pueden deshacer.": {
+    "es": "La ROM original es la base del proyecto. Exportar sin cambios conserva todos sus bytes. Los cambios se pueden deshacer.",
+    "en": "The original ROM is the project baseline. Exporting without changes preserves every byte. Changes can be undone.",
+    "pt": "A ROM original é a base do projeto. Exportar sem alterações preserva todos os bytes. Alterações podem ser desfeitas."
+  },
+  "Grupo": {
+    "es": "Grupo",
+    "en": "Group",
+    "pt": "Grupo"
+  },
+  "Disponible en torneo": {
+    "es": "Disponible en torneo",
+    "en": "Available in tournaments",
+    "pt": "Disponível em torneios"
+  },
+  "Equipos adicionales": {
+    "es": "Equipos adicionales",
+    "en": "Additional teams",
+    "pt": "Equipes adicionais"
+  },
+  "Largo (yardas)": {
+    "es": "Largo (yardas)",
+    "en": "Length (yards)",
+    "pt": "Comprimento (jardas)"
+  },
+  "Ancho (yardas)": {
+    "es": "Ancho (yardas)",
+    "en": "Width (yards)",
+    "pt": "Largura (jardas)"
+  },
+  "Largo de cancha": {
+    "es": "Largo de cancha",
+    "en": "Pitch length",
+    "pt": "Comprimento do campo"
+  },
+  "Ancho de cancha": {
+    "es": "Ancho de cancha",
+    "en": "Pitch width",
+    "pt": "Largura do campo"
+  },
+  "Uniforme local": {
+    "es": "Uniforme local",
+    "en": "Home kit",
+    "pt": "Uniforme titular"
+  },
+  "Uniforme visitante": {
+    "es": "Uniforme visitante",
+    "en": "Away kit",
+    "pt": "Uniforme reserva"
+  },
+  "Este gráfico se comparte con:": {
+    "es": "Este gráfico se comparte con:",
+    "en": "This graphic is shared with:",
+    "pt": "Este gráfico é compartilhado com:"
+  },
+  "Esta formación se comparte con:": {
+    "es": "Esta formación se comparte con:",
+    "en": "This formation is shared with:",
+    "pt": "Esta formação é compartilhada com:"
+  },
+  "Estas paletas pueden estar compartidas por varios equipos y jugadores.": {
+    "es": "Estas paletas pueden estar compartidas por varios equipos y jugadores.",
+    "en": "These palettes may be shared by several teams and players.",
+    "pt": "Estas paletas podem ser compartilhadas por várias equipes e jogadores."
+  },
+  "Fondo de portada": {
+    "es": "Fondo de portada",
+    "en": "Title background",
+    "pt": "Fundo da tela inicial"
   }
 }

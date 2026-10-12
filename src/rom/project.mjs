@@ -1,3 +1,7 @@
+import {wc26StudioGraphics} from './wc26-graphics.mjs';
+import {wc26Palette} from './wc26-data.mjs';
+import {externalDeluxeLayout} from './external-layout.mjs';
+import {DOG_REFEREE_RULES,validateDogReferee} from './dog-referee.mjs';
 import {STADIUM_RULES,stadiumGraphicRules,validateStadiumResource,validateStadiums} from './stadiums.mjs';
 import {SCENARIO_SUMMARY_RULES,scenarioSummaryPatch,validateScenarioSummary} from './scenario-summary.mjs';
 import {TEAM_METADATA,hasExtraTeams,hasPhysicalTeams,hasEmptyTeams,teamDataRom,teamExists,activeTeamIds,teamCount,teamPointer,teamTable,attributeOffset} from './team-count.mjs';
@@ -35,6 +39,27 @@ function allowedResources(rom) {
   rom=teamDataRom(rom);
   const registry=new Map();
   const add=(id,offset,size,type,extra={})=>registry.set(id,{offset,size,type,...extra});
+  const external=externalDeluxeLayout(rom);
+  if(external){
+    for(let team=0;team<external.teams;team++){
+      for(let player=0;player<20;player++){
+        const p=playerOffsets(rom,team,player);add(`name:${p.name}`,p.name,external.nameLength,'name');add(`attributes:${p.attributes}`,p.attributes,7,'attributes');
+      }
+      const formation=readFormation(rom,team);add(formation.id,formation.offset,31,'formation');
+      for(const [table,count] of [[0x1027a,16],[0x102d0,16],[0x10326,11],[0x1037c,5],[0x103d2,1],[0xe7d8,4]]){
+        const p=wc26Palette(rom,team,table,count);if(p)for(let i=0;i<count;i++)add(`palette:${p.offset+i*2}`,p.offset+i*2,2,'palette');
+      }
+      for(const [table,bank,parts] of [[external.flagTable,external.flagBank,2],[external.labelTable,external.labelBank,1]])for(let part=0;part<parts;part++){
+        const offset=loRom(bank<<16|word(rom,table+team*parts*2+part*2));add(`graphic:${offset}`,offset,word(rom,offset)&0x7fff,'compressed',{decodedSize:decompress(rom,offset).length});
+      }
+    }
+    for(const resource of wc26StudioGraphics(rom,0).filter(r=>!r.externalKind))for(const part of resource.parts||[resource])add(part.id,part.offset,part.capacity,part.compressed?'compressed':'raw',{decodedSize:part.decodedSize});
+    for(let team=0;team<external.teams;team++){const offset=loRom(0x980000|word(rom,external.detailTable+team*2));add(`detail:${offset}`,offset,32,'raw',{decodedSize:32});}
+    for(const sample of AUDIO_SAMPLES){const region=audioRegion(rom,sample);decodeBrr(region.bytes,['VictoryMusic','UnknownShout','UnknownIntroSample','TitleScreenNameDrop'].includes(sample.name));add(`audio:${region.offset}`,region.offset,region.capacity,region.reason?'bank-audio':region.segmented?'segmented-audio':'audio');}
+    for(const [id,offset,size] of [...SCENARIO_RULES,...SCENARIO_TEXT_RULES,...SCENARIO_SUMMARY_RULES,...SCENARIO_DIFFICULTY_RULES])add(id,offset,size,id.startsWith('scenario-text:')?'scenario-text':id.startsWith('scenario-summary:')?'scenario-summary':id.startsWith('scenario-difficulty:')?'scenario-difficulty':'scenario');
+    for(const [id,offset,size,type] of STADIUM_RULES.filter(([id])=>id.startsWith('stadium:yards:')||id.startsWith('stadium:field:')))add(id,offset,size,type);
+    return registry;
+  }
   for(const [id,offset,size] of MENU_TEXT_RULES)add(id,offset,size,'menu-text');
   for(let team of activeTeamIds(rom)) {
     const formation=readFormation(rom,team);add(formation.id,formation.offset,31,'formation');
@@ -54,7 +79,7 @@ function allowedResources(rom) {
     }
   }
   for(const resource of graphicResources(rom,0)) if(resource.shared || resource.label.includes('portada')) for(const part of resource.parts||[resource]) add(part.id,part.offset,part.capacity,part.compressed?'compressed':'raw',{decodedSize:part.decodedSize});
-  for(const [id,offset,size] of [...FLAG_RULES,...LABEL_RULES,...SELECTION_RULES,...GROUP_RULES,...GROUP_TEXT_RULES,...GROUP_EDITOR_RULES,...TITLE_LEGAL_RULES,...MAIN_MENU_RULES,...BOOT_SCREEN_RULES,...EXTRA_TEAM_RULES])add(id,offset,size,'relocated-storage');
+  for(const [id,offset,size] of [...DOG_REFEREE_RULES,...FLAG_RULES,...LABEL_RULES,...SELECTION_RULES,...GROUP_RULES,...GROUP_TEXT_RULES,...GROUP_EDITOR_RULES,...TITLE_LEGAL_RULES,...MAIN_MENU_RULES,...BOOT_SCREEN_RULES,...EXTRA_TEAM_RULES])add(id,offset,size,'relocated-storage');
   for(const [id,offset,size,type] of extraTeamResources())add(id,offset,size,type);
   for(const [id,offset,size,type] of physicalTeamResources(rom))add(id,offset,size,type);
   add(`czech-font:${loRom(CZECH_FONT_ADDRESS)}`,loRom(CZECH_FONT_ADDRESS),word(rom,loRom(CZECH_FONT_ADDRESS))&0x7fff,'czech-font');
@@ -63,7 +88,7 @@ function allowedResources(rom) {
   for(const [address,size] of [[0x98c5d4,8192],[0x8cfb57,256],[0x8cfc59,256]]){const offset=loRom(address);add(`graphic:${offset}`,offset,size,'raw');}
   for(const sample of AUDIO_SAMPLES) {
     const region=audioRegion(rom,sample);
-    if(!region.reason) add(`audio:${region.offset}`,region.offset,region.capacity,region.segmented?'segmented-audio':'audio');
+    add(`audio:${region.offset}`,region.offset,region.capacity,region.reason?'bank-audio':region.segmented?'segmented-audio':'audio');
   }
   for(const [id,offset,size] of SCENARIO_DIFFICULTY_RULES)add(id,offset,size,'scenario-difficulty');
   for(const [id,offset,size] of SCENARIO_RULES)add(id,offset,size,'scenario');
@@ -91,6 +116,7 @@ export class RomProject {
     if(!context){context=original.slice();for(const p of internals.get(this).patches.values())context.set(p.bytes,p.offset);}
     const candidate=context.slice();
     for(const p of patches){const r=registry.get(p.id);if(!r||p.offset!==r.offset||!(p.bytes instanceof Uint8Array)||p.bytes.length!==r.size||p.offset<0||p.offset+p.bytes.length>candidate.length)throw new Error(`Recurso o tamaño no permitido: ${p.id}.`);candidate.set(p.bytes,p.offset);}
+    if(patches.some(p=>p.id.startsWith('dog-referee:')))validateDogReferee(candidate);
     if(patches.some(p=>p.id.startsWith('menu-text:')))validateMenuTexts(candidate,original);
     candidate.set(teamDataRom(candidate));
     const erased=erasedNativeResources(candidate);
@@ -128,6 +154,10 @@ export class RomProject {
       if(rule.type==='czech-font')validateCzechFont(patch.bytes,original);
       if(patch.id==='teams:big-labels')validateLabelLayout(decompress(patch.bytes,0),original);
       if(rule.type==='team-labels')validateLabelLayout(decompress(patch.bytes,0),original);
+      if(rule.type==='bank-audio') {
+        for(let i=0;i<patch.bytes.length;i+=9)if((patch.bytes[i]&3)!==(original[patch.offset+i]&3))throw new Error('Marcas BRR del banco alteradas.');
+        decodeBrr(patch.bytes,true);
+      }
       if(rule.type==='segmented-audio') {
         for(let i=0;i<patch.bytes.length;i+=9)if((patch.bytes[i]&3)!==(original[patch.offset+i]&3))throw new Error('Marcas BRR de los fragmentos alteradas.');
         decodeBrr(patch.bytes,true);
@@ -172,7 +202,11 @@ export class RomProject {
     if(changes.some(p=>p.id==='groups:text'))validateGroupTexts(candidate,s.original);
     validateStadiums(candidate,s.original);
     validateExtraTeams(candidate,s.original);
-    for(let team of activeTeamIds(candidate))if(new Set(Array.from({length:20},(_,i)=>candidate[attributeOffset(candidate,team,i)+5])).size!==20)throw new Error('Los identificadores/dorsales de cada equipo deben ser únicos.');
+    for(let team of activeTeamIds(candidate)){
+      const count=rom=>new Set(Array.from({length:20},(_,i)=>rom[attributeOffset(rom,team,i)+5])).size;
+      const minimum=externalDeluxeLayout(s.original)?count(s.original):20;
+      if(count(candidate)<minimum)throw new Error('Los identificadores/dorsales de cada equipo deben ser únicos.');
+    }
     if(JSON.stringify([...next])===JSON.stringify([...s.patches])) return false;
     // Keep creation references in the same snapshots as the ROM patches.
     next.createdTeams=hasEmptyTeams(candidate)?{}:{...s.patches.createdTeams};
@@ -205,6 +239,7 @@ export class RomProject {
       if(rule.type==='formation')return [{id,offset:rule.offset,bytes:readFormation(s.original,defaultTeam).bytes,label:'Restaurar formación'}];
       if(rule.type==='palette'){const current=this.bytes();for(const team of activeTeamIds(current))for(const [table,n] of [[0x1027a,16],[0x102d0,16],[0x10326,11],[0x1037c,5],[0x103d2,1],[0xe7d8,4]]){const ptr=teamPointer(current,table,team);if(!ptr)continue;const base=loRom(0x890000|ptr)+2;if(rule.offset>=base&&rule.offset<base+n*2){const source=teamPointer(s.original,table,defaultTeam),offset=source?loRom(0x890000|source)+2+rule.offset-base:0;return [{id,offset:rule.offset,bytes:source?s.original.slice(offset,offset+2):new Uint8Array(2),label:'Restaurar paleta'}];}}}
     }
+    if(id.startsWith('dog-referee:'))return DOG_REFEREE_RULES.map(([id,offset,size])=>({id,offset,bytes:s.original.slice(offset,offset+size),label:'Restaurar árbitro perro'}));
     if(id.startsWith('group-editor:')||(id==='selection:all-stars'||id.startsWith('groups:'))&&this.patches.some(p=>p.id.startsWith('group-editor:')))return [...GROUP_EDITOR_RULES,...SELECTION_RULES,...GROUP_RULES,...GROUP_TEXT_RULES].map(([id,offset,size])=>({id,offset,bytes:s.original.slice(offset,offset+size),label:'Restaurar grupos'}));
     if(id.startsWith('main-menu:'))return MAIN_MENU_RULES.map(([id,offset,size])=>({id,offset,bytes:s.original.slice(offset,offset+size),label:'Restaurar menú principal'}));
     if(id.startsWith('title-legal:')&&legacyTitleLegal(s.original)){const notice=titleLegalResources(s.original)[0];return titleLegalPatches(s.original,s.original,notice.id,notice.matrix,notice.text,true);}
@@ -229,7 +264,7 @@ export class RomProject {
   exportRom() {
     const s=internals.get(this),rom=this.bytes();
     if(hasPhysicalTeams(rom)&&rom.slice(SHARED_BLANK_DETAIL,SHARED_BLANK_DETAIL+32).some(Boolean))throw new Error('El tile transparente compartido debe conservarse vacío.');
-    validateStadiums(rom,s.original);
+    if(!externalDeluxeLayout(rom))validateStadiums(rom,s.original);
     if(this.patches.some(p=>p.id.startsWith('group-editor:')))validateGroupEditor(rom,s.original);
     if(this.patches.some(p=>p.id.startsWith('title-legal:')))validateTitleLegal(rom,s.original);
     if(this.patches.some(p=>p.id.startsWith('boot-')))validateBootScreens(rom,s.original);

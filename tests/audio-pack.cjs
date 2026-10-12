@@ -1,0 +1,42 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+global.crypto ||= require('node:crypto').webcrypto;
+(async () => {
+  const { createAudioPack, audioPackPatches } = await import('../src/rom/audio-pack.mjs');
+  const { openRom } = await import('../src/rom/binary.mjs');
+  const { audioRegion, normalizedAudioPatches } = await import('../src/rom/audio-edit.mjs');
+  const { AUDIO_SAMPLES } = await import('../src/rom/audio.mjs');
+  const { RomProject } = await import('../src/rom/project.mjs');
+  const file = require('node:path').join(__dirname, '../roms/International Superstar Soccer Deluxe (USA).sfc');
+  if (!fs.existsSync(file)) { console.log('SKIP audio pack local ROM tests'); return; }
+  const input = fs.readFileSync(file), rom = openRom(input).rom;
+  const donor = rom.slice();
+  for (const sample of AUDIO_SAMPLES) donor[audioRegion(rom, sample).offset + 1] ^= 0x11;
+  const pack = createAudioPack(donor, 'donor');
+  const patches = audioPackPatches(rom, JSON.parse(JSON.stringify(pack)));
+  assert.equal(patches.length, 76);
+  const project = await RomProject.create(input);
+  project.transaction(patches);
+  for (const sample of AUDIO_SAMPLES) assert.deepEqual(audioRegion(project.bytes(), sample).bytes, audioRegion(donor, sample).bytes);
+  // Other bytes are untouched; header checksums change only on ROM export.
+  assert.deepEqual(project.bytes(), donor);
+  const restored = await RomProject.import(project.record(), input);
+  assert.deepEqual(restored.bytes(), donor);
+  assert.doesNotThrow(() => normalizedAudioPatches(project.bytes(), project.patches));
+  project.undo(); assert.deepEqual(project.bytes(), rom);
+  project.redo(); assert.deepEqual(project.bytes(), donor);
+  const headered = new Uint8Array(donor.length + 512); headered.set(donor, 512);
+  assert.deepEqual(createAudioPack(headered).samples, pack.samples);
+  assert.throws(() => createAudioPack(new Uint8Array(32)), /2 MB/);
+  assert.throws(() => audioPackPatches(rom, {...pack, version: 2}), /compatible/);
+  assert.throws(() => audioPackPatches(rom, {...pack, samples: [pack.samples[0], pack.samples[0]]}), /duplicada/);
+  assert.throws(() => audioPackPatches(rom, {...pack, samples: [{name:'unknown', brr:'AAAA'}]}), /desconocida/);
+  assert.throws(() => audioPackPatches(rom, {...pack, samples: [{...pack.samples[0], brr:'AAAA'}]}), /Tamaño/);
+  const blocked = AUDIO_SAMPLES.find(sample => audioRegion(rom, sample).reason);
+  const region = audioRegion(rom, blocked), bad = region.bytes.slice(); bad[0] ^= 2;
+  const badPatch = {id:`audio:${region.offset}`, offset:region.offset, bytes:bad};
+  assert.throws(() => project.transaction([badPatch]), /Marcas BRR/);
+  assert.throws(() => audioPackPatches(rom, {...pack, samples:[{name:blocked.name,brr:Buffer.from(bad).toString('base64')}]}), /Marcas BRR/);
+  assert.deepEqual(project.bytes(), donor);
+  console.log('PASS audio pack: 76 lossless transfers, SMC header, recovery, undo/redo, malformed packs and playback marker protection');
+})();

@@ -1,3 +1,4 @@
+import {externalDeluxeLayout} from './external-layout.mjs';
 import {EXTRA_MENU_GLYPHS,expandedMenuFont} from './menu-font.mjs';
 import {loRom,word,decompress,tiles,palette} from './binary.mjs';
 import {compress} from './compression.mjs';
@@ -30,9 +31,9 @@ const signed=n=>n>127?n-256:n;
 const pointer=rom=>rom[LOADER+2]<<16|word(rom,LOADER);
 function layout(rom){
  const address=pointer(rom);
- if(address!==SOURCE&&loRom(address)!==POOL)throw new Error('Cargador del menú principal no compatible.');
+ if(!externalDeluxeLayout(rom)&&address!==SOURCE&&loRom(address)!==POOL)throw new Error('Cargador del menú principal no compatible.');
  const data=decompress(rom,loRom(address)),count=word(data,1),base=3+data[0];
- if(data[0]!==8||data.length!==11+count*4||![89,256].includes(count)||data.slice(3,11).reduce((n,c)=>n+c,0)!==count||(count===256&&!data.slice(3,11).every(c=>c===32)))throw new Error('Composición del menú principal no compatible.');
+ if(data[0]!==8||data.length!==11+count*4||(!externalDeluxeLayout(rom)&&![89,256].includes(count))||count<1||count>512||data.slice(3,11).reduce((n,c)=>n+c,0)!==count||(count===256&&!data.slice(3,11).every(c=>c===32)))throw new Error('Composición del menú principal no compatible.');
  return {data,count,base};
 }
 function frameSprites(rom,frame){
