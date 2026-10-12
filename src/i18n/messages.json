@@ -2884,20 +2884,20 @@
     "en": "Apply or discard the title screen text before saving a drawing.",
     "pt": "Aplique ou descarte o texto da tela inicial antes de salvar um desenho."
   },
-  "Columnas de banderas": {
-    "es": "Columnas de banderas",
-    "en": "Flag columns",
-    "pt": "Colunas de bandeiras"
+  "Columnas en Grupos": {
+    "es": "Columnas en Grupos",
+    "en": "Columns in Groups",
+    "pt": "Colunas nos Grupos"
   },
   "3 columnas · 2 filas": {
-    "es": "3 columnas · 2 filas",
-    "en": "3 columns · 2 rows",
-    "pt": "3 colunas · 2 linhas"
+    "es": "3 columnas",
+    "en": "3 columns",
+    "pt": "3 colunas"
   },
   "4 columnas · 1 fila": {
-    "es": "4 columnas · 1 fila",
-    "en": "4 columns · 1 row",
-    "pt": "4 colunas · 1 linha"
+    "es": "4 columnas",
+    "en": "4 columns",
+    "pt": "4 colunas"
   },
   "La ROM exportada usa esta distribución. Los grupos se dividen en páginas de seis o cuatro equipos según la opción elegida.": {
     "es": "La ROM exportada usa esta distribución. Los grupos se dividen en páginas de seis o cuatro equipos según la opción elegida.",
@@ -4443,5 +4443,125 @@
     "es": "Posición fuera de los límites de la formación.",
     "en": "Position outside the formation limits.",
     "pt": "Posição fora dos limites da formação."
+  },
+  "Jugador seleccionado": {
+    "es": "Jugador seleccionado",
+    "en": "Selected player",
+    "pt": "Jogador selecionado"
+  },
+  "Restaurar jugador": {
+    "es": "Restaurar jugador",
+    "en": "Restore player",
+    "pt": "Restaurar jogador"
+  },
+  "Girar a la izquierda": {
+    "es": "Girar a la izquierda",
+    "en": "Rotate left",
+    "pt": "Girar para a esquerda"
+  },
+  "Girar a la derecha": {
+    "es": "Girar a la derecha",
+    "en": "Rotate right",
+    "pt": "Girar para a direita"
+  },
+  "Pausar rotación": {
+    "es": "Pausar rotación",
+    "en": "Pause rotation",
+    "pt": "Pausar rotação"
+  },
+  "Rotar jugador": {
+    "es": "Rotar jugador",
+    "en": "Rotate player",
+    "pt": "Girar jogador"
+  },
+  "Haz clic en una barra para cambiar el valor. También puedes usar las flechas del teclado.": {
+    "es": "Haz clic en una barra para cambiar el valor. También puedes usar las flechas del teclado.",
+    "en": "Click a bar to change the value. You can also use the arrow keys.",
+    "pt": "Clique em uma barra para alterar o valor. Você também pode usar as setas do teclado."
+  },
+  "Ver jugador {0}": {
+    "es": "Ver jugador {0}",
+    "en": "View player {0}",
+    "pt": "Ver jogador {0}"
+  },
+  "Cancha": {
+    "es": "Cancha",
+    "en": "Pitch",
+    "pt": "Campo"
+  },
+  "Cerrar cancha": {
+    "es": "Cerrar cancha",
+    "en": "Close pitch",
+    "pt": "Fechar campo"
+  },
+  "Disposición de jugadores": {
+    "es": "Disposición de jugadores",
+    "en": "Player positions",
+    "pt": "Disposição dos jogadores"
+  },
+  "Toca un dorsal para abrir al jugador.": {
+    "es": "Toca un dorsal para abrir al jugador.",
+    "en": "Select a shirt number to open the player.",
+    "pt": "Toque em um número para abrir o jogador."
+  },
+  "Ver jugador": {
+    "es": "Ver jugador",
+    "en": "View player",
+    "pt": "Ver jogador"
+  },
+  "Suplente": {
+    "es": "Suplente",
+    "en": "Substitute",
+    "pt": "Reserva"
+  },
+  "Titular": {
+    "es": "Titular",
+    "en": "Starter",
+    "pt": "Titular"
+  },
+  "Suplentes": {
+    "es": "Suplentes",
+    "en": "Substitutes",
+    "pt": "Reservas"
+  },
+  "Selecciona un jugador": {
+    "es": "Selecciona un jugador",
+    "en": "Select a player",
+    "pt": "Selecione um jogador"
+  },
+  "Pasa por una fila para ver su ubicación.": {
+    "es": "Pasa por una fila para ver su ubicación.",
+    "en": "Hover over a row to see the position.",
+    "pt": "Passe sobre uma linha para ver a posição."
+  },
+  "Descargar proyecto sin ROM": {
+    "es": "Descargar proyecto sin ROM",
+    "en": "Download project without ROM",
+    "pt": "Baixar projeto sem ROM"
+  },
+  "Descargar proyecto con ROM": {
+    "es": "Descargar proyecto con ROM",
+    "en": "Download project with ROM",
+    "pt": "Baixar projeto com ROM"
+  },
+  "El proyecto sin ROM conserva tus modificaciones y equipos creados. Para reabrirlo, carga la misma ROM original e importa el JSON. La copia con ROM permite abrir el proyecto con su archivo original incluido.": {
+    "es": "El proyecto sin ROM conserva tus modificaciones y equipos creados. Para reabrirlo, carga la misma ROM original e importa el JSON. La copia con ROM permite abrir el proyecto con su archivo original incluido.",
+    "en": "The project without ROM keeps your edits and created teams. To reopen it, load the same original ROM and import the JSON. The copy with ROM includes the original file.",
+    "pt": "O projeto sem ROM conserva suas alterações e equipes criadas. Para reabri-lo, carregue a mesma ROM original e importe o JSON. A cópia com ROM inclui o arquivo original."
+  },
+  "Este proyecto no incluye la ROM. Abre primero la ROM original y vuelve a importar el proyecto.": {
+    "es": "Este proyecto no incluye la ROM. Abre primero la ROM original y vuelve a importar el proyecto.",
+    "en": "This project does not include the ROM. Open the original ROM first, then import the project again.",
+    "pt": "Este projeto não inclui a ROM. Abra primeiro a ROM original e importe o projeto novamente."
+  },
+  "El tile transparente compartido debe conservarse vacío.": {
+    "es": "El tile transparente compartido debe conservarse vacío.",
+    "en": "The shared transparent tile must remain empty.",
+    "pt": "O tile transparente compartilhado deve permanecer vazio."
+  },
+  "Restaurar tile transparente compartido": {
+    "es": "Restaurar tile transparente compartido",
+    "en": "Restore shared transparent tile",
+    "pt": "Restaurar tile transparente compartilhado"
   }
 }

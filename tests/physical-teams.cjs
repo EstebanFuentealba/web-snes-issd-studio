@@ -3,7 +3,7 @@ global.crypto ||= require('crypto').webcrypto;
 (async()=>{
  const {RomProject}=await import('../src/rom/project.mjs');
  const {activeTeamIds,teamExists,teamCount,teamPointer,attributeOffset,TEAM_METADATA,PHYSICAL_STAR_NAMES}=await import('../src/rom/team-count.mjs');
- const {erasedNativeResources}=await import('../src/rom/physical-teams.mjs');
+ const {erasedNativeResources,SHARED_BLANK_DETAIL}=await import('../src/rom/physical-teams.mjs');
  const {readDeluxeTeam,deluxePlayerNameOffset}=await import('../src/rom/deluxe.mjs');
  const {editableGroups,editGroupsPatches}=await import('../src/rom/group-editor.mjs');
  const {readScenarios}=await import('../src/rom/scenarios.mjs');
@@ -53,6 +53,14 @@ global.crypto ||= require('crypto').webcrypto;
  // At least one squad survives; native slots can all be cleared if an added
  // team remains. Every scenario is redirected to that live added team.
  const all=await RomProject.create(original);all.addTeam('CHILE');for(let t=0;t<42;t++)all.deleteTeam(t);
+ assert.ok(all.bytes().slice(SHARED_BLANK_DETAIL,SHARED_BLANK_DETAIL+32).every(b=>b===0));
+ assert.ok(!erasedNativeResources(all.bytes()).some(([offset])=>offset===SHARED_BLANK_DETAIL));
+ const erasedBlankRecord=all.record();erasedBlankRecord.patches.push({id:`detail:${SHARED_BLANK_DETAIL}`,offset:SHARED_BLANK_DETAIL,bytes:Buffer.alloc(32,255).toString('base64')});
+ assert.deepEqual((await RomProject.import(erasedBlankRecord)).exportRom(),all.exportRom());
+ const erasedBlankRom=all.exportRom();erasedBlankRom.fill(255,SHARED_BLANK_DETAIL,SHARED_BLANK_DETAIL+32);
+ const recovered=await RomProject.create(erasedBlankRom);assert.ok(recovered.bytes().slice(SHARED_BLANK_DETAIL,SHARED_BLANK_DETAIL+32).every(b=>b===0));recovered.exportRom();recovered.restore(`detail:${SHARED_BLANK_DETAIL}`);recovered.reset();assert.ok(recovered.bytes().slice(SHARED_BLANK_DETAIL,SHARED_BLANK_DETAIL+32).every(b=>b===0));recovered.exportRom();
+ assert.throws(()=>all.transaction([{id:`detail:${SHARED_BLANK_DETAIL}`,offset:SHARED_BLANK_DETAIL,bytes:new Uint8Array(32).fill(1)}]),/tile transparente/);
+
  assert.deepEqual(activeTeamIds(all.bytes()),[42]);assert.ok(readScenarios(all.bytes()).every(s=>s.playerTeam===42&&s.opponentTeam===42));const last=all.exportRom();assert.throws(()=>all.deleteTeam(42),/al menos un equipo/);assert.deepEqual(all.exportRom(),last);
  for(const [table,n] of [[0x1027a,16],[0x102d0,16],[0x10326,11],[0x1037c,5],[0x103d2,1],[0xe7d8,4]]){const source=word(original,table+84);assert.equal(teamPointer(all.bytes(),table,48),source);if(source){const off=loRom(0x890000|source);assert.deepEqual(all.bytes().slice(off,off+2+n*2),original.slice(off,off+2+n*2));}}
  const onlyExtra=await RomProject.create(last);assert.deepEqual(activeTeamIds(onlyExtra.bytes()),[42]);onlyExtra.addTeam('PERU');assert.deepEqual(activeTeamIds(onlyExtra.bytes()),[0,42]);

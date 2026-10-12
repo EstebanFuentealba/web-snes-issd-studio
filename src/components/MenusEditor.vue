@@ -18,6 +18,7 @@
 </template>
 
 <script>
+import {MENU_TABS} from '../navigation.mjs';
 import MainMenuEditor from './MainMenuEditor.vue';
 import MenuTextEditor from './MenuTextEditor.vue';
 
@@ -26,20 +27,18 @@ export default {
   props:{rom:Uint8Array,original:Uint8Array,error:String},
   emits:['change'],
   data(){return {
-    active:'main',textEditors:{},
-    tabs:[
-      {id:'main',label:'Menú principal'},
-      {id:'secondary',label:'Menú secundario'},
-      {id:'settings',label:'Menú settings'},
-      {id:'training',label:'Menú training'},
-      {id:'handicap',label:'Menú handicap'},
-      {id:'game',label:'Menú juego'},
-    ],
+    textEditors:{},tabs:MENU_TABS,
   };},
-  computed:{dirty(){return !!this.$refs.mainEditor?.dirty||Object.values(this.textEditors).some(editor=>editor.dirty);}},
+  computed:{
+    active:{
+      get(){return this.$route?.meta.menuTab||'main';},
+      set(tab){this.$router.push({name:`menu-${tab}`});},
+    },
+    dirty(){return !!this.$refs.mainEditor?.dirty||Object.values(this.textEditors).some(editor=>editor.dirty);},
+  },
   methods:{
     setTextEditor(id,editor){if(editor){if(this.textEditors[id]!==editor)this.textEditors[id]=editor;}else delete this.textEditors[id];},
-    navigateTabs(event,index){
+    async navigateTabs(event,index){
       let next;
       if(event.key==='ArrowRight')next=(index+1)%this.tabs.length;
       else if(event.key==='ArrowLeft')next=(index+this.tabs.length-1)%this.tabs.length;
@@ -47,7 +46,7 @@ export default {
       else if(event.key==='End')next=this.tabs.length-1;
       else return;
       event.preventDefault();
-      this.active=this.tabs[next].id;
+      await this.$router.push({name:`menu-${this.tabs[next].id}`});
       this.$nextTick(()=>document.getElementById(`menu-tab-${this.active}`)?.focus());
     },
   },

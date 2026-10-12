@@ -59,6 +59,12 @@ global.crypto ||= require('crypto').webcrypto;global.Blob ||= require('buffer').
  const numberProject=await RomProject.create(original);numberProject.transaction(playerPatches(numberProject.bytes(),0,0,{no:2}));assert.equal(new Set(readDeluxeTeam(numberProject.bytes(),0).players.map(p=>p.no)).size,20);numberProject.restore(`attributes:${0x50000}`);assert.deepEqual(numberProject.exportRom(),original);
  const edited=project.exportRom();assert.equal(word(edited,0x7fde),edited.reduce((sum,b)=>(sum+b)&65535,0));assert.equal(word(edited,0x7fdc)^word(edited,0x7fde),65535);
  const editedRanges=project.patches.map(p=>[p.offset,p.offset+p.bytes.length]);for(let i=0;i<original.length;i++)if(!editedRanges.some(([a,b])=>i>=a&&i<b)&&!(i>=0x7fdc&&i<0x7fe0))assert.equal(edited[i],original[i],`Unrelated byte ${i}`);
+ const portable=JSON.parse(JSON.stringify(project.record({includeOriginal:false})));
+ assert.equal(Object.hasOwn(portable,'original'),false);
+ await assert.rejects(()=>RomProject.import(portable),/Abre primero la ROM original/);
+ assert.deepEqual((await RomProject.import(portable,original)).exportRom(),project.exportRom());
+ await assert.rejects(()=>RomProject.import({...portable,hash:'bad'},original),/hash/);
+ await assert.rejects(()=>RomProject.import({...portable,original:null},original),/compatible/);
  const record=project.record(),restored=await RomProject.import(JSON.parse(JSON.stringify(record)));assert.deepEqual(restored.exportRom(),edited);const corrupt={...record,hash:'bad'};await assert.rejects(()=>RomProject.import(corrupt),/hash/);await assert.rejects(()=>RomProject.import({...record,patches:[...record.patches,record.patches[0]]}),/duplicada/);
  for(let team=0;team<42;team++)for(const resource of graphicResources(original,team)) {
    assert.deepEqual(tiles(encodeTiles(resource.matrix,resource.bpp),resource.bpp,resource.columns),resource.matrix);

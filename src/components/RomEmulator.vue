@@ -79,6 +79,12 @@ export default {
       this.$refs.frame.contentWindow.postMessage({ type: 'issd:load-rom', bytes, language: this.$locale || 'es' }, window.location.origin, [bytes.buffer]);
     },
     press(index) { this.command('press', {index,player:this.controller,duration:this.duration}); },
+    focusGame() {
+      const frame = this.$refs.frame;
+      if (!frame) return;
+      frame.focus({ preventScroll: true });
+      frame.contentWindow.postMessage({ type: 'issd:focus-game' }, window.location.origin);
+    },
     saveScreen() {
       const slot = this.screens.length + 1;
       const name = this.bookmarkName.trim() || `${this.$t('Pantalla')} ${slot}`;
@@ -102,6 +108,7 @@ export default {
         if(data.ok && pending.action === 'save-screen'){
           this.screens.push({slot:pending.slot,name:pending.name}); this.bookmarkName = '';
         }
+        if(data.ok && ['press', 'restart', 'load-screen', 'cancel'].includes(pending.action)) this.focusGame();
         return;
       }
       if (data?.type !== 'issd:emulator-status') return;
@@ -109,6 +116,7 @@ export default {
       if (data.state === 'ready' || data.state === 'running') {
         clearTimeout(this.timer); this.timer = null;
         this.running = data.state === 'running';
+        if(this.running) this.focusGame();
         this.status = data.state === 'ready' ? 'ROM cargada. Pulsa «Iniciar juego» en la pantalla.' : 'Ejecutando ROM modificada.';
       }
     },

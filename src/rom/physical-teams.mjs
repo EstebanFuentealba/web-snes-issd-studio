@@ -14,6 +14,9 @@ const patch=(id,offset,bytes)=>({id,offset,bytes:Uint8Array.from(bytes),label:'E
 const putWord=(bytes,offset,n)=>bytes.set([n&255,n>>>8],offset);
 const apply=(rom,changes)=>{for(const p of changes)rom.set(p.bytes,p.offset);};
 const blank=(n)=>new Uint8Array(n).fill(255);
+// $98F014 is the shared transparent tile used by the native dynamic-sprite
+// loader ($84E80E), including referees and players without jersey details.
+export const SHARED_BLANK_DETAIL=loRom(0x98f014);
 function whiteFlagPatches(original,current,team){
  const offset=loRom(0x890000|teamPointer(current,0xe7d8,team))+4;
  return [...flagPatches(original,current,team,Array.from({length:16},()=>Array(24).fill(13))),patch(`palette:${offset}`,offset,[255,127])];
@@ -125,7 +128,7 @@ export function erasedNativeResources(rom,nativeRom=rom){
   const n=slotName(t);for(let i=0;i<20;i++)out.push([n+i*8,8,0],[attributeOffset(rom,t,i),7,0]);
   const f=slotFormation(rom,t);if(!live.some(u=>loRom(0x8b0000|teamPointer(rom,0x5ef48,u))===f))out.push([f,31,0]);
   for(const [table,count] of palettes){const pointer=word(rom,table+t*2);if(pointer){const off=loRom(0x890000|pointer)+2;if(!livePalettes.some(([p,n])=>off<p+n&&p<off+count*2))out.push([off,count*2,0]);}}
-  const detail=word(rom,0xce8a+t*2);if(!live.some(u=>teamPointer(rom,0xce8a,u)===detail))out.push([loRom(0x980000|detail),32,0]);
+  const detail=word(rom,0xce8a+t*2);if(loRom(0x980000|detail)!==SHARED_BLANK_DETAIL&&!live.some(u=>teamPointer(rom,0xce8a,u)===detail))out.push([loRom(0x980000|detail),32,0]);
   for(const [table,bank,parts] of nativeGraphicTables(nativeRom))for(let part=0;part<parts;part++){
    const ptr=word(nativeRom,table+t*parts*2+part*2);
    if(!nativeLive.some(u=>Array.from({length:parts},(_,i)=>word(nativeRom,table+u*parts*2+i*2)).includes(ptr))){const off=loRom(bank<<16|ptr);out.push([off,bank===0xaf&&table===0xe730?FLAG_SLOT:word(nativeRom,off)&0x7fff,2]);}
@@ -293,7 +296,7 @@ export function addPhysicalTeamPatches(original,current,name){
  if(team<42){
   for(const table of [0xce8a,0x1042e,0x10459,0x104af,0x1759a,0x17829]){const step=stride(table),offset=loRom(TEAM_TABLES[table])-tables+team*step;tableBytes.set(current.slice(table+team*step,table+(team+1)*step),offset);}
   const detail=loRom(0x980000|word(current,0xce8a+team*2));
-  if(!live.some(t=>teamPointer(current,0xce8a,t)===word(current,0xce8a+team*2))){const src=loRom(0x980000|teamPointer(current,0xce8a,source));put(patch(`detail:${detail}`,detail,current.slice(src,src+32)));}
+  if(detail!==SHARED_BLANK_DETAIL&&!live.some(t=>teamPointer(current,0xce8a,t)===word(current,0xce8a+team*2))){const src=loRom(0x980000|teamPointer(current,0xce8a,source));put(patch(`detail:${detail}`,detail,current.slice(src,src+32)));}
  }
  const layout=labelLayout(candidate),frame=labelFrame(layout,team);let sum=0;for(let i=0;i<frame.frame;i++)sum+=layout.data[3+i];putWord(tableBytes,loRom(TEAM_TABLES[0x1759a])-tables+team*2,0x4f02+sum*2);
  putWord(tableBytes,loRom(TEAM_TABLES[0x17829])-tables+team*2,team<2?0x4400+team*192:selectionFlagAddress(team));

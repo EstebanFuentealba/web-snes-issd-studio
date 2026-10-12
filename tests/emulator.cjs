@@ -13,9 +13,10 @@ const component = vm.runInNewContext(read('src/components/RomEmulator.vue').matc
 });
 const sent = [];
 const frame = { postMessage: (...args) => sent.push(args) };
+let gameFocusCount = 0;
 const exported = Uint8Array.from({ length: 1024 }, (_, i) => i % 256);
 const editor = { ...component.data(), project: { headerSize: 512, exportRom: () => exported.slice() },
-  revision: 1, $refs: { frame: { contentWindow: frame } } };
+  revision: 1, $refs: { frame: { contentWindow: frame, focus: options => { assert.equal(options.preventScroll, true); gameFocusCount++; } } } };
 for (const [name, fn] of Object.entries(component.methods)) editor[name] = fn.bind(editor);
 editor.start();
 assert.equal(editor.frameUrl, '/studio/emulator/index.html');
@@ -32,6 +33,10 @@ editor.receive({ origin, source: {}, data: { type: 'issd:emulator-status', state
 assert.equal(editor.active, true);
 editor.receive({ origin, source: frame, data: { type: 'issd:emulator-status', state: 'ready' } });
 assert.equal(timers.size, 0);
+editor.receive({ origin, source: frame, data: { type: 'issd:emulator-status', state: 'running' } });
+assert.equal(gameFocusCount, 1);
+assert.equal(sent.at(-1)[0].type, 'issd:focus-game');
+assert.equal(sent.at(-1)[1], origin);
 editor.revision = 2; editor.start();
 assert.equal(editor.loadedRevision, 2);
 editor.stop(); assert.equal(timers.size, 0); assert.equal(editor.snapshot, null);
@@ -45,15 +50,37 @@ const game = { textContent: '' };
 const context = { Uint8Array, Blob: require('buffer').Blob, parent, location: { origin },
   URL: { createObjectURL: blob => { blobs.push(blob); return 'blob:rom'; }, revokeObjectURL: url => revoked.push(url) },
   document: { getElementById: () => game, createElement: () => ({}), body: { appendChild: script => scripts.push(script) } },
-  window: { addEventListener: (name, fn) => { listeners[name] = fn; } } };
+  window: { focus() {}, addEventListener: (name, fn) => { listeners[name] = fn; } } };
 vm.runInNewContext(read('public/emulator/player.js'), context);
+const key = (key, options = {}) => {
+  let prevented = false;
+  listeners.keydown({ key, preventDefault() { prevented = true; }, ...options });
+  return prevented;
+};
+assert.equal(key('ArrowDown'), false);
 const load = { origin, source: parent, data: { type: 'issd:load-rom', bytes: Uint8Array.of(1, 2, 3) } };
 listeners.message({ ...load, origin: 'https://untrusted.example' }); assert.equal(scripts.length, 0);
 listeners.message(load); listeners.message(load);
 assert.equal(scripts.length, 1); assert.equal(blobs[0].size, 3);
 assert.equal(context.window.EJS_core, 'snes'); assert.equal(context.window.EJS_gameUrl, 'blob:rom');
+let runtimeFocusCount = 0;
+const runtimeElements = { parent: { focus: options => { assert.equal(options.preventScroll, true); runtimeFocusCount++; } } };
+context.window.EJS_emulator = { elements: runtimeElements };
+assert.equal(context.window.EJS_noAutoFocus, false);
 context.window.EJS_ready(); context.window.EJS_onGameStart();
+assert.equal(runtimeFocusCount, 1);
+const focusMessage = { origin, source: parent, data: { type: 'issd:focus-game' } };
+listeners.message({ ...focusMessage, origin: 'https://untrusted.example' });
+listeners.message({ ...focusMessage, source: {} });
+assert.equal(runtimeFocusCount, 1);
+listeners.message(focusMessage);
+assert.equal(runtimeFocusCount, 2);
 assert.deepEqual(reports.map(r => r.state), ['ready', 'running']);
+for (const control of ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ']) assert.equal(key(control), true);
+assert.equal(key('a'), false);
+assert.equal(key('Enter'), false); // Start remains available to the runtime's own key handler.
+assert.equal(key('ArrowDown', { ctrlKey: true }), false);
+assert.equal(key('ArrowUp', { target: { closest: () => ({}) } }), false);
 scripts[0].onerror(); assert.equal(reports.at(-1).state, 'error');
 listeners.pagehide(); assert.deepEqual(revoked, ['blob:rom']);
 console.log('PASS emulator: validated snapshot, SMC header removal, reload, origin checks, cleanup and load errors');
@@ -79,7 +106,7 @@ console.log('PASS emulator languages: English and Portuguese runtime, start butt
 (async()=>{
   const inputs=[],restored=[];let restarts=0;
   context.setTimeout=fn=>{queueMicrotask(fn);};
-  context.window.EJS_emulator={gameManager:{simulateInput:(...args)=>inputs.push(args),restart:()=>restarts++,getState:()=>Uint8Array.of(9,8,7),loadState:bytes=>restored.push(bytes)}};
+  context.window.EJS_emulator={elements:runtimeElements,gameManager:{simulateInput:(...args)=>inputs.push(args),restart:()=>restarts++,getState:()=>Uint8Array.of(9,8,7),loadState:bytes=>restored.push(bytes)}};
   const command=(id,action,options={})=>listeners.message({origin,source:parent,data:{type:'issd:emulator-command',id,action,...options}});
   const flush=()=>new Promise(resolve=>setImmediate(resolve));
   command(1,'press',{player:0,index:8,duration:150});await flush();assert.deepEqual(inputs,[[0,8,1],[0,8,0]]);
@@ -94,6 +121,9 @@ console.log('PASS emulator languages: English and Portuguese runtime, start butt
   editor.bookmarkName='EXTRA';editor.saveScreen();const pending=editor.pendingCommand;assert.equal(sent.at(-1)[0].action,'save-screen');
   editor.receive({origin,source:frame,data:{type:'issd:emulator-command-result',id:pending.id+1,ok:true}});assert.equal(editor.busy,true);
   editor.receive({origin,source:frame,data:{type:'issd:emulator-command-result',id:pending.id,ok:true}});assert.deepEqual(JSON.parse(JSON.stringify(editor.screens)),[{slot:1,name:'EXTRA'}]);assert.equal(editor.busy,false);
+  const focusBeforePress=gameFocusCount;editor.press(4);
+  editor.receive({origin,source:frame,data:{type:'issd:emulator-command-result',id:editor.pendingCommand.id,ok:true}});
+  assert.equal(gameFocusCount,focusBeforePress+1);
   editor.stop();assert.equal(editor.screens.length,0);assert.equal(editor.running,false);
   console.log('PASS emulator test panel: controller pulse/release, bounded commands, cancellation, screen save/load, origin checks and ROM lifecycle');
 })().catch(error=>{console.error(error);process.exitCode=1;});

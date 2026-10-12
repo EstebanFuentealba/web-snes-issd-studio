@@ -82,6 +82,10 @@ export default {
     }));
   },
   beforeUnmount() { this.loadVersion++; this.clearAudio(); },
+  beforeRouteUpdate(to, from) {
+    if (to.meta.section !== from.meta.section) return this.$refs.editor?.allowNavigate() ?? true;
+  },
+  beforeRouteLeave() { return this.$refs.editor?.allowNavigate() ?? true; },
   methods: {
     playerAttributes({ head, headColors, skinColor, ...attributes }) { return Object.fromEntries(Object.entries(attributes).map(([key,value]) => [this.key,value])); },
     async loadFile(file, save = false) {

@@ -9,7 +9,7 @@ export const GROUP_LAYOUT_RULES=[
  ['arrow-left',0x879faf,4],['arrow-right',0x879fb3,4],['panel',0x9bc9cf,449],['background-height',0x81d53d,1],
 ].map(([id,address,size])=>[`group-editor:layout-${id}`,loRom(address),size]);
 export function groupLayoutPatches(original,columns,legacy={}){
- const patches=GROUP_LAYOUT_RULES.map(([id,offset,size])=>({id,offset,bytes:Uint8Array.from(original.subarray(offset,offset+size)),label:'Columnas de banderas'}));
+ const patches=GROUP_LAYOUT_RULES.map(([id,offset,size])=>({id,offset,bytes:Uint8Array.from(original.subarray(offset,offset+size)),label:'Columnas en Grupos'}));
  if(columns===3)return patches;
  if(columns!==4)throw new Error('Selecciona 3 o 4 columnas.');
  const set=(name,bytes)=>patches.find(p=>p.id===`group-editor:layout-${name}`).bytes.set(bytes);

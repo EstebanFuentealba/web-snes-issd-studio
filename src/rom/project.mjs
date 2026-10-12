@@ -1,7 +1,7 @@
 import {STADIUM_RULES,stadiumGraphicRules,validateStadiumResource,validateStadiums} from './stadiums.mjs';
 import {SCENARIO_SUMMARY_RULES,scenarioSummaryPatch,validateScenarioSummary} from './scenario-summary.mjs';
 import {TEAM_METADATA,hasExtraTeams,hasPhysicalTeams,hasEmptyTeams,teamDataRom,teamExists,activeTeamIds,teamCount,teamPointer,teamTable,attributeOffset} from './team-count.mjs';
-import {emptyTeamPatches,firstTeamPatches,physicalTeamResources,erasedNativeResources,deleteTeamPatches,addPhysicalTeamPatches,physicalFallbackNamePatches} from './physical-teams.mjs';
+import {emptyTeamPatches,firstTeamPatches,physicalTeamResources,erasedNativeResources,deleteTeamPatches,addPhysicalTeamPatches,physicalFallbackNamePatches,SHARED_BLANK_DETAIL} from './physical-teams.mjs';
 import {EXTRA_TEAM_RULES,extraTeamResources,addTeamPatches,validateExtraTeams,upgradeExtraTeamSelector} from './extra-teams.mjs';
 import {SCENARIO_TEXT_RULES,validateScenarioDescription} from './scenario-text.mjs';
 import {SCENARIO_RULES,validateScenarioBytes,SCENARIO_DIFFICULTY_RULES,validateScenarioDifficulty} from './scenarios.mjs';
@@ -23,6 +23,7 @@ import { audioRegion } from './audio-edit.mjs';
 import {BIG_LABEL_ADDRESS,BIG_LABEL_ID,validateLabelLayout,bigTeamNamePatches,smallTeamNamePatches,teamNameTexts,CZECH_FONT_ADDRESS,validateCzechFont} from './team-labels.mjs';
 const internals=new WeakMap();
 const copyPatch=p=>({...p,bytes:Uint8Array.from(p.bytes)});
+const blankDetailPatch=()=>({id:`detail:${SHARED_BLANK_DETAIL}`,offset:SHARED_BLANK_DETAIL,bytes:new Uint8Array(32),label:'Restaurar tile transparente compartido'});
 const equal=(a,b)=>a.length===b.length && a.every((byte,i)=>byte===b[i]);
 const base64=bytes=> {let text='';for(let i=0;i<bytes.length;i+=8192) text+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(text);};
 const unbase64=text=>Uint8Array.from(atob(text),c=>c.charCodeAt(0));
@@ -122,6 +123,7 @@ export class RomProject {
         if(![...originalFormations,...menuFormations].some(bytes=>equal(bytes,patch.bytes)))validateFormation(patch.bytes);
       }
       if(rule.type==='palette' && patch.bytes[1]&0x80) throw new Error('Paleta BGR555 inválida.');
+      if(patch.offset===SHARED_BLANK_DETAIL&&patch.bytes.some(Boolean))throw new Error('El tile transparente compartido debe conservarse vacío.');
       if(rule.type==='compressed' && decompress(patch.bytes,0).length!==rule.decodedSize) throw new Error('Resolución gráfica inválida.');
       if(rule.type==='czech-font')validateCzechFont(patch.bytes,original);
       if(patch.id==='teams:big-labels')validateLabelLayout(decompress(patch.bytes,0),original);
@@ -196,6 +198,7 @@ export class RomProject {
   removeTeam(team){return this.transaction(removeTeamPatches(this.original,this.bytes(),team));}
   restorePatches(id) {
     const state=internals.get(this),s={...state,original:teamDataRom(state.original)},rule=s.registry.get(id);if(!rule)throw new Error('Recurso desconocido.');
+    if(rule.offset===SHARED_BLANK_DETAIL)return [blankDetailPatch()];
     const pristine=s.original.slice(rule.offset,rule.offset+rule.size),defaultTeam=activeTeamIds(s.original)[0];
     if(pristine.every(b=>b===255)){
       if(rule.type==='name')for(const [base,n,first] of [[loRom(0x87818e),36,0],[loRom(0x8af8a0),6,36],[loRom(0x87fac8),6,42]])if(rule.offset>=base&&rule.offset<base+n*160){const team=Math.floor((rule.offset-base)/160)+first,i=Math.floor((rule.offset-base)%160/8),offset=playerOffsets(s.original,teamExists(s.original,team)?team:defaultTeam,i).name;return [{id,offset:rule.offset,bytes:s.original.slice(offset,offset+8),label:'Restaurar jugador'}];}
@@ -219,12 +222,13 @@ export class RomProject {
     return [{id,offset:rule.offset,bytes:s.original.slice(rule.offset,rule.offset+rule.size),label:id}];
   }
   restore(id) {return this.transaction(this.restorePatches(id));}
-  reset() {const s=internals.get(this);if(!s.patches.size)return;s.undo.push(s.patches);s.redo=[];s.patches=new Map();this.updatedAt=new Date().toISOString();}
+  reset() {const s=internals.get(this);if(!s.patches.size)return;s.undo.push(s.patches);s.redo=[];s.patches=new Map();if(hasPhysicalTeams(s.original)&&s.original.slice(SHARED_BLANK_DETAIL,SHARED_BLANK_DETAIL+32).every(b=>b===255)){const repair=blankDetailPatch();s.patches.set(repair.id,repair);}this.updatedAt=new Date().toISOString();}
   undo() {const s=internals.get(this);if(!s.undo.length)return;s.redo.push(s.patches);s.patches=s.undo.pop();this.updatedAt=new Date().toISOString();}
   redo() {const s=internals.get(this);if(!s.redo.length)return;s.undo.push(s.patches);s.patches=s.redo.pop();this.updatedAt=new Date().toISOString();}
   bytes() {const s=internals.get(this),bytes=s.original.slice();this.validate(this.patches,s.original);for(const p of s.patches.values()) bytes.set(p.bytes,p.offset);return bytes;}
   exportRom() {
     const s=internals.get(this),rom=this.bytes();
+    if(hasPhysicalTeams(rom)&&rom.slice(SHARED_BLANK_DETAIL,SHARED_BLANK_DETAIL+32).some(Boolean))throw new Error('El tile transparente compartido debe conservarse vacío.');
     validateStadiums(rom,s.original);
     if(this.patches.some(p=>p.id.startsWith('group-editor:')))validateGroupEditor(rom,s.original);
     if(this.patches.some(p=>p.id.startsWith('title-legal:')))validateTitleLegal(rom,s.original);
@@ -241,12 +245,13 @@ export class RomProject {
     }
     const file=new Uint8Array(s.header.length+rom.length);file.set(s.header);file.set(rom,s.header.length);return file;
   }
-  record() {
+  record({includeOriginal=true}={}) {
     const s=internals.get(this);
-    return {format:'issd-studio-project',version:1,hash:this.hash,updatedAt:this.updatedAt,original:base64(this.exportOriginal()),patches:this.patches.map(p=>({...p,bytes:base64(p.bytes)})),createdTeams:JSON.parse(JSON.stringify(s.patches.createdTeams||{}))};
+    return {format:'issd-studio-project',version:1,hash:this.hash,updatedAt:this.updatedAt,...(includeOriginal?{original:base64(this.exportOriginal())}:{}),patches:this.patches.map(p=>({...p,bytes:base64(p.bytes)})),createdTeams:JSON.parse(JSON.stringify(s.patches.createdTeams||{}))};
   }
   exportOriginal() {const s=internals.get(this),bytes=new Uint8Array(s.header.length+s.original.length);bytes.set(s.header);bytes.set(s.original,s.header.length);return bytes;}
   static async create(bytes) {const project=new RomProject(bytes);project.hash=await romHash(project.exportOriginal());
+    if(hasPhysicalTeams(project.original)&&project.original.slice(SHARED_BLANK_DETAIL,SHARED_BLANK_DETAIL+32).every(b=>b===255)){project.transaction([blankDetailPatch()]);internals.get(project).undo=[];}
     // Repair added-team anchors when opening a ROM exported by an earlier build.
     if(hasExtraTeams(project.original)){
       const current=project.bytes();let changes=[];
@@ -261,13 +266,18 @@ export class RomProject {
 
     if(legacyTitleLegal(project.original)){validateTitleLegal(project.original,project.original);const notice=titleLegalResources(project.original)[0];project.transaction(titleLegalPatches(project.original,project.original,notice.id,notice.matrix,notice.text,true));internals.get(project).undo=[];}
     return project;}
-  static async import(record) {
-    if(record.format!=='issd-studio-project'||record.version!==1||typeof record.original!=='string'||record.original.length>3000000||!Array.isArray(record.patches)||record.patches.length>5000) throw new Error('Proyecto no compatible.');
-    const project=await RomProject.create(unbase64(record.original));
+  static async import(record,originalBytes) {
+    if(record.format!=='issd-studio-project'||record.version!==1||(record.original!==undefined&&(typeof record.original!=='string'||record.original.length>3000000))||!Array.isArray(record.patches)||record.patches.length>5000) throw new Error('Proyecto no compatible.');
+    if(record.original===undefined&&!originalBytes)throw new Error('Este proyecto no incluye la ROM. Abre primero la ROM original y vuelve a importar el proyecto.');
+    const project=await RomProject.create(record.original===undefined?originalBytes:unbase64(record.original));
     if(project.hash!==record.hash)throw new Error('El hash no coincide con la ROM original del proyecto.');
     const seen=new Set();
     for(const p of record.patches) {if(seen.has(p.id)||typeof p.bytes!=='string')throw new Error('Modificación duplicada o inválida.');seen.add(p.id);}
     let patches=record.patches.map(p=>({...p,bytes:unbase64(p.bytes)}));
+    // Earlier physical deletion erased this global sprite sentinel after its
+    // final team owner was removed. Drop only that exact legacy erasure.
+    const legacyPhysical=hasPhysicalTeams(project.original)||patches.some(p=>p.id==='teams:metadata'&&p.offset===TEAM_METADATA&&p.bytes.length===256&&p.bytes[4]===2);
+    patches=patches.filter(p=>!(legacyPhysical&&p.id===`detail:${SHARED_BLANK_DETAIL}`&&p.offset===SHARED_BLANK_DETAIL&&p.bytes.length===32&&p.bytes.every(b=>b===255)));
     const oldPool=patches.find(p=>p.id==='flags:pool');
     if(oldPool?.bytes.length===72*102){
       const oldRules=FLAG_RULES.slice(0,3).map(([id,offset,size],i)=>[id,offset,i===0?72*102:i===1?144:size]);

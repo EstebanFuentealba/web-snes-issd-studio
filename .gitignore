@@ -13,3 +13,6 @@ issd-*-reviewed.png
 issd-*-fixed.jpg
 issd-*-fixed.png
 public/menu-references
+artifacts/*
+issd-*.png
+issd-*.jpg

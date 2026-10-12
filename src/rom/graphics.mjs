@@ -34,7 +34,7 @@ export function graphicResources(rom, team) {
   };
   const detail=0x980000|teamPointer(rom,0xce8a,team);
   const playerRanges=[[0xa9a7c6,256],[0xa9a8c8,224],[detail,32]];
-  result.push(spriteResource(rom,'Detalles de camiseta · vista frontal compartida',playerRanges,0x988472,112,kit,[2]));
+  result.push(spriteResource(rom,'Detalles de camiseta · vista frontal compartida',playerRanges,0x988472,112,kit,detail===0x98f014?[]:[2]));
   result.push(raw('Números de camisetas · atlas compartido',0x98e5d4,0x98f014,2));
   const goalie=palette(rom,loRom(0x890000|teamPointer(rom,0x10326,team))+2,11);
   goalie.unshift('transparent');
