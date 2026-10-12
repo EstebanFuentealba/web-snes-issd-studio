@@ -54,10 +54,15 @@
     "en": "ASIAN STAR",
     "pt": "ASIAN STAR"
   },
-  "Abrir ROM ISS / ISS Deluxe (USA)": {
-    "es": "Abrir ROM ISS / ISS Deluxe (USA)",
-    "en": "Open ISS / ISS Deluxe ROM (USA)",
-    "pt": "Abrir ROM ISS / ISS Deluxe (USA)"
+  "Subir o arrastrar un ROM": {
+    "es": "Subir o arrastrar un ROM",
+    "en": "Upload or drag a ROM",
+    "pt": "Enviar ou arrastar uma ROM"
+  },
+  "SFC o SMC · ISS / ISS Deluxe (USA)": {
+    "es": "SFC o SMC · ISS / ISS Deluxe (USA)",
+    "en": "SFC or SMC · ISS / ISS Deluxe (USA)",
+    "pt": "SFC ou SMC · ISS / ISS Deluxe (USA)"
   },
   "Acercar al recorte": {
     "es": "Acercar al recorte",
@@ -4314,6 +4319,11 @@
     "en": "Reset all",
     "pt": "Redefinir tudo"
   },
+  "¿Resetear todo? Se eliminarán los datos guardados localmente y se recargará la página. Esta operación no se puede deshacer.": {
+    "es": "¿Resetear todo? Se eliminarán los datos guardados localmente y se recargará la página. Esta operación no se puede deshacer.",
+    "en": "Reset all? Locally saved data will be deleted and the page will reload. This operation cannot be undone.",
+    "pt": "Redefinir tudo? Os dados salvos localmente serão excluídos e a página será recarregada. Esta operação não pode ser desfeita."
+  },
   "Vista": {
     "es": "Vista",
     "en": "View",
@@ -4348,5 +4358,90 @@
     "es": "Plantilla de ROM vacía inválida.",
     "en": "Invalid empty ROM template.",
     "pt": "Modelo de ROM vazia inválido."
+  },
+  "Selecciona uno de los 16 esquemas del juego o copia la formación original de otro equipo. Se aplican posiciones y roles; el plantel no cambia automáticamente.": {
+    "es": "Selecciona uno de los 16 esquemas del juego o copia la formación original de otro equipo. Se aplican posiciones y roles; el plantel no cambia automáticamente.",
+    "en": "Select one of the game’s 16 formations or copy another team’s original formation. Positions and roles are applied; the squad does not change automatically.",
+    "pt": "Selecione um dos 16 esquemas do jogo ou copie a formação original de outra equipe. São aplicadas posições e funções; o elenco não muda automaticamente."
+  },
+  "Tipo de formación": {
+    "es": "Tipo de formación",
+    "en": "Formation type",
+    "pt": "Tipo de formação"
+  },
+  "Seleccionar formación": {
+    "es": "Seleccionar formación",
+    "en": "Select formation",
+    "pt": "Selecionar formação"
+  },
+  "Vista previa de formación": {
+    "es": "Vista previa de formación",
+    "en": "Formation preview",
+    "pt": "Prévia da formação"
+  },
+  "Copiar formación del equipo": {
+    "es": "Copiar formación del equipo",
+    "en": "Copy team formation",
+    "pt": "Copiar formação da equipe"
+  },
+  "Formación inválida.": {
+    "es": "Formación inválida.",
+    "en": "Invalid formation.",
+    "pt": "Formação inválida."
+  },
+  "Selecciona un esquema, arrastra los dorsales y configura la participación ofensiva de cada jugador.": {
+    "es": "Selecciona un esquema, arrastra los dorsales y configura la participación ofensiva de cada jugador.",
+    "en": "Select a formation, drag the shirt numbers, and configure each player’s attacking participation.",
+    "pt": "Selecione um esquema, arraste os números e configure a participação ofensiva de cada jogador."
+  },
+  "Jugadores en la formación": {
+    "es": "Jugadores en la formación",
+    "en": "Formation players",
+    "pt": "Jogadores na formação"
+  },
+  "Jugador": {
+    "es": "Jugador",
+    "en": "Player",
+    "pt": "Jogador"
+  },
+  "Participación ofensiva": {
+    "es": "Participación ofensiva",
+    "en": "Attacking participation",
+    "pt": "Participação ofensiva"
+  },
+  "El portero lo posiciona automáticamente el juego.": {
+    "es": "El portero lo posiciona automáticamente el juego.",
+    "en": "The game positions the goalkeeper automatically.",
+    "pt": "O jogo posiciona o goleiro automaticamente."
+  },
+  "Arrastra un dorsal o usa las flechas del teclado. El portero lo posiciona automáticamente el juego.": {
+    "es": "Arrastra un dorsal o usa las flechas del teclado. El portero lo posiciona automáticamente el juego.",
+    "en": "Drag a shirt number or use the arrow keys. The game positions the goalkeeper automatically.",
+    "pt": "Arraste um número ou use as setas do teclado. O jogo posiciona o goleiro automaticamente."
+  },
+  "Avance horizontal": {
+    "es": "Avance horizontal",
+    "en": "Horizontal advance",
+    "pt": "Avanço horizontal"
+  },
+  "Posición vertical": {
+    "es": "Posición vertical",
+    "en": "Vertical position",
+    "pt": "Posição vertical"
+  },
+  "Los delanteros no usan el indicador de participación ofensiva.": {
+    "es": "Los delanteros no usan el indicador de participación ofensiva.",
+    "en": "Forwards do not use the attacking participation flag.",
+    "pt": "Os atacantes não usam o indicador de participação ofensiva."
+  },
+  "Roles incompatibles con el esquema de formación.": {
+    "es": "Roles incompatibles con el esquema de formación.",
+    "en": "Roles do not match the formation scheme.",
+    "pt": "Funções incompatíveis com o esquema de formação."
+  },
+  "Posición fuera de los límites de la formación.": {
+    "es": "Posición fuera de los límites de la formación.",
+    "en": "Position outside the formation limits.",
+    "pt": "Posição fora dos limites da formação."
   }
 }

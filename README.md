@@ -60,7 +60,7 @@ ISSD supports ten editable player attributes.
 
 ### ⚽ Team Formations
 
-Inspect original formations, including player coordinates and roles.
+Inspect original formations, including player coordinates and roles. In **Teams → Formation type**, select any of the 16 original in-game schemes, preview its positions, and click **Apply formation**. You can also copy another team’s original formation. These changes support undo, restore, and ROM/project export without changing the roster.
 
 The current formation diagram is a schematic representation of the game's data. Custom formation editing is planned for a future update.
 

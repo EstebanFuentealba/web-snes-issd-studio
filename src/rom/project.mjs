@@ -18,7 +18,7 @@ import { playerOffsets, playerPatches } from './players.mjs';
 import { deluxeAttributes, deluxeText, readDeluxeTeam } from './deluxe.mjs';
 import { GROUP_RULES,validateGroupStorage,graphicResources, FLAG_RULES, validateFlagStorage, flagBank, LABEL_RULES, labelBank, validateSmallLabelStorage, flagPatches, flagMatrix, smallLabelPatches, smallLabelMatrix } from './graphics.mjs';
 import { AUDIO_SAMPLES, decodeBrr } from './audio.mjs';
-import { readFormation } from './formations.mjs';
+import { readFormation, readFormationPreset, FORMATION_LABELS, validateFormation } from './formations.mjs';
 import { audioRegion } from './audio-edit.mjs';
 import {BIG_LABEL_ADDRESS,BIG_LABEL_ID,validateLabelLayout,bigTeamNamePatches,smallTeamNamePatches,teamNameTexts,CZECH_FONT_ADDRESS,validateCzechFont} from './team-labels.mjs';
 const internals=new WeakMap();
@@ -118,7 +118,8 @@ export class RomProject {
       }
       if(rule.type==='formation') {
         const originalFormations=activeTeamIds(teamDataRom(original)).map(i=>readFormation(teamDataRom(original),i).bytes);
-        if(!originalFormations.some(bytes=>equal(bytes,patch.bytes))) throw new Error('Solo se permiten formaciones originales verificadas.');
+        const menuFormations=FORMATION_LABELS.map((_,i)=>readFormationPreset(original,i).bytes);
+        if(![...originalFormations,...menuFormations].some(bytes=>equal(bytes,patch.bytes)))validateFormation(patch.bytes);
       }
       if(rule.type==='palette' && patch.bytes[1]&0x80) throw new Error('Paleta BGR555 inválida.');
       if(rule.type==='compressed' && decompress(patch.bytes,0).length!==rule.decodedSize) throw new Error('Resolución gráfica inválida.');

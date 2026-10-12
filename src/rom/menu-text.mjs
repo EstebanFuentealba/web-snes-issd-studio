@@ -1,5 +1,6 @@
 import {loRom,word,decompress,tiles} from './binary.mjs';
 import {compress} from './compression.mjs';
+import {mainMenuBackground} from './main-menu.mjs';
 
 // Bank $87 MI scripts: op $1C/$18 draws TallMenuText, op $22/$26
 // draws SmallMenuText through DATA_87C016. Fixed slots exclude all MI
@@ -124,12 +125,13 @@ function menuFont(rom,id){
 }
 export function menuTextPreview(rom,screenId,key){
  const screen=menuScreen(screenId),selected=fieldFor(screenId,key),font=menuFont(rom,screenId);
- const matrix=Array.from({length:224},()=>Array(256).fill(0));
- const colors=['#304fc7','#060d82','#00d8d8','#ffffff','#000000','#8c8c8c','#ffff00'];
- const panel=(x,y,w,h)=>{for(let py=y;py<y+h;py++)for(let px=x;px<x+w;px++)matrix[py][px]=py===y||py===y+h-1||px===x||px===x+w-1?2:1;};
+ const background=mainMenuBackground(rom),matrix=background.matrix;
+ const foreground=background.colors.length;
+ const colors=[...background.colors,'#304fc7','#060d82','#00d8d8','#ffffff','#000000','#8c8c8c','#ffff00'];
+ const panel=(x,y,w,h)=>{for(let py=y;py<y+h;py++)for(let px=x;px<x+w;px++)matrix[py][px]=foreground+(py===y||py===y+h-1||px===x||px===x+w-1?2:1);};
  const box={secondary:[56,32,144,80],settings:[16,32,224,104],training:[56,56,144,56],handicap:[8,64,240,104],game:[64,24,144,176]}[screenId];panel(...box);
  if(['secondary','training'].includes(screenId))panel(48,136,160,48);
- const paint=(tile,position,highlight)=>{const x=(position%32)*8,y=Math.floor(position/32)*8;for(let yy=0;yy<8;yy++)for(let xx=0;xx<8;xx++){const pixel=font[tile*8+yy]?.[xx]??0;if(pixel&&matrix[y+yy]?.[x+xx]!==undefined)matrix[y+yy][x+xx]=highlight&&pixel===1?6:pixel+2;}};
+ const paint=(tile,position,highlight)=>{const x=(position%32)*8,y=Math.floor(position/32)*8;for(let yy=0;yy<8;yy++)for(let xx=0;xx<8;xx++){const pixel=font[tile*8+yy]?.[xx]??0;if(pixel&&matrix[y+yy]?.[x+xx]!==undefined)matrix[y+yy][x+xx]=foreground+(highlight&&pixel===1?6:pixel+2);}};
  if(screenId==='game'){
   const map=gameMap(rom);
   for(let y=0;y<28;y++)for(let x=0;x<32;x++){const index=y*32+x,tile=word(map,index*2)&1023;paint(tile,index,index>=selected.position&&index<selected.position+selected.columns||index>=selected.position+32&&index<selected.position+32+selected.columns);}

@@ -141,12 +141,15 @@ function menuLayer(rom,part,mapAddress,{width,height,top=0,base=0,context=null})
  }));
  return {...part,kind:'menu-layer',columns:width/8,compressed:false,parts:[part],matrix,owners,editable:owners.map(row=>row.map(Boolean))};
 }
+export function mainMenuBackground(rom){
+ const background=resource(rom,'Menú principal · fondo azul',0x9ed8ab,4,1,palette(rom,loRom(0x89e49e),16));
+ return menuLayer(rom,background,0xa2e9d0,{width:256,height:224,base:384});
+}
 export function mainMenuGraphics(rom,expand=false){
  const bright=palette(rom,loRom(0x89c856),16);bright[0]='transparent';
  const font=extended(rom)||expand?{id:'main-menu:font',label:'Menú principal · letras grandes compartidas',offset:FONT_POOL,capacity:FONT_SIZE,bpp:4,columns:16,compressed:true,interleaved:false,decodedSize:144*32,matrix:tiles(fontData(rom),4,16),colors:bright}:resource(rom,'Menú principal · letras grandes compartidas',0x9e8000,4,2,bright);
  const panel=resource(rom,'Menú principal · panel compartido',0x9e865c,4,1,palette(rom,loRom(0x89c816),16));
- const background=resource(rom,'Menú principal · fondo azul',0x9ed8ab,4,1,palette(rom,loRom(0x89e49e),16));
- return [font,menuLayer(rom,panel,0x9dfea3,{width:128,height:48,top:24,base:48,context:0x95fbdc}),menuLayer(rom,background,0xa2e9d0,{width:256,height:224,base:384})];
+ return [font,menuLayer(rom,panel,0x9dfea3,{width:128,height:48,top:24,base:48,context:0x95fbdc}),mainMenuBackground(rom)];
 }
 export function mainMenuPreview(rom,selected=0){
  const colors=Array(256).fill('#000000'),matrix=Array.from({length:224},()=>Array(256).fill(0));

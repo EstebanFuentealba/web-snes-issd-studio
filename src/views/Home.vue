@@ -4,8 +4,11 @@
     <LanguageSelector />
   </header>
   <main>
-    <label for="rom">{{ $t("Abrir ROM ISS / ISS Deluxe (USA)") }}</label>
-    <input id="rom" type="file" accept=".sfc,.smc" @change="onChangeFile" :disabled="loading" />
+    <label for="rom" class="rom-drop" :class="{ dragging: romDragging && !loading }" @dragover.prevent="romDragging = !loading" @dragleave.prevent="romDragging = false" @drop.prevent="onDropRom">
+      <strong>{{ $t("Subir o arrastrar un ROM") }}</strong>
+      <span>{{ $t("SFC o SMC · ISS / ISS Deluxe (USA)") }}</span>
+      <input id="rom" type="file" accept=".sfc,.smc" @change="onChangeFile" :disabled="loading" />
+    </label>
     <p v-if="loading" role="status">{{ $t("Leyendo ROM…") }}</p>
     <p v-if="error" role="alert" class="error">{{ $t(error) }}</p>
     <StudioEditor ref="editor" v-if="session?.game === 'issd'" :input="session.input" @import-rom="loadFile($event, true)" />
@@ -66,7 +69,7 @@ export default {
   components: { RomImage, StudioEditor, LanguageSelector },
   data() {
     return {
-      session: null, teamData: null, teams: [], teamIndex: 0, loading: false, error: '',
+      session: null, teamData: null, teams: [], teamIndex: 0, loading: false, romDragging: false, error: '',
       storage: markRaw(new Storage()), audioSamples: AUDIO_SAMPLES, sampleIndex: AUDIO_SAMPLES.findIndex(s => s.name === 'TitleScreenNameDrop'),
       sampleRate: DEFAULT_SAMPLE_RATE, audioUrl: '', audioError: '', loadVersion: 0,
       positions: { 1: 'Portero', 2: 'Defensa', 3: 'Medio defensivo', 4: 'Mediocampo', 5: 'Medio ofensivo', 6: 'Delantero' },
@@ -94,7 +97,9 @@ export default {
       } catch (error) { if (version === this.loadVersion) this.error = error.message; }
       finally { if (version === this.loadVersion) this.loading = false; }
     },
-    onChangeFile(event) { const file = event.target.files?.[0]; if (file && (!this.$refs.editor || this.$refs.editor.allowNavigate())) this.loadFile(file, true); event.target.value = ''; },
+    importRomFile(file) { if (file && !this.loading && (!this.$refs.editor || this.$refs.editor.allowNavigate())) this.loadFile(file, true); },
+    onChangeFile(event) { this.importRomFile(event.target.files?.[0]); event.target.value = ''; },
+    onDropRom(event) { this.romDragging = false; this.importRomFile(event.dataTransfer?.files?.[0]); },
     move(step) { this.selectTeam((this.teamIndex + step + this.teams.length) % this.teams.length); },
     async selectTeam(index) {
       if (!this.session || this.loading) return;
@@ -123,6 +128,11 @@ header {
  }
 h1 { margin-bottom: 24px; } input, select, button { margin: 6px; padding: 8px; font: inherit; }
 button { cursor: pointer; } nav, .images, .audio-output { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.rom-drop { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 20px 0; padding: 22px; border: 2px dashed #92abc5; border-radius: 10px; background: #f0f5fa; cursor: pointer; }
+.rom-drop.dragging { background: #deedff; border-color: #176be0; }
+.rom-drop:focus-within { outline: 3px solid #176be0; outline-offset: 2px; }
+.rom-drop span { font-size: 14px; color: #516579; }
+.rom-drop input { max-width: 100%; }
 figure { margin: 12px 0; } figcaption { font-size: 13px; margin-top: 6px; } small { font-size: 14px; font-weight: normal; }
 .error { color: #a32121; } table { border-collapse: collapse; width: 100%; } th, td { padding: 8px 14px; text-align: left; border-bottom: 1px solid #d4dce4; } th { background: #eaf0f6; }
 .table-wrap { overflow-x: auto; } pre { font-size: 12px; } summary { cursor: pointer; } .audio-section { margin: 32px 0; padding-top: 16px; border-top: 1px solid #d4dce4; } .audio-section label { display: inline-block; margin-left: 8px; }
