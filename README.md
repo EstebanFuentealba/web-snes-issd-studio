@@ -60,9 +60,9 @@ ISSD supports ten editable player attributes.
 
 ### ⚽ Team Formations
 
-Inspect original formations, including player coordinates and roles. In **Teams → Formation type**, select any of the 16 original in-game schemes, preview its positions, and click **Apply formation**. You can also copy another team’s original formation. These changes support undo, restore, and ROM/project export without changing the roster.
+In **Teams → Formation**, select any of the 16 in-game schemes on a horizontal pitch, drag the numbered players, or adjust their offsets with the keyboard and numeric controls. **Attack Participation** toggles the attacking role for each defender or midfielder, shown by a yellow arrow. The goalkeeper is positioned by the engine and forwards have no participation flag. Click **Apply formation** to save, or **Discard changes** to cancel the preview. You can also copy another team’s original formation. Custom coordinates use the native movement limits and preserve undo, restore, and ROM/project export without changing the roster.
 
-The current formation diagram is a schematic representation of the game's data. Custom formation editing is planned for a future update.
+The formation diagram uses the game’s horizontal DF/MF/FW layout. Each team stores ten outfield-player coordinates and ten role bytes; the goalkeeper has no coordinate entry.
 
 ## ⚽ Scenario Editor
 
@@ -293,7 +293,7 @@ Synthetic test vectors are used when original ROM files are unavailable.
 | Main menu logo editor | ✅ Partial |
 | Image import and pixel art conversion | ✅ Implemented |
 | Original team formation viewer | ✅ Implemented |
-| Custom formation editing | ⏳ Planned |
+| Custom formation coordinates and attack participation | ✅ Implemented |
 | Audio BRR reading and WAV export | ✅ Implemented |
 | WAV import and BRR replacement | ✅ Partial |
 | Sequenced music editing | ⏳ Planned |
@@ -312,7 +312,7 @@ Synthetic test vectors are used when original ROM files are unavailable.
 - Team photographs are not yet editable. The five title photos share one compressed block and its original palette; edits must fit in the available bytes.
 - Some compressed graphics have strict size limitations.
 - Shared graphic resources may affect multiple elements.
-- Custom team formations are not yet supported.
+- Goalkeeper formation coordinates are controlled by the engine.
 - Complete SNES DSP audio emulation is not implemented.
 - Modified ROMs have not yet completed emulator validation.
 

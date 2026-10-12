@@ -18,8 +18,7 @@
       <div class="formation-field">
         <div class="pitch-headings"><span>DF</span><span>MF</span><span>FW</span></div>
         <svg ref="pitch" viewBox="0 0 160 100" class="formation-pitch" :aria-label="$t('Formación')+' '+draft.label" @pointermove="moveDrag" @pointerup="endDrag" @pointercancel="cancelDrag" @lostpointercapture="drag=null">
-          <defs><linearGradient id="formation-grass"><stop offset="0" stop-color="#547f42"/><stop offset=".29" stop-color="#80ce31"/><stop offset=".34" stop-color="#d17a29"/><stop offset=".65" stop-color="#ffcc37"/><stop offset=".70" stop-color="#d84360"/><stop offset="1" stop-color="#f375a0"/></linearGradient></defs>
-          <rect x="1" y="1" width="158" height="98" fill="url(#formation-grass)" />
+          <rect v-for="(color,i) in bands" :key="i" :x="1+i*9.875" y="1" width="9.875" height="98" :fill="color" />
           <path class="pitch-lines" d="M1 1H159V99H1Z M80 1V99 M1 25H29V75H1 M1 37H15V63H1 M159 25H131V75H159 M159 37H145V63H159"/>
           <circle class="pitch-lines" cx="80" cy="50" r="12"/><circle cx="80" cy="50" r=".7" fill="white"/>
           <g class="goalkeeper" transform="translate(5 50)"><title>{{ $t('El portero lo posiciona automáticamente el juego.') }}</title><rect x="-7" y="-4" width="14" height="8" rx="2"/><text y="2.3" text-anchor="middle">{{players[0]?.no||1}}</text></g>
@@ -51,7 +50,7 @@ import {readFormation,readFormationPreset,FORMATION_LABELS,formationPoint,format
 import {teamExists,teamDataRom,activeTeamIds} from '../rom/team-count.mjs';
 export default {
   props:{rom:Uint8Array,original:Uint8Array,teamIndex:Number,players:Array,teamOptions:Array,modified:Boolean},emits:['apply','restore'],
-  data(){return {draft:null,selected:0,source:this.teamIndex,drag:null,error:'',labels:FORMATION_LABELS};},
+  data(){return {draft:null,selected:0,source:this.teamIndex,drag:null,error:'',labels:FORMATION_LABELS,bands:['#5b8741','#639341','#75aa3e','#7abd36','#83cc31','#cf7527','#d48527','#dc9528','#e6a329','#efb52c','#f8c739','#d83e5c','#e04c6a','#e7597a','#ed648c','#f475a1']};},
   computed:{current(){return readFormation(this.rom,this.teamIndex);},selectedSlot(){return this.draft?.slots[this.selected];},limits(){return formationLimits(this.selectedSlot.role);},dirty(){return !!this.draft&&(this.draft.bytes[0]!==this.current.bytes[0]||this.draft.slots.some((s,i)=>['depth','width','role'].some(k=>s[k]!==this.current.slots[i][k])));}},
   watch:{rom(){this.resetDraft();},teamIndex(){this.selected=0;this.source=this.teamIndex;this.resetDraft();}},created(){this.resetDraft();},
   methods:{
