@@ -16,11 +16,23 @@
   };
   updateLanguage();
   const report = (state, message) => parent.postMessage({ type: 'issd:emulator-status', state, message }, location.origin);
+  const focusGame = () => window.EJS_emulator?.elements?.parent?.focus({ preventScroll: true });
   const fail = () => {
     document.getElementById('game').textContent = messages[language].error;
     report('error', messages[language].error);
   };
+  // Keep game controls from scrolling the containing page, without hiding them
+  // from EmulatorJS or interfering with its keyboard configuration fields.
+  window.addEventListener('keydown', event => {
+    if (!running || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (event.target?.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"])')) return;
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(event.key)) event.preventDefault();
+  }, true);
   window.addEventListener('message', event => {
+    if (event.data?.type === 'issd:focus-game') {
+      if (running && event.source === parent && event.origin === location.origin) focusGame();
+      return;
+    }
     if(event.data?.type === 'issd:emulator-command'){handleCommand(event);return;}
     if (event.source !== parent || event.origin !== location.origin || event.data?.type !== 'issd:load-rom' || romUrl) return;
     language = Object.hasOwnProperty.call(messages, event.data.language) ? event.data.language : language;
@@ -33,8 +45,8 @@
       EJS_gameName: 'ISSD-editado', EJS_pathtodata: 'https://cdn.emulatorjs.org/stable/data/',
       EJS_language: messages[language].locale, EJS_color: '#176be0', EJS_backgroundColor: '#101820',
       EJS_startOnLoaded: false, EJS_startButtonName: messages[language].start, EJS_threads: false,
-      EJS_disableLocalStorage: true, EJS_noAutoFocus: true,
-      EJS_ready: () => report('ready'), EJS_onGameStart: () => { running = true; report('running'); },
+      EJS_disableLocalStorage: true, EJS_noAutoFocus: false,
+      EJS_ready: () => report('ready'), EJS_onGameStart: () => { running = true; focusGame(); report('running'); },
     });
     const loader = document.createElement('script');
     loader.src = `${window.EJS_pathtodata}loader.js`;
