@@ -13,9 +13,8 @@
       <article v-for="(group,index) in groups" :key="index" class="group-card">
         <div class="group-toolbar"><label>{{ $t('Nombre del grupo') }} <input :value="group.name" maxlength="15" @change="rename(index,$event)" /></label><button :aria-label="$t('Quitar grupo')+' '+group.name" :disabled="groups.length===1" @click="removeGroup(index)">{{ $t('Quitar grupo') }}</button></div>
         <p>{{ group.teams.length }} {{ $t('equipos en el grupo') }}</p>
-        <div v-for="(page,pageIndex) in pages(group)" :key="pageIndex" class="group-page">
-          <p v-if="group.teams.length > pageSize" class="page-number">{{ pageIndex + 1 }} / {{ pages(group).length }}</p>
-          <GroupPreview :name="group.name" :title="titles[index]" :team-ids="page" :artwork="artwork" :teams="teams" :columns="columns" @remove="removeTeam(index,$event)" />
+        <div v-if="group.teams.length" class="group-page">
+          <GroupPreview :name="group.name" :title="titles[index]" :team-ids="group.teams" :artwork="artwork" :teams="teams" :columns="columns" @remove="removeTeam(index,$event)" />
         </div>
         <p v-if="!group.teams.length" class="empty">{{ $t('Este grupo todavía no tiene equipos.') }}</p>
         <button @click="openTeams(index)">{{ $t('Agregar o elegir equipos') }}</button>
@@ -43,7 +42,6 @@ export default {
   props:{rom:Uint8Array,columns:{type:Number,default:3},groups:Array,teams:Array,modified:Boolean},emits:['change','restore','columns-change'],
   data(){return {maxGroups:MAX_GROUPS,selectedGroup:null,selectedTeams:[],search:''};},
   computed:{
-    pageSize(){return this.columns===4?4:6;},
     titles(){return selectionGroupGraphics(this.rom);},
     artwork(){return Object.fromEntries([...new Set(this.groups.flatMap(g=>g.teams))].map(team=>{
       const colors=new Array(16).fill('transparent');
@@ -52,7 +50,6 @@ export default {
     }));},
     filteredTeams(){return this.teams.map((name,index)=>({name,index})).filter(t=>t.name!==null).filter(t=>this.$t(t.name).toLowerCase().includes(this.search.toLowerCase()));}},
   methods:{
-    pages(group){const pages=[];for(let i=0;i<group.teams.length;i+=this.pageSize)pages.push(group.teams.slice(i,i+this.pageSize));return pages;},
     copy(){return this.groups.map(g=>({name:g.name,teams:g.teams.slice()}));},
     addGroup(){const groups=this.copy();let n=1;while(groups.some(g=>g.name===`GRUPO ${n}`))n++;groups.push({name:`GRUPO ${n}`,teams:[]});this.$emit('change',groups);},
     rename(index,event){const groups=this.copy();groups[index].name=event.target.value;this.$emit('change',groups);event.target.value=this.groups[index].name;},
@@ -65,5 +62,5 @@ export default {
 };
 </script>
 <style scoped>
-.columns-setting{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.group-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.group-toolbar h2{margin-right:auto}.group-toolbar small{font-size:14px;color:#526579}.group-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:16px;margin-top:20px}.group-card{padding:16px;background:white;border:1px solid #d4dce4;border-radius:10px}.group-card label{flex:1}.group-card input{display:block;width:calc(100% - 22px)}.group-page{margin:12px 0}.page-number{margin:8px 0;color:#526579;font-size:12px;text-align:right;font-variant-numeric:tabular-nums}.empty{color:#526579}.notice{padding:10px;background:#fff0ca}button,input,select{padding:7px;font:inherit;border:1px solid #bbc8d6;border-radius:5px;margin:3px}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}.primary{background:#176be0;color:white;border:0}.team-dialog{max-width:620px;width:calc(100% - 64px);border:0;border-radius:12px;padding:24px}.team-dialog::backdrop{background:#172a4080}.team-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-height:50vh;overflow:auto;margin:16px 0}.team-options label{display:flex;align-items:center;padding:5px}.team-options input{accent-color:#176be0}@media(max-width:500px){.team-options{grid-template-columns:1fr}.group-grid{grid-template-columns:1fr}}
+.columns-setting{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.group-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.group-toolbar h2{margin-right:auto}.group-toolbar small{font-size:14px;color:#526579}.group-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:16px;margin-top:20px}.group-card{padding:16px;background:white;border:1px solid #d4dce4;border-radius:10px}.group-card label{flex:1}.group-card input{display:block;width:calc(100% - 22px)}.group-page{margin:12px 0}.empty{color:#526579}.notice{padding:10px;background:#fff0ca}button,input,select{padding:7px;font:inherit;border:1px solid #bbc8d6;border-radius:5px;margin:3px}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}.primary{background:#176be0;color:white;border:0}.team-dialog{max-width:620px;width:calc(100% - 64px);border:0;border-radius:12px;padding:24px}.team-dialog::backdrop{background:#172a4080}.team-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-height:50vh;overflow:auto;margin:16px 0}.team-options label{display:flex;align-items:center;padding:5px}.team-options input{accent-color:#176be0}@media(max-width:500px){.team-options{grid-template-columns:1fr}.group-grid{grid-template-columns:1fr}}
 </style>

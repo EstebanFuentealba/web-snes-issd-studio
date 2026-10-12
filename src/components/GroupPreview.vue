@@ -9,8 +9,8 @@
       <span v-else>{{ name }}</span>
     </div>
     <ul class="preview-teams" :style="{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }">
-      <li v-for="(team, slot) in teamIds" :key="team" class="preview-team">
-        <div class="flag-wrap" :class="{ 'first-slot': slot === 0 }">
+      <li v-for="team in teamIds" :key="team" class="preview-team">
+        <div class="flag-wrap">
           <RomImage :matrix="artwork[team].flag.matrix" :colors="artwork[team].flag.colors" :label="teams[team]" />
           <button class="remove-team" :aria-label="$t('Quitar equipo') + ' ' + $t(teams[team])" @click="$emit('remove', team)">×</button>
         </div>
@@ -37,12 +37,11 @@ export default {
 .preview-team{display:flex;flex-direction:column;align-items:center;min-width:0}
 .flag-wrap{position:relative;display:flex;justify-content:center;width:72px;max-width:75%;aspect-ratio:3/2}
 .flag-wrap :deep(canvas){width:100%;height:100%;max-width:none;background:transparent;border:0}
-.first-slot::before{content:'';position:absolute;inset:-5px;border:3px solid #ffff00;outline:3px solid #263cff;box-shadow:0 0 0 5px #00d8fa;pointer-events:none}
 .team-label{margin-top:4px}
 .team-label:deep(canvas),canvas.team-label{width:96px;height:auto;max-width:100%;background:transparent;border:0}
 .remove-team{position:absolute;top:-12px;right:-12px;width:24px;height:24px;padding:0;border:1px solid #bacbff;border-radius:50%;background:#071264;color:white;font:18px/1 sans-serif;cursor:pointer;opacity:0;transition:opacity .15s}
 .flag-wrap:hover .remove-team,.flag-wrap:focus-within .remove-team{opacity:1}
 .remove-team:focus-visible{outline:2px solid white;outline-offset:3px}
 @media(hover:none){.remove-team{opacity:1}}
-@media(max-width:500px){.group-preview{padding:8px 12px 18px}.group-title{height:36px}.group-title :deep(canvas){width:128px}.preview-teams{gap:20px 6px;min-height:128px}.four-columns .preview-teams{min-height:52px}.first-slot::before{inset:-3px;border-width:2px;outline-width:2px;box-shadow:0 0 0 3px #00d8fa}}
+@media(max-width:500px){.group-preview{padding:8px 12px 18px}.group-title{height:36px}.group-title :deep(canvas){width:128px}.preview-teams{gap:20px 6px;min-height:128px}.four-columns .preview-teams{min-height:52px}}
 </style>
