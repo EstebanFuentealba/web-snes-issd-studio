@@ -4,7 +4,8 @@ global.crypto ||= require('crypto').webcrypto;
  const {RomProject}=await import('../src/rom/project.mjs');
  const {activeTeamIds,hasEmptyTeams,TEAM_METADATA}=await import('../src/rom/team-count.mjs');
  const {editableGroups}=await import('../src/rom/group-editor.mjs');
- const {teamNameTexts}=await import('../src/rom/team-labels.mjs');
+ const {teamNameTexts,smallTeamNamePatches,bigTeamNamePatches}=await import('../src/rom/team-labels.mjs');
+ const {flagMatrix,flagPatches}=await import('../src/rom/graphics.mjs');
  const file='roms/International Superstar Soccer Deluxe (USA).sfc';
  if(!fs.existsSync(file)){console.log('SKIP empty teams: local ROM unavailable');return;}
  const original=new Uint8Array(fs.readFileSync(file)),p=await RomProject.create(original);
@@ -13,6 +14,22 @@ global.crypto ||= require('crypto').webcrypto;
  p.undo();assert.deepEqual(p.exportRom(),original);p.redo();assert.deepEqual(p.exportRom(),empty);
  assert.deepEqual((await RomProject.import(JSON.parse(JSON.stringify(p.record())))).exportRom(),empty);
  const loaded=await RomProject.create(empty);assert.deepEqual(activeTeamIds(loaded.bytes()),[]);
+ // Flag edits relocate native allocations before clearing. Cover both an
+ // unsaved session and a reopened ROM, with independently edited labels.
+ for(const reopen of [false,true]){
+  let edited=await RomProject.create(original);
+  const flag=flagMatrix(original,0);flag[0][0]=flag[0][0]===12?13:12;
+  edited.transaction(flagPatches(original,edited.bytes(),0,flag));
+  edited.transaction(smallTeamNamePatches(original,edited.bytes(),0,'CHILE'));
+  const before=edited.exportRom();
+  if(reopen)edited=await RomProject.create(before);
+  edited.createEmptyRom();const cleared=edited.exportRom();
+  assert.deepEqual(activeTeamIds(edited.bytes()),[]);assert.deepEqual(editableGroups(edited.bytes()),[]);
+  edited.undo();assert.deepEqual(edited.exportRom(),before);edited.redo();assert.deepEqual(edited.exportRom(),cleared);
+  assert.deepEqual((await RomProject.import(edited.record())).exportRom(),cleared);
+  const restored=await RomProject.create(cleared);restored.addTeam('PERU');restored.exportRom();
+  assert.equal(activeTeamIds(restored.bytes()).length,1);
+ }
  // Render each editor section with the empty ROM: team-dependent panels
  // must not read an absent squad, even after navigating or undoing.
  const Vue=require('vue'),{parse}=require('@vue/compiler-sfc'),{compile}=require('@vue/compiler-dom');
@@ -40,9 +57,27 @@ global.crypto ||= require('crypto').webcrypto;
  app.unmount();
  const prior=loaded.exportRom();assert.throws(()=>loaded.addTeam('123'),/equipo|nombre|letras/i);assert.deepEqual(loaded.exportRom(),prior);
  loaded.addTeam('PRUEB');assert.deepEqual(activeTeamIds(loaded.bytes()),[0]);assert.equal(teamNameTexts(loaded.original,loaded.bytes(),0).large,'PRUEB');
+ const baseline=loaded.originalTeamGraphic(0,'label');
+ const white=loaded.originalTeamGraphic(0,'flag');
+ assert.ok(white.matrix.flat().every(pixel=>white.colors[pixel]==='#ffffff'));
+ assert.deepEqual(baseline.matrix,(await import('../src/rom/graphics.mjs')).smallLabelMatrix(loaded.bytes(),0));
+ loaded.transaction(smallTeamNamePatches(loaded.original,loaded.bytes(),0,'NAVAL'));
+ loaded.transaction(bigTeamNamePatches(loaded.original,loaded.bytes(),0,'NAVAL'));
+ assert.deepEqual(loaded.originalTeamGraphic(0,'label'),baseline);
+ const editedFlag=flagMatrix(loaded.bytes(),0);editedFlag[0][0]=14;
+ loaded.transaction(flagPatches(loaded.original,loaded.bytes(),0,editedFlag));
+ assert.deepEqual(loaded.originalTeamGraphic(0,'flag'),white);
+ const savedBaseline=await RomProject.import(JSON.parse(JSON.stringify(loaded.record())));
+ assert.deepEqual(savedBaseline.originalTeamGraphic(0,'label'),baseline);
+ assert.deepEqual(savedBaseline.originalTeamGraphic(0,'flag'),white);
+ savedBaseline.restoreCreatedTeamNames(0);assert.deepEqual(savedBaseline.createdTeamNames(0),teamNameTexts(savedBaseline.original,savedBaseline.bytes(),0));
+ loaded.restoreCreatedTeamNames(0);assert.deepEqual(teamNameTexts(loaded.original,loaded.bytes(),0),loaded.createdTeamNames(0));
  loaded.addTeam('COLO COLO');assert.deepEqual(activeTeamIds(loaded.bytes()),[0,21]);
+ const secondWhite=loaded.originalTeamGraphic(21,'flag');assert.ok(secondWhite.matrix.flat().every(pixel=>secondWhite.colors[pixel]==='#ffffff'));
  const populatedApp=renderer.createApp(options);populatedApp.config.globalProperties.$t=v=>v;populatedApp.config.globalProperties.$locale='es';populatedApp.config.errorHandler=e=>errors.push(e);populatedApp.config.warnHandler=()=>{};
  const populatedRoot=node('root'),populated=populatedApp.mount(populatedRoot);await Vue.nextTick();
+ populated.graphicId='team-label:0';await Vue.nextTick();assert.deepEqual(populated.originalGraphic.matrix,baseline.matrix);
+ populated.graphicId='flag:0';await Vue.nextTick();assert.deepEqual(populated.originalGraphic.matrix,white.matrix);assert.deepEqual(populated.originalGraphic.colors,white.colors);
  for(const section of ['teams','players','appearance','graphics']){populated.section=section;await Vue.nextTick();}
  assert.deepEqual(errors,[]);assert.equal(populated.team.players.length,20);
  populated.section='teams';await Vue.nextTick();
@@ -53,7 +88,11 @@ global.crypto ||= require('crypto').webcrypto;
  assert.ok(walk(populatedRoot).some(n=>n.type==='option'&&n.props.value===21&&n.text==='1. COLO COLO'));
  populated.section='players';await Vue.nextTick();assert.equal(populated.teamOptions[0].number,1);
  loaded.undo();populated.refresh();await Vue.nextTick();assert.deepEqual(errors,[]);populatedApp.unmount();
+ assert.deepEqual(loaded.originalTeamGraphic(0,'label'),baseline);
  const filled=loaded.exportRom();assert.deepEqual((await RomProject.import(loaded.record())).exportRom(),filled);
+ const reopenedFilled=await RomProject.create(filled);reopenedFilled.addTeam('NAVAL');
+ const third=activeTeamIds(reopenedFilled.bytes()).find(t=>t!==0&&t!==21),thirdWhite=reopenedFilled.originalTeamGraphic(third,'flag');
+ assert.ok(thirdWhite.matrix.flat().every(pixel=>thirdWhite.colors[pixel]==='#ffffff'));reopenedFilled.exportRom();
  loaded.createEmptyRom();assert.deepEqual(activeTeamIds(loaded.bytes()),[]);loaded.undo();assert.deepEqual(loaded.exportRom(),filled);loaded.redo();loaded.exportRom();
  // A longer first name must select a compatible frame instead of failing on
  // the hidden seed's original sprite budget.
@@ -61,5 +100,6 @@ global.crypto ||= require('crypto').webcrypto;
  const id=activeTeamIds(wide.bytes())[0];assert.equal(teamNameTexts(wide.original,wide.bytes(),id).large,'HOLLAND');wide.exportRom();
  wide.createEmptyRom();const extraEmpty=await RomProject.create(wide.exportRom());extraEmpty.addTeam('PERU');extraEmpty.exportRom();assert.equal(activeTeamIds(extraEmpty.bytes()).length,1);
  const tampered=empty.slice();tampered[TEAM_METADATA+6]=2;assert.throws(()=>new RomProject(tampered),/Cantidad/);
+ const badMode=empty.slice();badMode[TEAM_METADATA+7]=2;assert.throws(()=>new RomProject(badMode),/Cantidad/);
  console.log('PASS empty teams: zero active squads/groups, first and subsequent creation, wide names, repeat clearing, atomic rejection, undo/redo, project and ROM recovery');
 })().catch(e=>{console.error(e);process.exitCode=1;});

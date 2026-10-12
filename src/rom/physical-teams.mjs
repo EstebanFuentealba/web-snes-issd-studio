@@ -2,7 +2,7 @@ import {loRom,word} from './binary.mjs';
 import {TEAM_METADATA,TEAM_TABLES,hasEmptyTeams,teamDataRom,teamCount,teamExists,activeTeamIds,hasExtraTeams,hasPhysicalTeams,teamTable,teamPointer,attributeOffset,PHYSICAL_STAR_NAMES,PHYSICAL_FALLBACK_NAMES,FALLBACK_NAMES,COMPACT_GLYPH_ATLAS,COMPACT_GLYPH_ATLAS_SIZE} from './team-count.mjs';
 import {addTeamPatches,extraTeamCodePatches,TEAM_PHOTO_TABLES} from './extra-teams.mjs';
 import {deluxePlayerNameOffset} from './deluxe.mjs';
-import {flagMatrix,smallLabelMatrix,encodeTiles,compress,FLAG_SLOT,LABEL_SLOT,LABEL_POOL,selectionFlagAddress} from './graphics.mjs';
+import {flagMatrix,flagPatches,smallLabelMatrix,encodeTiles,compress,FLAG_SLOT,LABEL_SLOT,LABEL_POOL,selectionFlagAddress} from './graphics.mjs';
 import {labelLayout,labelFrame,labelLayoutPatch,bigTeamNamePatches,smallTeamNamePatches,compactGlyphAtlas,compatibleTeamLabelSlot} from './team-labels.mjs';
 import {editableGroups,editGroupsPatches} from './group-editor.mjs';
 import {readScenarios,scenarioPatch} from './scenarios.mjs';
@@ -14,6 +14,10 @@ const patch=(id,offset,bytes)=>({id,offset,bytes:Uint8Array.from(bytes),label:'E
 const putWord=(bytes,offset,n)=>bytes.set([n&255,n>>>8],offset);
 const apply=(rom,changes)=>{for(const p of changes)rom.set(p.bytes,p.offset);};
 const blank=(n)=>new Uint8Array(n).fill(255);
+function whiteFlagPatches(original,current,team){
+ const offset=loRom(0x890000|teamPointer(current,0xe7d8,team))+4;
+ return [...flagPatches(original,current,team,Array.from({length:16},()=>Array(24).fill(13))),patch(`palette:${offset}`,offset,[255,127])];
+}
 const stride=table=>table===0xe730?4:[0x1042e,0x104af].includes(table)?1:2;
 const nativeName=t=>loRom(0x87818e)+t*160;
 const slotName=t=>t<36?nativeName(t):t<42?loRom(PHYSICAL_STAR_NAMES)+(t-36)*160:loRom(0x87fac8)+(t-42)*160;
@@ -113,7 +117,7 @@ function structuralPatches(original,current){
 
 // Return exact physical allocations no remaining native team owns. Shared
 // palette/formation/graphic records survive until their final owner is removed.
-export function erasedNativeResources(rom){
+export function erasedNativeResources(rom,nativeRom=rom){
  if(!hasPhysicalTeams(rom))return [];
  const removed=Array.from({length:42},(_,t)=>t).filter(t=>!teamExists(rom,t)),live=activeTeamIds(rom),nativeLive=live.filter(t=>t<42),out=[];
  const livePalettes=[...live,48].flatMap(t=>palettes.flatMap(([table,n])=>{const pointer=teamPointer(rom,table,t);return pointer?[[loRom(0x890000|pointer)+2,n*2]]:[];}));
@@ -122,9 +126,9 @@ export function erasedNativeResources(rom){
   const f=slotFormation(rom,t);if(!live.some(u=>loRom(0x8b0000|teamPointer(rom,0x5ef48,u))===f))out.push([f,31,0]);
   for(const [table,count] of palettes){const pointer=word(rom,table+t*2);if(pointer){const off=loRom(0x890000|pointer)+2;if(!livePalettes.some(([p,n])=>off<p+n&&p<off+count*2))out.push([off,count*2,0]);}}
   const detail=word(rom,0xce8a+t*2);if(!live.some(u=>teamPointer(rom,0xce8a,u)===detail))out.push([loRom(0x980000|detail),32,0]);
-  for(const [table,bank,parts] of nativeGraphicTables(rom))for(let part=0;part<parts;part++){
-   const ptr=word(rom,table+t*parts*2+part*2);
-   if(!nativeLive.some(u=>Array.from({length:parts},(_,i)=>word(rom,table+u*parts*2+i*2)).includes(ptr))){const off=loRom(bank<<16|ptr);out.push([off,bank===0xaf&&table===0xe730?FLAG_SLOT:word(rom,off)&0x7fff,2]);}
+  for(const [table,bank,parts] of nativeGraphicTables(nativeRom))for(let part=0;part<parts;part++){
+   const ptr=word(nativeRom,table+t*parts*2+part*2);
+   if(!nativeLive.some(u=>Array.from({length:parts},(_,i)=>word(nativeRom,table+u*parts*2+i*2)).includes(ptr))){const off=loRom(bank<<16|ptr);out.push([off,bank===0xaf&&table===0xe730?FLAG_SLOT:word(nativeRom,off)&0x7fff,2]);}
   }
  }
  return [...new Map(out.map(r=>[r[0],r])).values()];
@@ -143,7 +147,9 @@ function erasurePatches(original,current){
   }
  }
  changes.push(patch('teams:flags',flags,flagBytes),labelLayoutPatch(original,layout,true));
- for(const [off,n,header] of erasedNativeResources(current)){
+ // The registry belongs to the project base. Flag edits may have relocated
+ // graphics during this session; those pools are replaced by team storage.
+ for(const [off,n,header] of erasedNativeResources(current,original)){
   if(header){const bytes=current.slice(off,off+n);bytes.fill(255,header);changes.push(patch(`native-storage:${off}`,off,bytes));continue;}
   const resources=physicalTeamResources(current).filter(r=>r[1]>=off&&r[1]+r[2]<=off+n);
   for(const [id,p,size] of resources)changes.push(patch(id,p,blank(size)));
@@ -229,7 +235,7 @@ export function emptyTeamPatches(original,current){
  erasurePatches(original,candidate).forEach(put);
  independentStadiumLabelPatches(original,candidate).forEach(put);
  changes.delete('teams:read:a4a046');
- const empty=candidate.slice(TEAM_METADATA,TEAM_METADATA+256);empty[6]=1;
+ const empty=candidate.slice(TEAM_METADATA,TEAM_METADATA+256);empty[6]=1;empty[7]=1;
  put(patch('teams:metadata',TEAM_METADATA,empty));
  return [...changes.values()];
 }
@@ -237,6 +243,7 @@ export function emptyTeamPatches(original,current){
 export function firstTeamPatches(original,current,name){
  name=name.trim().toUpperCase();if(!/^[A-Z][A-Z .]{0,9}$/.test(name))throw new Error('El equipo admite hasta 10 letras A–Z, puntos y espacios.');
  const candidate=teamDataRom(current).slice(),team=activeTeamIds(candidate)[0];
+ candidate[TEAM_METADATA+7]=1;
  const changes=new Map(),put=p=>{changes.set(p.id,p);candidate.set(p.bytes,p.offset);};
  put(patch('teams:metadata',TEAM_METADATA,candidate.slice(TEAM_METADATA,TEAM_METADATA+256)));
  // Choose a frame that can actually render the requested name.
@@ -250,6 +257,7 @@ export function firstTeamPatches(original,current,name){
   bigTeamNamePatches(nativeOriginal,candidate,team,name).forEach(put);
   editGroupsPatches(nativeOriginal,candidate,[{name:'EXTRA',teams:[team]}]).forEach(put);
  }
+ for(const id of activeTeamIds(candidate))whiteFlagPatches(nativeOriginal,candidate,id).forEach(put);
  return [...changes.values()];
 }
 
@@ -298,6 +306,7 @@ export function addPhysicalTeamPatches(original,current,name){
  smallTeamNamePatches(original,candidate,team,name).forEach(put);bigTeamNamePatches(original,candidate,team,name).forEach(put);
  const groups=editableGroups(candidate);let extra=groups.find(g=>g.name==='EXTRA');if(!extra){if(groups.length>=16)throw new Error('Libera un grupo para agregar equipos.');extra={name:'EXTRA',teams:[]};groups.push(extra);}extra.teams.push(team);
  editGroupsPatches(original,candidate,groups).forEach(put);
+ if(current[TEAM_METADATA+7]===1)whiteFlagPatches(original,candidate,team).forEach(put);
  return {team,patches:[...changes.values()]};
 }
 
@@ -307,7 +316,7 @@ export function validatePhysicalTeams(rom,original){
   return validatePhysicalTeams(seed,teamDataRom(original));
  }
  original=teamDataRom(original);
- const ids=activeTeamIds(rom);if(!ids.length||rom[TEAM_METADATA+6]||rom[TEAM_METADATA+7]||(rom[TEAM_METADATA+13]&0xfc)||rom.slice(TEAM_METADATA+210,TEAM_METADATA+256).some(Boolean))throw new Error('Cantidad de equipos inválida.');
+ const ids=activeTeamIds(rom);if(!ids.length||rom[TEAM_METADATA+6]||rom[TEAM_METADATA+7]>1||(rom[TEAM_METADATA+13]&0xfc)||rom.slice(TEAM_METADATA+210,TEAM_METADATA+256).some(Boolean))throw new Error('Cantidad de equipos inválida.');
  const atlas=compactGlyphAtlas(original);if(atlas.some((b,i)=>rom[loRom(COMPACT_GLYPH_ATLAS)+i]!==b))throw new Error('Fuente de nombres pequeños inválida.');
  // Recompute immutable hooks, redirects, identity maps and live-only DMA.
  for(const p of structuralPatches(original,rom))if(p.bytes.some((b,i)=>rom[p.offset+i]!==b))throw new Error(`Estructura de eliminación física inválida: ${p.id}.`);

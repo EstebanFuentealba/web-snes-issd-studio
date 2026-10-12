@@ -202,7 +202,11 @@ function titleLogo(rom,backgroundOnly=false) {
       if(pixel||!owners[y+j][x+k]){if(pixel)matrix[y+j][x+k]=32+pixel;owners[y+j][x+k]={part:1,x:sx,y:sy,paletteBase:32};}
     }
   }
-  return {id:backgroundOnly?'title-background':'title-logo',kind:'composite',label:backgroundOnly?'Fondo rojo de portada':'Logo completo de portada',layers,editableParts:backgroundOnly?[0]:[0,1],shared:true,bpp:8,columns:32,capacity:parts.reduce((n,p)=>n+p.capacity,0),parts,matrix,owners,editable:owners.map(row=>row.map(Boolean)),colors};
+  // Native backdrop (index 1) also appears inside allocated tiles. Keep its
+  // silhouette when importing; filling that padding grows the compressed pool.
+  // The text and medal whites use separate palette indices and remain editable.
+  const importEditable=owners.map((row,y)=>row.map((o,x)=>!!o&&matrix[y][x]!==1));
+  return {id:backgroundOnly?'title-background':'title-logo',kind:'composite',label:backgroundOnly?'Fondo rojo de portada':'Logo completo de portada',layers,importEditable,editableParts:backgroundOnly?[0]:[0,1],shared:true,bpp:8,columns:32,capacity:parts.reduce((n,p)=>n+p.capacity,0),parts,matrix,owners,editable:owners.map(row=>row.map(Boolean)),colors};
 }
 
 // Mode 3 BG1 portraits: DATA_82996D uploads 232 8bpp tiles to VRAM $4000.

@@ -1119,6 +1119,11 @@
     "en": "Logo assembled with its two layers and original text. Colors follow the edited layer's palette. The background without its own tiles cannot be painted.",
     "pt": "Logo montado com suas duas camadas e texto original. As cores seguem a paleta da camada editada. O fundo sem tiles próprios não pode ser desenhado."
   },
+  "La importación conserva la silueta original del logo y protege el fondo.": {
+    "es": "La importación conserva la silueta original del logo y protege el fondo.",
+    "en": "Importing preserves the original logo silhouette and protects the background.",
+    "pt": "A importação preserva a silhueta original do logo e protege o fundo."
+  },
   "Logo completo de portada": {
     "es": "Logo completo de portada",
     "en": "Full title screen logo",
