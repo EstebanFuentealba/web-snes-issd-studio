@@ -52,6 +52,43 @@ export function resample(samples,from,to) {
   const size=Math.round(samples.length*to/from);if(size>10000000)throw new Error('Audio remuestreado demasiado grande.');
   return Int16Array.from({length:size},(_,i)=> {const x=i*from/to,a=Math.min(samples.length-1,Math.floor(x)),b=Math.min(samples.length-1,a+1);return Math.round(samples[a]*(1-(x-a))+samples[b]*(x-a));});
 }
+// Waveform-similarity overlap-add: keep sample spacing (pitch) while changing
+// the analysis hop. Correlation aligns adjacent grains before their crossfade.
+export function stretchAudio(wav,factor=1) {
+  if(!Number.isFinite(factor)||factor<.1||factor>2)throw new Error('El stretch debe estar entre 10 y 200 %.');
+  const {samples,sampleRate}=wav;
+  if(!Number.isFinite(sampleRate)||sampleRate<1)throw new Error('Frecuencia inválida.');
+  const length=Math.round(samples.length*factor);
+  if(length>10000000)throw new Error('Audio remuestreado demasiado grande.');
+  if(factor===1||!samples.length)return {samples:samples.slice(),sampleRate};
+  const window=Math.min(samples.length,Math.max(16,Math.round(sampleRate*.04))),hop=Math.max(1,Math.floor(window/2)),search=Math.round(sampleRate*.008);
+  const output=new Float64Array(length+window),weights=new Float64Array(length+window);
+  const stride=Math.max(1,Math.floor(sampleRate/8000));
+  let previous=0;
+  for(let dest=0;dest<length;dest+=hop){
+    const expected=Math.min(samples.length-window,Math.round(dest/factor));
+    let source=expected;
+    if(dest){
+      const low=Math.max(0,expected-search),high=Math.min(samples.length-window,expected+search);
+      let best=-Infinity;
+      for(let candidate=low;candidate<=high;candidate+=stride){
+        let dot=0,a2=0,b2=0;
+        for(let i=0;i<hop;i+=stride){const a=samples[previous+hop+i]||0,b=samples[candidate+i]||0;dot+=a*b;a2+=a*a;b2+=b*b;}
+        const score=a2&&b2?dot/Math.sqrt(a2*b2):0;
+        // Prefer the expected position when matching silence or equal scores.
+        const ranked=score-1e-7*Math.abs(candidate-expected);
+        if(ranked>best){best=ranked;source=candidate;}
+      }
+    }
+    for(let i=0;i<window;i++){
+      const weight=Math.sin(Math.PI*(i+.5)/window)**2;
+      output[dest+i]+=samples[source+i]*weight;weights[dest+i]+=weight;
+    }
+    previous=source;
+  }
+  return {samples:Int16Array.from({length},(_,i)=>Math.max(-32768,Math.min(32767,Math.round(output[i]/weights[i])))),sampleRate};
+}
+
 // Normalize active-signal RMS, excluding silence below -40 dB of the peak.
 // The soft knee keeps transients inside filter-0 BRR's representable range.
 export function normalizeAudio(samples) {

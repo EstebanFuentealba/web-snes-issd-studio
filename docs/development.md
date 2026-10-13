@@ -191,3 +191,29 @@ para los hacks disponibles: arranca un partido original y otro exportado,
 comprueba veinte nombres editados en RAM y los tiles de TEST en VRAM. Una ROM
 que reubique tablas o modifique las rutinas de identificación puede requerir
 un perfil adicional; no se acepta solamente por su extensión o título.
+
+### Audio: stretch conservando el tono
+
+El editor permite contraer o alargar el recorte entre 10 % y 200 % arrastrando
+el extremo rojo de la forma de onda de salida, superpuesta al bloque azul en
+la misma pista y escala temporal. Los extremos azules siguen seleccionando
+el fragmento original. Una sola onda muestra el audio sobre una escala de tiempo de salida: tanto
+la onda como los extremos azules y rojos usan la misma transformación temporal.
+No se deja un hueco dentro del recorte por mezclar segundos originales y
+comprimidos. El resumen indica segundos originales incluidos → segundos en
+la ROM; el espacio disponible fuera del audio se muestra con un tramado. La línea discontinua marca
+la capacidad BRR de la muestra al pitch de inspección seleccionado. Al reducir el factor rojo, el extremo final azul se amplía automáticamente
+hasta el máximo fragmento que cabe, conservando su inicio. El control
+«Stretch para encajar en ROM» comprime todo el audio restante desde el inicio
+del recorte; recorta solamente si el mínimo de 10 % aún excede la capacidad.
+
+`stretchAudio` usa WSOLA (ventanas con solapamiento y alineación por correlación)
+sobre PCM mono antes de normalizar, remuestrear y codificar a BRR. Conserva la
+frecuencia de muestreo y no modifica el pitch DSP de los eventos del juego. La
+previsualización reproduce los bytes BRR resultantes, incluido el relleno de
+silencio; los límites y marcas de las muestras segmentadas se conservan.
+
+`tests/audio-stretch.cjs` comprueba duración, tono y controles de capacidad.
+`tests/audio-stretch-runtime.cjs` verifica el PCM producido por Snes9x con
+reemplazos de portada; `ISSD_CAPTURE_AUDIO=1` habilita el volcado estéreo PCM16
+`.pcm` del ejecutor headless.

@@ -5048,5 +5048,95 @@
     "es": "Para empezar selecciona Jugadores, Apariencia, Gráficos o Audio. La expansión a 56 equipos o nombres de 10 caracteres exporta una ROM de 4 MiB. Se conservan el mapeo y la cabecera opcional; se recalcula el checksum.",
     "pt": "Para começar, selecione Jogadores, Aparência, Gráficos ou Áudio. A expansão para 56 equipes ou nomes de 10 caracteres exporta uma ROM de 4 MiB. O mapeamento e o cabeçalho opcional são preservados; o checksum é recalculado.",
     "en": "To get started, choose Players, Appearance, Graphics or Audio. Expanding to 56 teams or 10-character names exports a 4 MiB ROM. Mapping and the optional copier header are preserved; the checksum is recalculated."
+  },
+  "Stretch · duración (%)": {
+    "es": "Stretch · duración (%)",
+    "en": "Stretch · duration (%)",
+    "pt": "Stretch · duração (%)"
+  },
+  "50 % acorta a la mitad; 200 % duplica la duración. El tono se conserva. El stretch se aplica al recorte antes de convertirlo a BRR.": {
+    "es": "50 % acorta a la mitad; 200 % duplica la duración. El tono se conserva. El stretch se aplica al recorte antes de convertirlo a BRR.",
+    "en": "50% halves the duration; 200% doubles it. Pitch is preserved. Stretch is applied to the trim before BRR conversion.",
+    "pt": "50 % reduz a duração pela metade; 200 % duplica a duração. O tom é preservado. O stretch é aplicado ao recorte antes da conversão para BRR."
+  },
+  "El stretch debe estar entre 50 y 200 %.": {
+    "es": "El stretch debe estar entre 50 y 200 %.",
+    "en": "Stretch must be between 50 and 200%.",
+    "pt": "O stretch deve estar entre 50 e 200 %."
+  },
+  "Recortar / stretch de la muestra ROM": {
+    "es": "Recortar / stretch de la muestra ROM",
+    "en": "Trim / stretch ROM sample",
+    "pt": "Recortar / stretch da amostra ROM"
+  },
+  "Arrastra el extremo para cambiar la duración": {
+    "es": "Arrastra el extremo para cambiar la duración",
+    "en": "Drag the edge to change duration",
+    "pt": "Arraste a extremidade para mudar a duração"
+  },
+  "Límite ROM": {
+    "es": "Límite ROM",
+    "en": "ROM limit",
+    "pt": "Limite ROM"
+  },
+  "Restablecer 100 %": {
+    "es": "Restablecer 100 %",
+    "en": "Reset to 100%",
+    "pt": "Restaurar 100 %"
+  },
+  "Stretch para encajar en ROM": {
+    "es": "Stretch para encajar en ROM",
+    "en": "Stretch to fit ROM",
+    "pt": "Stretch para caber na ROM"
+  },
+  "El resultado supera el espacio disponible. Contrae el audio o ajusta el recorte antes de aplicar.": {
+    "es": "El resultado supera el espacio disponible. Contrae el audio o ajusta el recorte antes de aplicar.",
+    "en": "The result exceeds available space. Shorten the audio or adjust the trim before applying.",
+    "pt": "O resultado excede o espaço disponível. Encurte o áudio ou ajuste o recorte antes de aplicar."
+  },
+  "Azul: recorta el fragmento. Rojo: arrastra su extremo para cambiar la duración sin cambiar el tono.": {
+    "es": "Azul: recorta el fragmento. Rojo: arrastra su extremo para cambiar la duración sin cambiar el tono.",
+    "en": "Blue: trim the clip. Red: drag its edge to change duration while preserving pitch.",
+    "pt": "Azul: recorte o trecho. Vermelho: arraste a extremidade para mudar a duração sem mudar o tom."
+  },
+  "Recorte": {
+    "es": "Recorte",
+    "en": "Trim",
+    "pt": "Recorte"
+  },
+  "El stretch debe estar entre 10 y 200 %.": {
+    "es": "El stretch debe estar entre 10 y 200 %.",
+    "en": "Stretch must be between 10 and 200%.",
+    "pt": "O stretch deve estar entre 10 e 200 %."
+  },
+  "Al contraer el rojo, el azul se amplía para incluir más audio. 10 % comprime a una décima parte; 200 % duplica la duración. El tono se conserva.": {
+    "es": "Al contraer el rojo, el azul se amplía para incluir más audio. 10 % comprime a una décima parte; 200 % duplica la duración. El tono se conserva.",
+    "en": "Shortening the red control expands the blue selection to include more audio. 10% compresses to one tenth; 200% doubles the duration. Pitch is preserved.",
+    "pt": "Ao encurtar o vermelho, a seleção azul aumenta para incluir mais áudio. 10 % comprime a um décimo; 200 % duplica a duração. O tom é preservado."
+  },
+  "La onda muestra el audio resultante. Azul: recorta. Rojo: cambia la duración sin cambiar el tono.": {
+    "es": "La onda muestra el audio resultante. Azul: recorta. Rojo: cambia la duración sin cambiar el tono.",
+    "en": "The waveform shows the resulting audio. Blue: trim. Red: change duration while preserving pitch.",
+    "pt": "A onda mostra o áudio resultante. Azul: recorte. Vermelho: altere a duração sem mudar o tom."
+  },
+  "Espacio libre": {
+    "es": "Espacio libre",
+    "en": "Free space",
+    "pt": "Espaço livre"
+  },
+  "de audio original": {
+    "es": "de audio original",
+    "en": "of original audio",
+    "pt": "de áudio original"
+  },
+  "en la ROM": {
+    "es": "en la ROM",
+    "en": "in the ROM",
+    "pt": "na ROM"
+  },
+  "Comprimir permite incluir más audio original en el mismo espacio. El tono se conserva.": {
+    "es": "Comprimir permite incluir más audio original en el mismo espacio. El tono se conserva.",
+    "en": "Compression fits more original audio into the same space. Pitch is preserved.",
+    "pt": "Comprimir permite incluir mais áudio original no mesmo espaço. O tom é preservado."
   }
 }

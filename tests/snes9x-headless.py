@@ -2,6 +2,7 @@ import ctypes as C,sys,struct,hashlib,os,json,zlib
 # Standalone libretro verification; no UI automation or third-party Python modules.
 lib=C.CDLL(sys.argv[1])
 ENV=C.CFUNCTYPE(C.c_bool,C.c_uint,C.c_void_p);VID=C.CFUNCTYPE(None,C.c_void_p,C.c_uint,C.c_uint,C.c_size_t);AUD=C.CFUNCTYPE(None,C.c_int16,C.c_int16);BATCH=C.CFUNCTYPE(C.c_size_t,C.c_void_p,C.c_size_t);POLL=C.CFUNCTYPE(None);INPUT=C.CFUNCTYPE(C.c_int16,C.c_uint,C.c_uint,C.c_uint,C.c_uint)
+audio_pcm=bytearray();capture_audio=os.environ.get("ISSD_CAPTURE_AUDIO")=="1"
 pixfmt=0;frame=0;pixels=None;width=height=0
 events=json.loads(os.environ.get("ISSD_INPUT", "[[400,20,3],[600,20,3],[800,20,3]]"))
 @ENV
@@ -17,9 +18,12 @@ def video(p,w,h,pitch):
  global pixels,width,height
  if p and p!=C.c_void_p(-1).value:pixels=b''.join(C.string_at(p+y*pitch,w*(4 if pixfmt==1 else 2)) for y in range(h));width=w;height=h
 @AUD
-def audio(l,r):pass
+def audio(l,r):
+ if capture_audio:audio_pcm.extend(struct.pack("<hh",l,r))
 @BATCH
-def batch(p,n):return n
+def batch(p,n):
+ if capture_audio:audio_pcm.extend(C.string_at(p,n*4))
+ return n
 @POLL
 def poll():pass
 @INPUT
@@ -34,6 +38,7 @@ assert lib.retro_load_game(C.byref(game))
 lib.retro_get_memory_data.argtypes=[C.c_uint];lib.retro_get_memory_data.restype=C.c_void_p
 lib.retro_get_memory_size.argtypes=[C.c_uint];lib.retro_get_memory_size.restype=C.c_size_t
 for frame in range(int(os.environ.get("ISSD_FRAMES","1000"))):lib.retro_run()
+if capture_audio:open(sys.argv[3]+'.pcm','wb').write(audio_pcm)
 ram=C.string_at(lib.retro_get_memory_data(2),lib.retro_get_memory_size(2));open(sys.argv[3]+'.ram','wb').write(ram)
 vram=C.string_at(lib.retro_get_memory_data(3),lib.retro_get_memory_size(3));open(sys.argv[3]+'.vram','wb').write(vram)
 rgb=bytearray()
