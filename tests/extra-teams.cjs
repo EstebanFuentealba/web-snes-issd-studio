@@ -30,7 +30,7 @@ global.crypto ||= require('crypto').webcrypto;
   assert.deepEqual(bigLabel(p.bytes(),i).matrix,bigLabel(original,i).matrix);
  }
  for(const name of ['PERU','BOLIVIA','ECUADOR','CANADA','CUBA'])p.addTeam(name);
- assert.equal(teamCount(p.bytes()),48);assert.throws(()=>p.addTeam('USA'),/48/);
+ assert.equal(teamCount(p.bytes()),48);p.addTeam('USA');assert.equal(teamCount(p.bytes()),49);p.undo();assert.equal(teamCount(p.bytes()),48);
  for(let t=42;t<48;t++){assert.equal(readDeluxeTeam(p.bytes(),t).players.length,20);assert.ok(readFormation(p.bytes(),t).label);}
  p.transaction(bigTeamNamePatches(original,p.bytes(),42,'U.CHILE'));assert.equal(visibleLeft(p.bytes(),42),14);
  p.transaction(bigTeamNamePatches(original,p.bytes(),42,'LOTA'));assert.equal(visibleLeft(p.bytes(),42),24);

@@ -1,3 +1,5 @@
+import {externalDeluxeLayout} from './external-layout.mjs';
+import {stadiumAssetAddress} from './wc26-stadiums.mjs';
 import {word,loRom,decompress,tiles,palette} from './binary.mjs';
 import {compress} from './compression.mjs';
 import {encodeTiles} from './encode-tiles.mjs';
@@ -88,25 +90,26 @@ export function stadiumPalettePatch(rom,id,colorIndex,color){
  const p=STADIUM_RULES.find(r=>r[0]===id&&r[3]==='stadium-palette');if(!p||!Number.isInteger(colorIndex)||colorIndex<0||colorIndex>=p[2]/2)throw new Error('Color de estadio inválido.');
  const bytes=rom.slice(p[1],p[1]+p[2]);bytes.set(rgb555(color),colorIndex*2);return patch(id,p[1],bytes);
 }
-export function stadiumGraphics(rom,index,colors){
+export function stadiumGraphics(rom,index,colors,allocationRom=rom){
  indexValid(index);return STADIUM_ASSETS.filter(a=>a.stadium===index||a.shared).map(a=>{
-  const offset=loRom(a.address),data=decompress(rom,offset),partOffset=a.address===0xa18a0a?word(rom,0x17add+index*2)-0x2280:null,part=partOffset===null?data:data.slice(partOffset,partOffset+384),tileCount=part.length/32,columns=partOffset!==null?4:a.address===0xa185ba?5:[16,12,10,8,6,5,4,3,2,1].find(n=>tileCount%n===0);
+  const address=stadiumAssetAddress(rom,a.address),offset=loRom(address),capacity=externalDeluxeLayout(rom)?word(allocationRom,offset)&0x7fff:a.end-a.address,data=decompress(rom,offset),partOffset=a.address===0xa18a0a?word(rom,0x17add+index*2)-0x2280:null,part=partOffset===null?data:data.slice(partOffset,partOffset+384),tileCount=part.length/32,columns=partOffset!==null?4:a.address===0xa185ba?5:[16,12,10,8,6,5,4,3,2,1].find(n=>tileCount%n===0);
   if(partOffset!==null&&(partOffset<0||part.length!==384))throw new Error('Vista de estadio no compatible.');
-  return {...a,shared:partOffset!==null?false:a.shared,partOffset,sourceBytes:data,bytes:rom.slice(offset,offset+a.end-a.address),id:`stadium:graphic:${a.address}`,offset,capacity:a.end-a.address,bpp:4,columns,decodedSize:data.length,colors:colors||palette(rom,stadiumPalettes(rom,index)[0].offset,16),matrix:tiles(part,4,columns)};
+  return {...a,shared:partOffset!==null?false:a.shared,partOffset,sourceBytes:data,bytes:rom.slice(offset,offset+capacity),id:`stadium:graphic:${a.address}`,offset,actualAddress:address,capacity,bpp:4,columns,decodedSize:data.length,colors:colors||palette(rom,stadiumPalettes(rom,index)[0].offset,16),matrix:tiles(part,4,columns)};
  });
 }
-export function stadiumGraphicRules(rom){return STADIUM_ASSETS.map(a=>{const offset=loRom(a.address);return {id:`stadium:graphic:${a.address}`,offset,size:a.end-a.address,type:'compressed',decodedSize:decompress(rom,offset).length};});}
+export function stadiumGraphicRules(rom){return STADIUM_ASSETS.map(a=>{const offset=loRom(stadiumAssetAddress(rom,a.address));return {id:`stadium:graphic:${a.address}`,offset,size:externalDeluxeLayout(rom)?word(rom,offset)&0x7fff:a.end-a.address,type:'compressed',decodedSize:decompress(rom,offset).length};});}
 export function stadiumGraphicPatch(original,resource,matrix){
+ const capacity=externalDeluxeLayout(original)?word(original,resource.offset)&0x7fff:resource.capacity;
  if(matrix.length!==resource.matrix.length||matrix.some(row=>row.length!==resource.matrix[0].length||row.some(p=>!Number.isInteger(p)||p<0||p>15)))throw new Error('Resolución gráfica inválida.');
  const decoded=resource.partOffset===null?encodeTiles(matrix,4):resource.sourceBytes.slice();if(resource.partOffset!==null)decoded.set(encodeTiles(matrix,4),resource.partOffset);
- if(equal(decoded,decompress(original,resource.offset)))return patch(resource.id,resource.offset,original.slice(resource.offset,resource.offset+resource.capacity),resource.label);
- if(equal(decoded,resource.sourceBytes))return patch(resource.id,resource.offset,resource.bytes,resource.label);
+ if(equal(decoded,decompress(original,resource.offset)))return patch(resource.id,resource.offset,original.slice(resource.offset,resource.offset+capacity),resource.label);
+ if(equal(decoded,resource.sourceBytes)){const bytes=original.slice(resource.offset,resource.offset+capacity);bytes.set(resource.bytes);return patch(resource.id,resource.offset,bytes,resource.label);}
  const encoded=compress(decoded,!!(word(original,resource.offset)&0x8000));
- if(encoded.length>resource.capacity)throw new Error(`El diseño requiere ${encoded.length} bytes; hay ${resource.capacity}. Reduce el detalle.`);
- const bytes=original.slice(resource.offset,resource.offset+resource.capacity);bytes.set(encoded);return patch(resource.id,resource.offset,bytes,resource.label);
+ if(encoded.length>capacity)throw new Error(`El diseño requiere ${encoded.length} bytes; hay ${capacity}. Reduce el detalle.`);
+ const bytes=original.slice(resource.offset,resource.offset+capacity);bytes.set(encoded);return patch(resource.id,resource.offset,bytes,resource.label);
 }
 export function restoreStadiumPatches(original,current,index){
- indexValid(index);const names=stadiumNamePatches(original,current,index,readStadiums(original)[index].name);
+ indexValid(index);const names=externalDeluxeLayout(original)?[]:stadiumNamePatches(original,current,index,readStadiums(original)[index].name);
  const ids=new Set([...stadiumPalettes(original,index).filter(p=>!p.shared).map(p=>p.id),`stadium:yards:${index}`,`stadium:field:${index}`]);
  const mini=stadiumGraphics(current,index).find(r=>r.partOffset!==null),baselineMini=stadiumGraphics(original,index).find(r=>r.partOffset!==null);
  return [...names,stadiumGraphicPatch(original,mini,baselineMini.matrix),...STADIUM_RULES.filter(r=>ids.has(r[0])).map(([id,offset,size])=>patch(id,offset,original.slice(offset,offset+size))),...stadiumGraphicRules(original).filter(r=>STADIUM_ASSETS.find(a=>`stadium:graphic:${a.address}`===r.id).stadium===index).map(r=>patch(r.id,r.offset,original.slice(r.offset,r.offset+r.size)))];

@@ -120,3 +120,49 @@ including at `$84E80E`. It is referenced by team jersey tables but also by
 referees and blank sprite regions. Never erase or clone team details into this
 allocation. Legacy physical-deletion projects that filled it with `FF` are
 repaired on import; opening an affected exported ROM applies a zero-tile repair.
+
+### Expanded TEAM v3
+
+The 56-team format uses a 4 MiB LoROM and metadata version 3 at `$B0FE00`.
+Legacy v1/v2 drafts remain readable and migrate atomically only when team 49
+or a 9–10-character name is requested. Banks C0/C1/C2/C4/C5/C6/C7/C8 own the
+relocated tables, palettes, attributes, names, flags, labels, photo tables and
+code/OAM. Bank C1 uses low-half pointers through LoROM mirrors; a palette
+loader dispatch retains native/global bank-89 palettes. The 57th table record
+belongs to Challenge, not a playable team. Removed IDs resolve to a live squad.
+
+Name copies are 200 bytes: home `$7ED478..$7ED53F`, away
+`$7ED540..$7ED607`, before match data at `$7ED60C`. All roster/HUD indexing
+uses a ten-byte stride and emits ten glyphs. Added flags 48–55 occupy
+`$7F6000..$7F65FF`, while labels 48–55 occupy `$7F4600..$7F47FF`.
+The flags avoid the selector’s temporary label output at `$7F4CC0..$7F4E1F`.
+The verified tables, metadata and OAM layout currently support 56 squads. Expanded team-name coordinates finish at `$5468`; small UI frames move
+to `$5470`, before the following object at `$557A`, with native `$2000` plane
+separation. Tests execute injected 65816 routines, including byte stacks,
+DB-sensitive palette DMA and low-half mirrors; integrate with the real SNES
+emulator as well. Run `tests/expanded-teams.cjs`, `tests/expanded-teams-cpu.cjs`
+and `tests/wc26-stadiums.cjs` for the new formats and WC26 stadium resources.
+
+The native 2 MiB decompressor masks bank bit `$40` and treats it as a
+script-control flag. The expanded engine hooks `$80B76F` in 8-bit accumulator
+mode: only the owned C5/C6/C8 compressed pools retain their full bank; native
+pointers retain their original flags. The selector's generated flag-palette
+script uses bank C1, as does the general palette dispatch. Opening exact early
+v3 engines repairs these hooks and the relocated flag-cache table/script
+without changing player, team-name, flag, palette or group edits.
+
+For full CPU/PPU verification, build the official Snes9x libretro core and run
+`SNES9X_CORE=/absolute/path/to/snes9x_libretro.dylib npm run test:expanded-runtime`
+(use `.so` or `.dll` on other platforms). The Python runner uses only the
+standard library. It compares native menu pixels/OAM/background and selector
+palettes, selects squad 55, checks every cached flag/label and name sprite,
+and starts a match with all twenty home names containing ten characters.
+
+The small-label resolver is shared by the selector and handicap loader at
+`$85A8E3`; team IDs 48–55 must use their relocated cache in both screens.
+The HUD name-stride helper returns the computed address in A **and X**,
+matching the native `TAX` instruction it replaces. Runtime tests inspect
+VRAM name tiles and handicap label uploads, rather than only the name pool.
+Compact names retain native white/gray strokes and add black outline pixels.
+Only exact rasters from the prior generator are upgraded automatically;
+native names and custom pixel artwork remain intact.

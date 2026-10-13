@@ -1,3 +1,4 @@
+import {hasExpandedTeams} from './expanded-layout.mjs';
 import {loRom,word} from './binary.mjs';
 import {TEAM_METADATA,TEAM_TABLES,hasEmptyTeams,teamDataRom,teamCount,teamExists,activeTeamIds,hasExtraTeams,hasPhysicalTeams,teamTable,teamPointer,attributeOffset,PHYSICAL_STAR_NAMES,PHYSICAL_FALLBACK_NAMES,FALLBACK_NAMES,COMPACT_GLYPH_ATLAS,COMPACT_GLYPH_ATLAS_SIZE} from './team-count.mjs';
 import {addTeamPatches,extraTeamCodePatches,TEAM_PHOTO_TABLES} from './extra-teams.mjs';
@@ -121,7 +122,7 @@ function structuralPatches(original,current){
 // Return exact physical allocations no remaining native team owns. Shared
 // palette/formation/graphic records survive until their final owner is removed.
 export function erasedNativeResources(rom,nativeRom=rom){
- if(!hasPhysicalTeams(rom))return [];
+ if(!hasPhysicalTeams(rom)||hasExpandedTeams(rom))return [];
  const removed=Array.from({length:42},(_,t)=>t).filter(t=>!teamExists(rom,t)),live=activeTeamIds(rom),nativeLive=live.filter(t=>t<42),out=[];
  const livePalettes=[...live,48].flatMap(t=>palettes.flatMap(([table,n])=>{const pointer=teamPointer(rom,table,t);return pointer?[[loRom(0x890000|pointer)+2,n*2]]:[];}));
  for(const t of removed){

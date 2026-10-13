@@ -1,18 +1,18 @@
-import {teamPointer} from './team-count.mjs';
+import {teamPointer,teamPaletteOffset} from './team-count.mjs';
 import { loRom, word, tiles, palette } from './binary.mjs';
 
 // Team home palettes and alternate skin/hair records used by CODE_98F869.
 // Low nibble 1..13 selects DATA_81ED6D; zero keeps the standard sprite head.
 export function deluxeAppearance(rom, teamIndex, player) {
   const kitTable = player.position === 1 ? 0x10326 : 0x1027a;
-  const kit = loRom(0x890000 | teamPointer(rom,kitTable,teamIndex));
+  const kit = teamPaletteOffset(rom,teamPointer(rom,kitTable,teamIndex));
   const colors = new Array(16).fill('transparent');
   colors.splice(player.position === 1 ? 1 : 0, player.position === 1 ? 11 : 16, ...palette(rom, kit + 2, player.position === 1 ? 11 : 16));
   if (player.skin !== 0) {
     const skinPointer = teamPointer(rom,0x1037c,teamIndex);
     const hairPointer = teamPointer(rom,0x103d2,teamIndex);
-    if (skinPointer) colors.splice(2, 5, ...palette(rom, loRom(0x890000 | skinPointer) + 2, 5));
-    if (hairPointer) colors[1] = palette(rom, loRom(0x890000 | hairPointer) + 2, 1)[0];
+    if (skinPointer) colors.splice(2, 5, ...palette(rom, teamPaletteOffset(rom,skinPointer) + 2, 5));
+    if (hairPointer) colors[1] = palette(rom, teamPaletteOffset(rom,hairPointer) + 2, 1)[0];
   }
   const skinColor = colors[4];
   colors[0] = 'transparent';

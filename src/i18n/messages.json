@@ -2724,10 +2724,10 @@
     "pt": "Restaurar grupos originais",
     "en": "Restore original groups"
   },
-  "Agrega o quita equipos en cada grupo. Un equipo puede participar en varios grupos.": {
-    "es": "Agrega o quita equipos en cada grupo. Un equipo puede participar en varios grupos.",
-    "pt": "Adicione ou remova equipes em cada grupo. Uma equipe pode participar de vários grupos.",
-    "en": "Add or remove teams in each group. A team can belong to multiple groups."
+  "Agrega o quita equipos en cada grupo. Cada equipo puede pertenecer a un solo grupo.": {
+    "es": "Agrega o quita equipos en cada grupo. Cada equipo puede pertenecer a un solo grupo.",
+    "pt": "Adicione ou remova equipes em cada grupo. Cada equipe pode pertencer a apenas um grupo.",
+    "en": "Add or remove teams in each group. Each team can belong to only one group."
   },
   "En el juego, cada página muestra hasta seis equipos. Un grupo de ocho ocupa dos páginas con el mismo título. Los grupos vacíos se guardan, pero no aparecen en la selección.": {
     "es": "En el juego, cada página muestra hasta seis equipos. Un grupo de ocho ocupa dos páginas con el mismo título. Los grupos vacíos se guardan, pero no aparecen en la selección.",
@@ -2763,6 +2763,11 @@
     "es": "Agregar o elegir equipos",
     "pt": "Adicionar ou escolher equipes",
     "en": "Add or choose teams"
+  },
+  "Asignado a": {
+    "es": "Asignado a",
+    "pt": "Atribuído a",
+    "en": "Assigned to"
   },
   "Equipos del grupo": {
     "es": "Equipos del grupo",
@@ -5018,5 +5023,30 @@
     "es": "Fondo de portada",
     "en": "Title background",
     "pt": "Fundo da tela inicial"
+  },
+  "Puedes agregar equipos hasta completar 56. Cada equipo nuevo comienza con una copia independiente de Italia y aparece en el grupo EXTRA.": {
+    "es": "Puedes agregar equipos hasta completar 56. Cada equipo nuevo comienza con una copia independiente de Italia y aparece en el grupo EXTRA.",
+    "pt": "Você pode adicionar até 56 equipes. Cada nova equipe começa com uma cópia independente da Itália e aparece no grupo EXTRA.",
+    "en": "You can add up to 56 teams. Each new team starts with an independent copy of Italy and appears in the EXTRA group."
+  },
+  "La expansión a 56 equipos o nombres de 10 caracteres exporta una ROM de 4 MiB. Se conservan el mapeo y la cabecera opcional; se recalcula el checksum.": {
+    "es": "La expansión a 56 equipos o nombres de 10 caracteres exporta una ROM de 4 MiB. Se conservan el mapeo y la cabecera opcional; se recalcula el checksum.",
+    "pt": "A expansão para 56 equipes ou nomes de 10 caracteres exporta uma ROM de 4 MiB. O mapeamento e o cabeçalho opcional são preservados; o checksum é recalculado.",
+    "en": "Expanding to 56 teams or 10-character names exports a 4 MiB ROM. Mapping and the optional copier header are preserved; the checksum is recalculated."
+  },
+  "Los nombres de jugadores admiten 10 caracteres. Los nombres grandes de equipos dependen del espacio gráfico de cada slot; los pequeños deben caber en 32 píxeles. Ampliar estos límites requiere modificar las rutinas de la ROM.": {
+    "es": "Los nombres de jugadores admiten 10 caracteres. Los nombres grandes de equipos dependen del espacio gráfico de cada slot; los pequeños deben caber en 32 píxeles. Ampliar estos límites requiere modificar las rutinas de la ROM.",
+    "pt": "Os nomes dos jogadores aceitam 10 caracteres. Os nomes grandes das equipes dependem do espaço gráfico de cada slot; os pequenos devem caber em 32 pixels. Ampliar esses limites exige modificar as rotinas da ROM.",
+    "en": "Player names accept 10 characters. Large team names depend on each slot’s sprite capacity; small names must fit within 32 pixels. Expanding those limits requires changing ROM routines."
+  },
+  "WC26: puedes editar los gráficos, las paletas y las medidas. El nombre del estadio se conserva.": {
+    "es": "WC26: puedes editar los gráficos, las paletas y las medidas. El nombre del estadio se conserva.",
+    "pt": "WC26: você pode editar os gráficos, as paletas e as medidas. O nome do estádio é preservado.",
+    "en": "WC26: you can edit graphics, palettes and dimensions. The stadium name is preserved."
+  },
+  "Para empezar selecciona Jugadores, Apariencia, Gráficos o Audio. La expansión a 56 equipos o nombres de 10 caracteres exporta una ROM de 4 MiB. Se conservan el mapeo y la cabecera opcional; se recalcula el checksum.": {
+    "es": "Para empezar selecciona Jugadores, Apariencia, Gráficos o Audio. La expansión a 56 equipos o nombres de 10 caracteres exporta una ROM de 4 MiB. Se conservan el mapeo y la cabecera opcional; se recalcula el checksum.",
+    "pt": "Para começar, selecione Jogadores, Aparência, Gráficos ou Áudio. A expansão para 56 equipes ou nomes de 10 caracteres exporta uma ROM de 4 MiB. O mapeamento e o cabeçalho opcional são preservados; o checksum é recalculado.",
+    "en": "To get started, choose Players, Appearance, Graphics or Audio. Expanding to 56 teams or 10-character names exports a 4 MiB ROM. Mapping and the optional copier header are preserved; the checksum is recalculated."
   }
 }

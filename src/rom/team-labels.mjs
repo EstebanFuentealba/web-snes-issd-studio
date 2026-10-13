@@ -1,4 +1,5 @@
-import {hasExtraTeams,hasPhysicalTeams,COMPACT_GLYPH_ATLAS,COMPACT_GLYPH_ATLAS_SIZE,TEAM_METADATA,EXTRA_BIG_LABEL_ADDRESS,EXTRA_BIG_LABEL_CAPACITY} from './team-count.mjs';
+import {hasExpandedTeams,EXPANDED} from './expanded-layout.mjs';
+import {hasExtraTeams,hasPhysicalTeams,COMPACT_GLYPH_ATLAS,COMPACT_GLYPH_ATLAS_SIZE,TEAM_METADATA,teamDataRom,teamExists,activeTeamIds,EXTRA_BIG_LABEL_ADDRESS,EXTRA_BIG_LABEL_CAPACITY} from './team-count.mjs';
 import {decompress,loRom,word,tiles,palette} from './binary.mjs';
 import {compress,encodeTiles,graphicResources,graphicPatches,smallLabelPatches,smallLabelMatrix} from './graphics.mjs';
 // COD_BigTeamAndStadiumNames, 42 frames / 411 sprites, loaded at $7E4F02.
@@ -11,24 +12,24 @@ export const TEAM_LABEL_FRAMES=[14,15,16,0,2,3,4,6,12,5,8,10,7,11,9,13,1,36,18,2
 // Keep a slot's limit after saving/reopening a ROM with a shorter replacement.
 const TEAM_LABEL_CAPACITIES=[5,7,7,6,5,7,8,7,7,6,7,6,7,8,6,5,6,7,7,5,8,10,14,6,5,7,6,7,8,7,6,9,8,6,3,7,8,11,11,10,12,18];
 export function labelLayout(rom,expanded=false) {
-  const data=decompress(rom,loRom(hasExtraTeams(rom)?EXTRA_BIG_LABEL_ADDRESS:BIG_LABEL_ADDRESS)),count=data[0],sprites=word(data,1),base=3+count;
-  if(!([42,48].includes(count))||sprites!==(count===48?531:411)||data.length!==base+sprites*4)throw new Error('Formato de nombres grandes no compatible.');
-  if(expanded&&count===42)return extendedLabelLayout({data,sprites,base});
+  const data=decompress(rom,loRom(hasExpandedTeams(rom)?EXPANDED.bigLabels:hasExtraTeams(rom)?EXTRA_BIG_LABEL_ADDRESS:BIG_LABEL_ADDRESS)),count=data[0],sprites=word(data,1),base=3+count;
+  if(!([42,48,56].includes(count))||sprites!==411+(count-42)*20||data.length!==base+sprites*4)throw new Error('Formato de nombres grandes no compatible.');
+  if(expanded&&count<(typeof expanded==='number'?expanded:48))return extendedLabelLayout({data,sprites,base},typeof expanded==='number'?expanded:48);
   return {data,sprites,base};
 }
-export function extendedLabelLayout(layout){
- const data=new Uint8Array(3+48+531*4);data.set([48,19,2]);data.set(layout.data.slice(3,45),3);data.fill(20,45,51);
+export function extendedLabelLayout(layout,count=48){
+ const oldCount=layout.data[0],sprites=411+(count-42)*20,base=3+count,data=new Uint8Array(base+sprites*4);data.set([count,sprites&255,sprites>>>8]);data.set(layout.data.slice(3,3+oldCount),3);data.fill(20,3+oldCount,base);
  const f=labelFrame(layout,0);
- for(let p=0;p<4;p++){data.set(layout.data.slice(layout.base+p*411,layout.base+(p+1)*411),51+p*531);for(let t=0;t<6;t++)for(let i=0;i<20;i++)data[51+p*531+411+t*20+i]=i<f.count?layout.data[layout.base+p*411+f.start+i]:[0,4,170,10][p];}
- return {data,sprites:531,base:51};
+ for(let p=0;p<4;p++){data.set(layout.data.slice(layout.base+p*layout.sprites,layout.base+(p+1)*layout.sprites),base+p*sprites);for(let t=oldCount;t<count;t++)for(let i=0;i<20;i++)data[base+p*sprites+layout.sprites+(t-oldCount)*20+i]=i<f.count?layout.data[layout.base+p*layout.sprites+f.start+i]:[0,4,170,10][p];}
+ return {data,sprites,base};
 }
 export function labelFrame(layout,team) {
-  const frame=team>=42&&team<48?team:TEAM_LABEL_FRAMES[team];if(frame===undefined)throw new Error('Equipo inválido.');
+  const frame=team>=42&&team<layout.data[0]?team:TEAM_LABEL_FRAMES[team];if(frame===undefined)throw new Error('Equipo inválido.');
   let start=0;for(let i=0;i<frame;i++)start+=layout.data[3+i];
   return {frame,start,count:layout.data[3+frame]};
 }
 export function bigLabel(rom,team) {
-  const layout=labelLayout(rom,team>=42),frame=labelFrame(layout,team),font=menuFont(rom);
+  const layout=labelLayout(rom,team>=48?56:team>=42),frame=labelFrame(layout,team),font=menuFont(rom);
   const matrix=Array.from({length:24},()=>new Array(80).fill(0));
   for(let i=0;i<frame.count;i++) {
     const p=layout.base+frame.start+i,id=layout.data[p+layout.sprites*2],attr=layout.data[p+layout.sprites*3],size=attr&16?16:8,x0=layout.data[p]-(size===16?4:0),y0=layout.data[p+layout.sprites]-(size===16?4:0);
@@ -44,7 +45,7 @@ export function bigLabel(rom,team) {
 }
 export function validateLabelLayout(bytes,original) {
   let source=original;if(bytes[0]===42&&hasExtraTeams(original)){source=original.slice();source.fill(255,TEAM_METADATA,TEAM_METADATA+4);}
-  const baseline=labelLayout(source,bytes[0]===48),n=baseline.sprites,base=baseline.base;
+  const baseline=labelLayout(source,bytes[0]>=48?bytes[0]:false),n=baseline.sprites,base=baseline.base;
   if(bytes.length!==baseline.data.length||bytes.slice(0,base).some((b,i)=>b!==baseline.data[i]))throw new Error('No se puede cambiar la cantidad de sprites de los nombres grandes.');
   for(let i=base;i<bytes.length;i++) if(bytes[i]!==baseline.data[i]) {
     const index=(i-base)%n,x=bytes[base+index],y=bytes[base+n+index],tile=bytes[base+n*2+index],attr=bytes[base+n*3+index];
@@ -103,14 +104,14 @@ export function bigTeamNamePatches(original,current,team,name) {
     if(assignments.size&&cursor>=name.length)for(let i=0;i<frame.count;i++){const p=layout.base+frame.start+i;if(layout.data[p+layout.sprites*2]===170)continue;const large=!!(layout.data[p+layout.sprites*3]&16),entry=assignments.get(layout.data[p]-(large?4:0));layout.data[p+layout.sprites*2]=entry.tile===170?170:entry.tile+(!large&&layout.data[p+layout.sprites]===12?16:0);}
     else for(let i=0;i<frame.count;i++)for(let plane=0;plane<4;plane++)layout.data[layout.base+frame.start+i+layout.sprites*plane]=sprites[i][plane];
   }
-  const offset=loRom(hasExtraTeams(current)?EXTRA_BIG_LABEL_ADDRESS:BIG_LABEL_ADDRESS),capacity=hasExtraTeams(current)?EXTRA_BIG_LABEL_CAPACITY:word(original,offset)&0x7fff;
+  const offset=loRom(hasExpandedTeams(current)?EXPANDED.bigLabels:hasExtraTeams(current)?EXTRA_BIG_LABEL_ADDRESS:BIG_LABEL_ADDRESS),capacity=hasExpandedTeams(current)?EXPANDED.bigCapacity:hasExtraTeams(current)?EXTRA_BIG_LABEL_CAPACITY:word(original,offset)&0x7fff;
   validateLabelLayout(layout.data,original);
-  canonicalizeLabelFrames(layout,labelLayout(original,hasExtraTeams(current)));
+  canonicalizeLabelFrames(layout,labelLayout(original,hasExpandedTeams(current)?56:hasExtraTeams(current)));
   const encoded=compressLabelLayout(layout,capacity),bytes=hasExtraTeams(current)?new Uint8Array(capacity).fill(255):Uint8Array.from(original.subarray(offset,offset+capacity));
   validateLabelLayout(layout.data,original);
   if(encoded.length>capacity)throw new Error(`Los nombres grandes requieren ${encoded.length} bytes; hay ${capacity}. Prueba otro nombre.`);
   bytes.set(encoded);
-  return [...(nativeCzech?czechPunctuationPatches(original,current,name.endsWith('.')):[]),{id:hasExtraTeams(current)?"teams:big-labels":BIG_LABEL_ID,offset,label:`Nombre grande de selección · ${name}`,bytes}];
+  return [...(nativeCzech?czechPunctuationPatches(original,current,name.endsWith('.')):[]),{id:hasExpandedTeams(current)?"teams56:big-labels":hasExtraTeams(current)?"teams:big-labels":BIG_LABEL_ID,offset,label:`Nombre grande de selección · ${name}`,bytes}];
 }
 export function smallTeamNamePatches(original,current,team,name){
   name=name.trim().toUpperCase();
@@ -122,12 +123,12 @@ export function renameTeamPatches(original,current,team,name){
   return [...smallTeamNamePatches(original,current,team,name),...big];
 }
 export function restoreTeamLabelPatches(original,current,team) {
-  const layout=labelLayout(current),baseline=labelLayout(original,hasExtraTeams(current)),frame=labelFrame(layout,team);
+  const layout=labelLayout(current),baseline=labelLayout(original,hasExpandedTeams(current)?56:hasExtraTeams(current)),frame=labelFrame(layout,team);
   for(let p=0;p<4;p++)for(let i=0;i<frame.count;i++){const offset=layout.base+p*layout.sprites+frame.start+i;layout.data[offset]=baseline.data[offset];}
-  const offset=loRom(hasExtraTeams(current)?EXTRA_BIG_LABEL_ADDRESS:BIG_LABEL_ADDRESS),capacity=hasExtraTeams(current)?EXTRA_BIG_LABEL_CAPACITY:word(original,offset)&0x7fff,bytes=hasExtraTeams(current)?new Uint8Array(capacity).fill(255):Uint8Array.from(original.subarray(offset,offset+capacity));
+  const offset=loRom(hasExpandedTeams(current)?EXPANDED.bigLabels:hasExtraTeams(current)?EXTRA_BIG_LABEL_ADDRESS:BIG_LABEL_ADDRESS),capacity=hasExpandedTeams(current)?EXPANDED.bigCapacity:hasExtraTeams(current)?EXTRA_BIG_LABEL_CAPACITY:word(original,offset)&0x7fff,bytes=hasExtraTeams(current)?new Uint8Array(capacity).fill(255):Uint8Array.from(original.subarray(offset,offset+capacity));
   canonicalizeLabelFrames(layout,baseline);
   if(layout.data.some((b,i)=>b!==baseline.data[i])){const encoded=compressLabelLayout(layout,capacity);if(encoded.length>capacity)throw new Error('La restauración parcial supera el espacio del bloque de nombres.');bytes.set(encoded);}
-  return [...(team===22?czechPunctuationPatches(original,current,true):[]),...smallLabelPatches(original,current,team,smallLabelMatrix(original,team)),{id:hasExtraTeams(current)?"teams:big-labels":BIG_LABEL_ID,offset,bytes,label:'Restaurar nombre grande del equipo'}];
+  return [...(team===22?czechPunctuationPatches(original,current,true):[]),...smallLabelPatches(original,current,team,smallLabelMatrix(original,team)),{id:hasExpandedTeams(current)?"teams56:big-labels":hasExtraTeams(current)?"teams:big-labels":BIG_LABEL_ID,offset,bytes,label:'Restaurar nombre grande del equipo'}];
 }
 
 // Sprite order affects compression. Reorder only disjoint rectangles so OAM
@@ -172,11 +173,11 @@ function compressLabelLayout(layout,capacity){
   return encoded;
 }
 export function labelLayoutPatch(original,layout,expanded=false){
- const offset=loRom(expanded?EXTRA_BIG_LABEL_ADDRESS:BIG_LABEL_ADDRESS),capacity=expanded?EXTRA_BIG_LABEL_CAPACITY:word(original,offset)&0x7fff;
+ const v3=layout.data[0]===56,offset=loRom(v3?EXPANDED.bigLabels:expanded?EXTRA_BIG_LABEL_ADDRESS:BIG_LABEL_ADDRESS),capacity=v3?EXPANDED.bigCapacity:expanded?EXTRA_BIG_LABEL_CAPACITY:word(original,offset)&0x7fff;
  validateLabelLayout(layout.data,original);
  const encoded=compressLabelLayout(layout,capacity),bytes=new Uint8Array(capacity).fill(255);
  if(encoded.length>capacity)throw new Error('Los nombres grandes exceden el espacio disponible.');
- bytes.set(encoded);return {id:expanded?'teams:big-labels':BIG_LABEL_ID,offset,bytes,label:'Reorganizar nombres de equipos'};
+ bytes.set(encoded);return {id:v3?'teams56:big-labels':expanded?'teams:big-labels':BIG_LABEL_ID,offset,bytes,label:'Reorganizar nombres de equipos'};
 }
 
 // Native compact glyphs, cropped from immutable country rasters. In particular,
@@ -208,7 +209,7 @@ export function compactGlyphAtlas(original){
  Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').forEach((c,i)=>{const glyph=compactGlyph(source,c);bytes[i*10]=glyph[0].length;glyph.forEach((row,y)=>row.forEach((p,x)=>bytes[i*10+1+((y*5+x)>>>2)]|=p<<((y*5+x)%4*2)));});
  return bytes;
 }
-export function compactTeamName(original,name){
+export function compactTeamName(original,name,outline=true){
   const glyphs=Array.from(name,c=>compactGlyph(original,c));
   let width=glyphs.reduce((n,g)=>n+g[0].length,0)+glyphs.length-1;
   const gaps=Array(Math.max(0,glyphs.length-1)).fill(1);
@@ -216,7 +217,19 @@ export function compactTeamName(original,name){
   if(width>32)throw new Error('El nombre no cabe en el rótulo pequeño de 32 píxeles.');
   const result=Array.from({length:8},()=>Array(32).fill(0));let x=Math.floor((32-width)/2);
   glyphs.forEach((glyph,index)=>{glyph.forEach((row,y)=>row.forEach((p,i)=>result[y][x+i]=p));x+=glyph[0].length+(gaps[index]||0);});
+  if(outline)for(let y=0;y<8;y++)for(let x=0;x<32;x++)if(!result[y][x]&&[-1,0,1].some(dy=>[-1,0,1].some(dx=>{const p=result[y+dy]?.[x+dx];return p===1||p===2;})))result[y][x]=3;
   return result;
+}
+// Upgrade only exact rasters made by the old compact-name generator. Custom
+// pixel artwork and native country labels retain their original appearance.
+export function upgradeCompactTeamNamePatches(original,current){
+ const patches=[];for(const team of activeTeamIds(teamDataRom(current))){
+  const matrix=smallLabelMatrix(current,team);if(matrix.length!==8||matrix.some(row=>row.includes(3)))continue;
+  const name=decodeCompactName(original,matrix);if(!name)continue;
+  const legacy=compactTeamName(original,name,false);if(matrix.some((row,y)=>row.some((p,x)=>p!==legacy[y][x])))continue;
+  patches.push(...smallTeamNamePatches(original,current,team,name));
+ }
+ return patches;
 }
 
 // Menu DMA uploads: VRAM $6800 is tile 128, $7D00 is tile 464.
@@ -236,7 +249,7 @@ function packedGlyphs(rom){
   return pairs;
 }
 export function frameText(rom,team){
-  const layout=labelLayout(rom,team>=42),frame=labelFrame(layout,team),pairs=packedGlyphs(rom),letters=[];
+  const layout=labelLayout(rom,team>=48?56:team>=42),frame=labelFrame(layout,team),pairs=packedGlyphs(rom),letters=[];
   if(team===22&&hasCzechGlyphs(layout,frame))return (Array.from({length:frame.count},(_,i)=>layout.data[layout.base+frame.start+i+layout.sprites*2]).includes(234)?'THE ':'')+'CZECH REP'+(tiles(decompress(rom,loRom(0x9ba400)),4,16).slice(11,14).some(row=>row.slice(120,123).some(Boolean))?'.':'');
   for(let i=0;i<frame.count;i++){const p=layout.base+frame.start+i,tile=layout.data[p+layout.sprites*2],attr=layout.data[p+layout.sprites*3];if(attr&1)return null;if(tile===186){letters.push({x:layout.data[p],text:'.'});continue;}if(attr&16){const pair=pairs.find(pair=>pair.tile===tile);if(!pair)return null;letters.push({x:layout.data[p]-4,text:pair.text});}else {const c=Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ ',c=>({c,tile:tileFor(c)})).find(c=>c.tile===tile);if(c)letters.push({x:layout.data[p],text:c.c});}}
   // Spaces have no visible sprite. Recover them from coordinates in native
@@ -254,15 +267,16 @@ function hasCzechGlyphs(layout,frame){
 const SMALL_NAMES=['ITALY','HOLLAND','ENGLAND','NORWAY','SPAIN','IRELAND','PORTUGAL','DENMARK','GERMANY','FRANCE','BELGIUM','SWEDEN','ROMANIA','BULGARIA','RUSSIA','SWISS','GREECE','CROATIA','AUSTRIA','WALES','SCOTLAND','N.IRELAND','CZECH','POLAND','JAPAN','S.KOREA','TURKEY','NIGERIA','CAMEROON','MOROCCO','BRAZIL','ARGENTINA','COLOMBIA','MEXICO','U.S.A.','URUGUAY','ALLSTAR','E.STAR.A','E.STAR.B','ASIANSTAR','A.STAR','ALLA.STAR'];
 const STAR_BIG_NAMES=['ALL STAR','EUROSTAR.A','EUROSTAR.B','ASIAN STAR','AFRICAN STAR','ALL AMERICAN STAR'];
 export function teamNameTexts(original,current,team){
-  const small=smallLabelMatrix(current,team),baseline=smallLabelMatrix(original,team);
+  if(!teamExists(teamDataRom(current),team))return {small:'',large:''};
+  const source=teamDataRom(original),small=smallLabelMatrix(current,team),baseline=smallLabelMatrix(source,teamExists(source,team)?team:activeTeamIds(source)[0]);
   let a,b,frame;
-  try{a=labelLayout(original,hasExtraTeams(current));b=labelLayout(current);frame=labelFrame(a,team);}catch{return {small:small.length===8&&JSON.stringify(small)===JSON.stringify(baseline)?SMALL_NAMES[team]||'':'',large:''};}
+  try{a=labelLayout(original,hasExpandedTeams(current)?56:hasExtraTeams(current));b=labelLayout(current);frame=labelFrame(a,team);}catch{return {small:small.length===8&&JSON.stringify(small)===JSON.stringify(baseline)?SMALL_NAMES[team]||'':'',large:''};}
   const sameFrame=Array.from({length:4},(_,p)=>p).every(p=>Array.from({length:frame.count},(_,i)=>a.data[a.base+frame.start+i+p*a.sprites]).every((v,i)=>v===b.data[b.base+frame.start+i+p*b.sprites]));
   return {small:team<42&&JSON.stringify(small)===JSON.stringify(baseline)?SMALL_NAMES[team]:decodeCompactName(original,small),large:sameFrame&&team>=36&&team<42?STAR_BIG_NAMES[team-36]:frameText(current,team)||''};
 }
 function decodeCompactName(original,matrix){
   const glyphs=Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ.',text=>{
-    const m=compactTeamName(original,text);const xs=m.flatMap(row=>row.flatMap((p,x)=>p?[x]:[]));const left=Math.min(...xs),right=Math.max(...xs);
+    const m=compactTeamName(original,text,false);const xs=m.flatMap(row=>row.flatMap((p,x)=>p?[x]:[]));const left=Math.min(...xs),right=Math.max(...xs);
     return {text,matrix:m.slice(0,7).map(row=>row.slice(left,right+1))};
   }).filter(g=>g.matrix[0].length>0);
   const xs=matrix.flatMap(row=>row.flatMap((p,x)=>p&&p!==3?[x]:[]));if(!xs.length)return '';

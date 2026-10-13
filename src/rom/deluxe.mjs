@@ -1,6 +1,7 @@
+import {hasExpandedTeams,EXPANDED,playerNameLength} from './expanded-layout.mjs';
 import {wc26TeamPresentation} from './wc26-data.mjs';
 import {externalDeluxeLayout} from './external-layout.mjs';
-import {teamCount,teamExists,hasPhysicalTeams,PHYSICAL_STAR_NAMES,hasExtraTeams,teamPointer,teamTable,attributeOffset as playerAttributeOffset} from './team-count.mjs';
+import {teamCount,teamExists,hasPhysicalTeams,PHYSICAL_STAR_NAMES,hasExtraTeams,teamPointer,teamPaletteOffset,teamTable,attributeOffset as playerAttributeOffset} from './team-count.mjs';
 import { word, loRom, decompress, tiles, palette } from './binary.mjs';
 import { flagBank, labelBank } from './graphics.mjs';
 import { deluxeAppearance } from './appearance.mjs';
@@ -33,7 +34,7 @@ export function readDeluxeTeam(rom, index) {
   const players = Array.from({ length: 20 }, (_, player) => {
     const nameOffset = deluxePlayerNameOffset(rom,index,player), attributeOffset = playerAttributeOffset(rom,index,player);
     const attributes = deluxeAttributes(rom.slice(attributeOffset, attributeOffset + 7));
-    return { name: deluxeText(rom.slice(nameOffset, nameOffset + 8)), ...attributes, ...deluxeAppearance(rom, index, attributes) };
+    return { name: deluxeText(rom.slice(nameOffset, nameOffset + playerNameLength(rom))), ...attributes, ...deluxeAppearance(rom, index, attributes) };
   });
   // Original pointer tables in Routine_Macros_ISSD.asm: DATA_81E730,
   // DATA_81E7D8 and DATA_81E6C1. Palette record starts with a size word.
@@ -42,7 +43,7 @@ export function readDeluxeTeam(rom, index) {
     return tiles(decompress(rom, loRom(address)), 4, 3);
   });
   const colors = new Array(16).fill('transparent');
-  colors.splice(12, 4, ...palette(rom, loRom(0x890000 | teamPointer(rom,0xe7d8,index)) + 2, 4));
+  colors.splice(12, 4, ...palette(rom, teamPaletteOffset(rom,teamPointer(rom,0xe7d8,index)) + 2, 4));
   const nameAddress = labelBank(rom)<<16 | teamPointer(rom,0xe6c1,index);
   const teamMatrix = tiles(decompress(rom, loRom(nameAddress)), 2, 4);
   return { name: DELUXE_TEAMS[index]||`TEAM ${index+1}`, sharedPlayerNames:index>=36&&index<42&&!hasPhysicalTeams(rom), players, flag, colors, teamMatrix, teamColors: ['transparent', '#ffffff', '#b8b8b8', '#555555'] };
@@ -50,6 +51,7 @@ export function readDeluxeTeam(rom, index) {
 
 // CODE_A49C89 / DATA_A4F643: star teams assemble names from national squads.
 export function deluxePlayerNameOffset(rom,team,player){
+  if(hasExpandedTeams(rom))return loRom(EXPANDED.names)+team*200+player*10;
   const external=externalDeluxeLayout(rom);if(external)return loRom(external.nameBank<<16|word(rom,external.nameTable+team*2))+player*external.nameLength;
   if(hasPhysicalTeams(rom)&&team>=36&&team<42)return loRom(PHYSICAL_STAR_NAMES)+(team-36)*160+player*8;
   if(team>=36&&team<42){

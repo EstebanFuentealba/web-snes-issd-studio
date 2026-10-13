@@ -1,3 +1,4 @@
+import {hasExpandedTeams,expandedRomBuffer} from './expanded-layout.mjs';
 import {teamCount} from './team-count.mjs';
 import {GROUP_LAYOUT_RULES,groupLayoutPatches} from './groups-layout.mjs';
 import {loRom} from './binary.mjs';
@@ -118,7 +119,7 @@ export function validateGroupEditor(rom,original){
 // Recognize only exact instruction sets emitted during development of this
 // format. A known saved draft is upgraded atomically; unknown code is rejected.
 export function upgradeGroupSelector(original,patches){
- const candidate=original.slice();for(const p of patches)candidate.set(p.bytes,p.offset);
+ const candidate=hasExpandedTeams(original)||patches.some(p=>p.id==='teams:metadata'&&p.bytes[4]===3)?expandedRomBuffer(original):original.slice();for(const p of patches)candidate.set(p.bytes,p.offset);
  if(!hasCustomGroups(candidate))return patches;
  const groups=readGroups(candidate);
  for(const legacy of [{columns:4,fullHeightBackground:true},{fixedPaletteHeader:true},{ramClear:true,fixedPaletteHeader:true},{ramClear:true,directRead:true,fixedPaletteHeader:true}]){

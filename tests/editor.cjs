@@ -266,7 +266,7 @@ global.crypto ||= require('crypto').webcrypto;global.Blob ||= require('buffer').
  for(let i=0;i<36;i++)if(i!==31)assert.deepEqual(bigLabel(argentina.bytes(),i).matrix,bigLabel(original,i).matrix);
  argentina.transaction(restoreTeamLabelPatches(original,argentina.bytes(),31));assert.deepEqual(argentina.exportRom(),original);
  const named=await RomProject.create(original),otherNames=Array.from({length:36},(_,i)=>bigLabel(original,i).matrix);
- const chile=compactTeamName(original,'CHILE');assert.deepEqual(chile.slice(0,7).map(row=>row.slice(11,14)),smallLabelMatrix(original,1).slice(0,7).map(row=>row.slice(2,5).map(p=>p===3?0:p)));
+ const chile=compactTeamName(original,'CHILE');assert.ok(chile.flat().includes(3),'Generated compact names retain a black outline');assert.deepEqual(chile.slice(0,7).map(row=>row.slice(11,14).map(p=>p===3?0:p)),smallLabelMatrix(original,1).slice(0,7).map(row=>row.slice(2,5).map(p=>p===3?0:p)));
  named.transaction(renameTeamPatches(named.original,named.bytes(),0,'CHILE'));assert.notDeepEqual(bigLabel(named.bytes(),0).matrix,otherNames[0]);assert.deepEqual(smallLabelMatrix(named.bytes(),0),chile);
  for(let i=1;i<36;i++)assert.deepEqual(bigLabel(named.bytes(),i).matrix,otherNames[i]);
  assert.throws(()=>renameTeamPatches(named.original,named.bytes(),0,'TOOLONG'),/admite/);

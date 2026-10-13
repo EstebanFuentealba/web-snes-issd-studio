@@ -1,3 +1,6 @@
+import {expandTeamPatches} from './expanded-teams.mjs';
+import {expandedRomBuffer} from './expanded-layout.mjs';
+import {hasExpandedTeams} from './expanded-layout.mjs';
 import {externalDeluxeLayout} from './external-layout.mjs';
 import {teamExists,attributeOffset} from './team-count.mjs';
 import { word, loRom } from './binary.mjs';
@@ -19,8 +22,14 @@ export function playerOffsets(rom,team,index) {
   return {name:deluxePlayerNameOffset(rom,team,index),attributes:attributeOffset(rom,team,index)};
 }
 export function playerPatches(rom,team,index,changes,swapNumber=true) {
+  if(typeof changes.name==='string'&&changes.name.length>8&&!externalDeluxeLayout(rom)&&!hasExpandedTeams(rom)){
+    // Validate the requested text before allocating/migrating any resources.
+    encodeName(changes.name,10);
+    const migration=expandTeamPatches(rom,rom),candidate=expandedRomBuffer(rom);for(const p of migration)candidate.set(p.bytes,p.offset);
+    return [...new Map([...migration,...playerPatches(candidate,team,index,changes,swapNumber)].map(p=>[p.id,p])).values()];
+  }
   const offsets=playerOffsets(rom,team,index), patches=[];
-  if(changes.name!==undefined) patches.push({id:`name:${offsets.name}`,label:`Nombre · equipo ${team+1}, jugador ${index+1}`,offset:offsets.name,bytes:encodeName(changes.name,externalDeluxeLayout(rom)?.nameLength||8)});
+  if(changes.name!==undefined) patches.push({id:`name:${offsets.name}`,label:`Nombre · equipo ${team+1}, jugador ${index+1}`,offset:offsets.name,bytes:encodeName(changes.name,externalDeluxeLayout(rom)?.nameLength||(hasExpandedTeams(rom)?10:8))});
   const keys=['acceleration','speed','shotPower','curl','balance','intelligence','dribbling','jump','position','energy'];
   const bytes=rom.slice(offsets.attributes,offsets.attributes+7), current=deluxeAttributes(bytes);
   for(const [key,value] of Object.entries(changes)) {

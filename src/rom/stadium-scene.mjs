@@ -1,3 +1,4 @@
+import {stadiumAssetAddress} from './wc26-stadiums.mjs';
 import {decompress,loRom,word,tiles,palette} from './binary.mjs';
 import {STADIUM_LAYOUTS} from './stadium-layouts.mjs';
 import {stadiumPalettes} from './stadiums.mjs';
@@ -5,15 +6,15 @@ const cache=new WeakMap(),viewCache=new WeakMap();
 function nativeScene(rom,index){
  let scenes=cache.get(rom);if(!scenes){scenes=new Map();cache.set(rom,scenes);}if(scenes.has(index))return scenes.get(index);
  const layout=STADIUM_LAYOUTS[index],vram=new Uint8Array(32768),sources=Array(1024).fill(null),memory=new Uint8Array(65536);
- for(const [destination,address] of [...layout.uploads,...([4,5].includes(index)?[[0x3ec0,index===4?0x9fba9a:0x9fbb6f]]:[])]){const bytes=decompress(rom,loRom(address));vram.set(bytes,(destination-0x2000)*2);for(let t=0;t<bytes.length/32;t++)sources[(destination-0x2000)/16+t]={address,tile:t};}
- for(const [destination,address] of layout.maps){const bytes=decompress(rom,loRom(address)),stride=destination<0xd000?2:1;bytes.forEach((v,i)=>memory[destination+i*stride]=v);}
+ for(const [destination,address] of [...layout.uploads,...([4,5].includes(index)?[[0x3ec0,index===4?0x9fba9a:0x9fbb6f]]:[])]){const bytes=decompress(rom,loRom(stadiumAssetAddress(rom,address)));vram.set(bytes,(destination-0x2000)*2);for(let t=0;t<bytes.length/32;t++)sources[(destination-0x2000)/16+t]={address,tile:t};}
+ for(const [destination,address] of layout.maps){const bytes=decompress(rom,loRom(stadiumAssetAddress(rom,address))),stride=destination<0xd000?2:1;bytes.forEach((v,i)=>memory[destination+i*stride]=v);}
  // CODE_80B49C expands definitions encoded as mirrored references.
  for(const base of [0x8000,0xa000])for(let i=0;i<256;i++){
   const entry=word(memory,base+i*32);if(entry<0xff00)continue;
   const source=memory.slice(base+(entry&255)*32,base+(entry&255)*32+32);
   for(let y=0;y<4;y++)for(let x=0;x<4;x++){const e=word(source,(y*4+3-x)*2)^0x4000;memory.set([e&255,e>>8],base+i*32+(y*4+x)*2);}
  }
- const stride=word(rom,loRom(0x81ee71)+index*2),width=stride/8*32,height=Math.ceil(decompress(rom,loRom(layout.maps[0][1])).length/stride)*256;
+ const stride=word(rom,loRom(0x81ee71)+index*2),width=stride/8*32,height=Math.ceil(decompress(rom,loRom(stadiumAssetAddress(rom,layout.maps[0][1]))).length/stride)*256;
  const strip=tiles(vram,4,1),colors=Array(128).fill('#649733'),palettes=stadiumPalettes(rom,index);
  for(const [label,start] of [['Despejado · campo y gradas',32],['Gradas y carteles',80],['Camarógrafos',16]]){const p=palettes.find(p=>p.label===label);if(p)colors.splice(start,p.colors.length,...p.colors);}
  const entry=(x,y,layer)=>{const mapIndex=(y>>8)*stride+(x>>8)*64+((y&255)>>5)*8+((x&255)>>5),definition=memory[(layer?0xe000:0xd000)+mapIndex];return word(memory,(layer?0xa000:0x8000)+definition*32+(((y&31)>>3)*4+((x&31)>>3))*2);};
@@ -28,7 +29,8 @@ function selectorScene(rom,resource){
 }
 export function stadiumViews(rom,index,resource){
  let views=viewCache.get(rom);if(!views){views=new Map();viewCache.set(rom,views);}const key=index+':'+resource.id;if(views.has(key))return views.get(key);
- let result=buildViews(rom,index,resource);if(!result.length&&resource.shared)for(let other=0;other<8;other++){if(other===index)continue;result=buildViews(rom,other,resource).map(view=>({...view,reference:true}));if(result.length)break;}views.set(key,result);return result;
+ const visible=views=>views.filter(v=>v.editable.some(row=>row.some(Boolean)));
+ let result=visible(buildViews(rom,index,resource));if(!result.length&&resource.shared)for(let other=0;other<8;other++){if(other===index)continue;result=visible(buildViews(rom,other,resource)).map(view=>({...view,reference:true}));if(result.length)break;}views.set(key,result);return result;
 }
 function buildViews(rom,index,resource){
  const scene=[0xa185ba,0xa18a0a].includes(resource.address)?selectorScene(rom,resource):nativeScene(rom,index);

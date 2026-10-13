@@ -1,3 +1,4 @@
+import {hasExpandedTeams,EXPANDED_ROM_SIZE,EXPANDED_TABLES,EXPANDED_TEAMS} from './expanded-layout.mjs';
 import { externalDeluxeLayout } from './external-layout.mjs';
 export function word(rom, offset) {
   if (!Number.isInteger(offset) || offset < 0 || offset + 2 > rom.length) throw new Error('Dirección fuera de la ROM.');
@@ -17,7 +18,18 @@ const ISSD_ENGINE_ANCHORS = [
   [0x30000, [0xa2,0x00,0x00,0xa0,0x00,0x00,0x48,0xda,0xa9,0x92,0x80,0xa2,0x86,0x00,0x22,0xa3]],
 ];
 function compatibleDeluxeHack(rom) {
-  if (rom.length !== 0x200000 || ISSD_ENGINE_ANCHORS.filter(([offset, bytes]) => bytes.every((b,i) => rom[offset+i] === b)).length < 2) return false;
+  const expanded=hasExpandedTeams(rom)&&rom.length===EXPANDED_ROM_SIZE&&rom[0x7fd7]===12;
+  if ((rom.length !== 0x200000&&!expanded) || ISSD_ENGINE_ANCHORS.filter(([offset, bytes]) => bytes.every((b,i) => rom[offset+i] === b)).length < 2) return false;
+  if(expanded){
+    try{
+      const count=rom[0x187e05];if(count<42||count>EXPANDED_TEAMS)return false;
+      for(let t=0;t<count;t++){
+        if(rom[0x187e08+(t>>>3)]&(1<<(t&7)))continue;
+        for(const [table,bank,parts,size] of [[0xe730,0xc5,2,96],[0xe6c1,0xc6,1,64]])for(let p=0;p<parts;p++)if(decompress(rom,loRom(bank<<16|word(rom,loRom(EXPANDED_TABLES[table])+t*parts*2+p*2))).length!==size)return false;
+      }
+      return true;
+    }catch{return false;}
+  }
   if(externalDeluxeLayout(rom,true))return true;
   try {
     const fits = (bank, pointer, size) => {
@@ -54,7 +66,8 @@ export function openRom(input) {
   } else if (title === 'Super Star Soccer') {
     game = 'iss'; label = 'International Superstar Soccer (USA)'; size = 0x100000;
   }
-  const standard = game && rom.length === size && rom[0x7fd9] === 1 && (rom[0x7fd5] & 0x0f) === 0;
+  const expanded=game==='issd'&&hasExpandedTeams(rom)&&rom.length===EXPANDED_ROM_SIZE&&rom[0x7fd7]===12;
+  const standard = game && (rom.length === size||expanded) && rom[0x7fd9] === 1 && (rom[0x7fd5] & 0x0f) === 0;
   if (!standard && compatibleDeluxeHack(rom)) {
     game = 'issd'; label = 'ISS Deluxe · hack compatible'; isHack = true;
   } else if (!standard) {

@@ -48,7 +48,7 @@ global.crypto ||= require('crypto').webcrypto;
  extra.deleteTeam(44);r=extra.bytes();assert.equal(teamCount(r),47);assert.equal(activeTeamIds(r).length,47);
  for(let t=44;t<47;t++){const actual=readDeluxeTeam(r,t);assert.deepEqual(actual.players,squads[t-41].players);assert.deepEqual(actual.flag,squads[t-41].flag);assert.deepEqual(actual.colors,squads[t-41].colors);assert.deepEqual(bigLabel(r,t).matrix,labels[t-41]);}
  assert.equal(teamNameTexts(original,r,46).large,'CUBA');assert.ok(r.slice(loRom(0x87fac8)+5*160,loRom(0x87fac8)+6*160).every(b=>b===255));
- const compacted=extra.exportRom(),loaded=await RomProject.create(compacted);assert.equal(teamCount(loaded.bytes()),47);loaded.addTeam('CHINA');assert.equal(teamCount(loaded.bytes()),48);assert.equal(teamNameTexts(loaded.original,loaded.bytes(),47).large,'CHINA');assert.throws(()=>loaded.addTeam('OTRO'),/48/);
+ const compacted=extra.exportRom(),loaded=await RomProject.create(compacted);assert.equal(teamCount(loaded.bytes()),47);loaded.addTeam('CHINA');assert.equal(teamCount(loaded.bytes()),48);assert.equal(teamNameTexts(loaded.original,loaded.bytes(),47).large,'CHINA');loaded.addTeam('OTRO');assert.equal(teamCount(loaded.bytes()),49);loaded.undo();assert.equal(teamCount(loaded.bytes()),48);
  for(let t=teamCount(extra.bytes())-1;t>=42;t--)extra.deleteTeam(t);assert.equal(teamCount(extra.bytes()),42);const emptyExtras=await RomProject.create(extra.exportRom());emptyExtras.addTeam('CHILE');assert.equal(teamCount(emptyExtras.bytes()),43);
  // At least one squad survives; native slots can all be cleared if an added
  // team remains. Every scenario is redirected to that live added team.

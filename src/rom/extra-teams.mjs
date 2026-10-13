@@ -1,3 +1,5 @@
+import {hasExpandedTeams} from './expanded-layout.mjs';
+import {validateExpandedTeams} from './expanded-teams.mjs';
 import {loRom,word,decompress} from './binary.mjs';
 import {MAX_TEAMS,TEAM_METADATA,TEAM_TABLES,hasExtraTeams,hasPhysicalTeams,teamExists,activeTeamIds,IDENTITY_MAP,ATTRIBUTE_MAP,teamCount,teamTable,teamPointer,attributeOffset,EXTRA_BIG_LABEL_ADDRESS,EXTRA_BIG_LABEL_CAPACITY} from './team-count.mjs';
 import {TEAM_TABLE_READS} from './team-hooks.mjs';
@@ -99,6 +101,7 @@ function photoTablePatch(rom){
 // Upgrade drafts produced before the selector photograph tables were expanded.
 // Keep every squad/name/graphic edit; only add the missing immutable routines.
 export function upgradeExtraTeamSelector(original,patches){
+ if(hasExpandedTeams(original)||patches.some(p=>p.id==='teams:metadata'&&p.bytes[4]===3))return patches;
  if(!hasExtraTeams(original)&&patches.some(p=>p.id==='teams:metadata')&&!patches.some(p=>p.id==='teams:photo-tables')){
   if(!original.slice(PHOTO_POOL,PHOTO_POOL+PHOTO_SIZE).every(v=>v===255))throw new Error('El espacio para fotografías está ocupado.');
   const additions=[photoTablePatch(original),...extraTeamCodePatches(original).filter(p=>p.id.startsWith('teams:photo-read:')||['teams:small-oam:86c66d','teams:small-oam:86c6ab'].includes(p.id))];
@@ -178,6 +181,7 @@ export function addTeamPatches(original,current,name){
  return [...new Map(changes.map(p=>[p.id,p])).values()];
 }
 export function validateExtraTeams(rom,original){
+ if(hasExpandedTeams(rom)){validateExpandedTeams(rom);validateFlagStorage(rom,original);validateSmallLabelStorage(rom,original);return;}
  if(!hasExtraTeams(rom))return;
  if(hasPhysicalTeams(rom)){
   validatePhysicalTeams(rom,original);validateFlagStorage(rom,original);validateSmallLabelStorage(rom,original);return;

@@ -78,6 +78,9 @@
     (async()=>{
       if(data.action === 'press'){
         if(![0,1].includes(data.player)||![0,1,2,3,4,5,6,7,8,9,10,11].includes(data.index)||!Number.isInteger(data.duration)||data.duration<50||data.duration>1500)throw new Error('input');
+        // Clicking a host-panel button moves focus away from the game.
+        // Restore it before the pulse; restoring after release loses inputs.
+        focusGame();
         await pulse(manager,data.player,data.index,data.duration,token);
       }else if(data.action === 'restart')manager.restart();
       else if(data.action === 'save-screen'){

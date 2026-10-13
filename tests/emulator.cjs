@@ -109,7 +109,7 @@ console.log('PASS emulator languages: English and Portuguese runtime, start butt
   context.window.EJS_emulator={elements:runtimeElements,gameManager:{simulateInput:(...args)=>inputs.push(args),restart:()=>restarts++,getState:()=>Uint8Array.of(9,8,7),loadState:bytes=>restored.push(bytes)}};
   const command=(id,action,options={})=>listeners.message({origin,source:parent,data:{type:'issd:emulator-command',id,action,...options}});
   const flush=()=>new Promise(resolve=>setImmediate(resolve));
-  command(1,'press',{player:0,index:8,duration:150});await flush();assert.deepEqual(inputs,[[0,8,1],[0,8,0]]);
+  const focusBeforePulse=runtimeFocusCount;command(1,'press',{player:0,index:8,duration:150});await flush();assert.deepEqual(inputs,[[0,8,1],[0,8,0]]);assert.equal(runtimeFocusCount,focusBeforePulse+1,'Game focus must be restored before each controller pulse');
   command(2,'press',{player:2,index:8,duration:150});await flush();assert.equal(inputs.length,2);assert.equal(reports.at(-1).ok,false);
   listeners.message({origin:'https://untrusted.example',source:parent,data:{type:'issd:emulator-command',id:3,action:'restart'}});assert.equal(restarts,0);
   command(3,'save-screen',{slot:1});await flush();command(4,'load-screen',{slot:1});await flush();assert.deepEqual(restored,[Uint8Array.of(9,8,7)]);
