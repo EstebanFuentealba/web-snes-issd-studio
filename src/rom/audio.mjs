@@ -1,3 +1,4 @@
+import {audioStorage} from './audio-long.mjs';
 import { loRom } from './binary.mjs';
 import { AUDIO_SAMPLES } from './audio-catalog.mjs';
 export { AUDIO_SAMPLES };
@@ -32,7 +33,8 @@ export function decodeBrr(bytes, streamed = false) {
 }
 
 export function readAudioSample(rom, sample) {
-  const start = loRom(sample.start), end = loRom(sample.end);
+  const region=audioStorage(rom,sample);
+  const start = region.offset, end = region.extended?start+region.capacity:loRom(sample.end);
   if (end > rom.length || end <= start) throw new Error('Muestra fuera de la ROM.');
   let bytes = rom.slice(start, end);
   // Five catalog ranges include three zero padding bytes after the final block.

@@ -217,3 +217,86 @@ silencio; los límites y marcas de las muestras segmentadas se conservan.
 `tests/audio-stretch-runtime.cjs` verifica el PCM producido por Snes9x con
 reemplazos de portada; `ISSD_CAPTURE_AUDIO=1` habilita el volcado estéreo PCM16
 `.pcm` del ejecutor headless.
+
+
+### Grito de gol sin bucle
+
+`GOOOOOOOOOOOOAAAAAALLLLLL` admite recorte y reemplazo WAV como una muestra
+que se reproduce una sola vez. El codificador elimina las marcas LOOP y termina
+con END; conserva los 1755 bytes de la asignación y rellena con silencio. No se
+modifica el directorio SPC700: un final sin LOOP no utiliza su dirección de bucle.
+Los paquetes y proyectos pueden conservar las marcas del audio original; el
+resto de bancos con bucles o fragmentos mantiene sus protecciones.
+
+`tests/audio-goal-runtime.cjs`, incluido en `test:expanded-runtime`, verifica el
+PCM real de Snes9x, el tono, el final y la ausencia de repetición. Su ROM de prueba
+copia el BRR de gol exportado al segundo fragmento de portada, usando el
+disparador nativo y conservando el directorio SPC700 original. Esta
+regresión comprueba la terminación en el DSP; no cubre el disparador ni la
+secuencia de voces del evento de gol durante un partido.
+
+
+### Audio largo experimental
+
+El checkbox «Audio largo inseguro (experimental)» admite voces normales del
+anunciador cuyo guion SPC700 utiliza una nota de duración fija. No habilita
+bancos musicales, muestras por fragmentos ni guiones especiales. Si el WAV cabe
+en su asignación original, conserva el formato de 2 MB. Si la supera, el editor
+exporta 4 MB y reserva un banco independiente D0–EF por voz (hasta 32 voces).
+Los datos de las muestras siguientes y sus direcciones permanecen intactos.
+
+`src/rom/audio-long.mjs` conserva la identidad del catálogo y modifica los
+punteros del evento en `$829D9B`. El encabezado de transferencia de cada voz
+almacena `floor((bytesBRR + 2) / 3)`, como el cargador nativo `$80BFAE` espera.
+El directorio propio del editor está en FC:8000; sus registros indican banco y
+longitud BRR. Los bancos C0–C8 de equipos expandidos quedan independientes.
+
+Reubicar la muestra por sí solo no prolonga la reproducción: el guion de
+PastThePost2 (`SPC $208D`) tiene un gate de `$42` ticks (~1,05 segundos). El
+editor descomprime el controlador nativo BD:8000, conserva todas sus
+instrucciones y parámetros salvo la duración de las voces ampliadas, establece
+sus gates en 255 ticks y guarda la copia recomprimida en F0:8000. Actualiza el
+puntero de carga en `$829E82`. La validación compara el controlador completo
+contra esa transformación; rechaza cambios de instrucciones, punteros o
+longitudes inconsistentes.
+
+La capacidad experimental es de 21375 bytes BRR / 38000 muestras (~3,742 s al
+pitch de inspección 1300), con margen frente al gate. El pitch real depende del
+evento, y otras voces pueden interrumpir o retrasar el audio. No es duración
+ilimitada. Los paquetes de audio v2 incluyen las muestras reubicadas; v1 sigue
+siendo compatible. Guardar, recuperar, normalizar, deshacer y restaurar mantienen
+la relación entre muestra, banco, gate y puntero.
+
+`tests/audio-long.cjs` comprueba aislamiento de las otras 75 muestras,
+recuperación, exportación/importación de paquetes, validación, historial y
+composición con equipos expandidos. `tests/audio-long-runtime.cjs` usa el
+controlador nativo de Snes9x: detiene la música de menú mediante el FIFO `$EE`
+(que de lo contrario suprime al anunciador), solicita los eventos 62, 59 y 3 a
+través de `$1D2E`, mide el PCM y comprueba que LongBall2 y ThrowIn conservan su
+audio. No sustituye el controlador ni modifica RAM del SPC700. El disparador se
+solicita por la cola nativa; no se fuerza una jugada fuera del arco.
+
+Para verificar además un WAV local concreto con la suite obligatoria:
+
+```sh
+ISSD_LONG_AUDIO_WAV="/ruta/local/00089.wav" \
+SNES9X_CORE="/ruta/al/snes9x_libretro.dylib" npm run test:expanded-runtime
+```
+
+El fixture WAV es local y no se incluye en Git. Las ROMs de prueba, PCM y
+mediciones se guardan en el directorio temporal indicado por el test.
+
+### Pista de edición de audio
+
+`AudioTrim.vue` muestra una pista mono con marcadores fijos en 0 y en la
+capacidad del recurso al pitch seleccionado. Los bordes recortan el fragmento
+original; el cuerpo cambia su posición mediante silencio inicial. El tirador ↔
+superior derecho modifica la duración sin modificar el recorte ni el tono.
+Los tiradores amarillos ajustan la duración de fade horizontalmente y la curva
+verticalmente. También se pueden ajustar tiempos con los campos numéricos.
+
+`renderAudioEdit` conserva la fuente y aplica recorte, stretch, fades y silencio
+antes de la normalización/conversión BRR. `tests/audio-stretch-runtime.cjs`
+comprueba en el DSP real de Snes9x el silencio inicial y la atenuación de ambos
+fades sobre una señal de prueba recortada y estirada. Esta prueba usa el evento
+de portada; los límites de reproducción de cada evento del juego se mantienen.

@@ -17,21 +17,30 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  for(const [name,method] of Object.entries(options.methods))editor[name]=method.bind(editor);
  for(const [name,get] of Object.entries(options.computed))Object.defineProperty(editor,name,{get:get.bind(editor)});
  editor.initialize();assert.equal(range.stretch,1);editor.setStretch(.5);editor.full();assert.equal(range.end,1);assert.equal(editor.outputDuration,.5);
- editor.setStretch(2);assert.equal(range.end,1);assert.equal(editor.outputDuration,2);editor.fitStretch();assert.equal(editor.outputDuration,.8);editor.setStretch(2);editor.fit();assert.equal(range.end,.4);assert.equal(editor.outputDuration,.8);editor.setEnd(1);assert.equal(range.end,.4);editor.commit();assert.equal(range.stretch,2);
+ editor.setStretch(2);assert.equal(range.end,1);assert.equal(editor.outputDuration,2);editor.fitStretch();assert.equal(editor.outputDuration,.8);editor.setStretch(2);editor.fit();assert.equal(range.end,.4);assert.equal(editor.outputDuration,.8);editor.setEnd(1);editor.commit();assert.equal(range.end,1);assert.ok(editor.clipEnd>editor.maxDuration);editor.fit();assert.equal(range.end,.4);assert.equal(range.stretch,2);
  let captured;editor.$refs.track={getBoundingClientRect:()=>({width:200})};editor.beginStretch({clientX:200,pointerId:1,preventDefault(){},currentTarget:{setPointerCapture:id=>captured=id}});assert.equal(captured,1);editor.moveStretch({clientX:160});assert.ok(editor.stretch<2);assert.equal(range.stretch,2);editor.finishStretch();assert.equal(range.stretch,editor.stretch);editor.setStretch(2);
- // Both controls share output-time coordinates, including zoom and offset trims.
- editor.start=.1;editor.end=.4;editor.viewStart=.05;editor.viewSpan=.6;editor.stretch=.5;
- assert.equal(editor.percent(editor.start),editor.percent(.1));assert.ok(Math.abs(editor.percent(editor.end)-25)<1e-8);
- const originalRange={start:editor.start,end:editor.end};editor.beginStretch({clientX:100,pointerId:2,preventDefault(){},currentTarget:{setPointerCapture(){}}});editor.moveStretch({clientX:150});editor.finishStretch();assert.ok(Math.abs(editor.stretch-1)<1e-8);assert.equal(editor.start,originalRange.start);assert.equal(editor.end,originalRange.end);
- // Contracting expands the blue selection without moving its start.
- editor.source={samples:new Int16Array(48000),sampleRate:16000};editor.maxDuration=.8;editor.initialize();assert.equal(editor.end,.8);
- editor.setStretch(.5);assert.equal(editor.end,1.6);assert.equal(editor.outputDuration,.8);
- editor.setStretch(.25);assert.equal(editor.end,3);assert.equal(editor.outputDuration,.75);
- editor.initialize();editor.start=.2;editor.end=1;editor.fitStretch();assert.ok(Math.abs(editor.end-3)<1e-8);assert.ok(editor.outputDuration<=.8);assert.equal(editor.start,.2);
- editor.initialize();editor.beginStretch({clientX:100,pointerId:3,preventDefault(){},currentTarget:{setPointerCapture(){}}});editor.moveStretch({clientX:80});const midFactor=editor.stretch;editor.moveStretch({clientX:70});assert.ok(editor.stretch<midFactor);assert.ok(editor.end>.8);editor.moveStretch({clientX:100});assert.equal(editor.stretch,1);assert.equal(editor.end,.8);editor.moveStretch({clientX:70});editor.finishStretch();assert.ok(editor.end*editor.stretch<=editor.viewStart+editor.viewSpan);assert.equal(range.end,editor.end);
- editor.start=.2;editor.end=2.2;editor.stretch=.25;assert.ok(Math.abs(editor.waveSourceTime(.4)-1.6)<1e-8);assert.equal(editor.waveSourceTime(.5),2);assert.equal(editor.waveSourceTime(.1),.4);
- for(const factor of [.1,.25,.5,1,2]){editor.stretch=factor;const steps=100;for(let i=0;i<steps;i++){const t=editor.start*factor+(editor.end-editor.start)*factor*i/steps;const mapped=editor.waveSourceTime(t);assert.ok(mapped>=editor.start-1e-9&&mapped<editor.end);}}
- assert.equal((source.match(/<canvas\s/g)||[]).length,1);assert.equal((source.match(/<svg/g)||[]).length,0);
+ // Clip movement changes placement, while trim uses source coordinates.
+ editor.initialize();editor.start=.1;editor.end=.4;editor.stretch=.5;editor.offset=.2;editor.viewStart=.05;editor.viewSpan=.6;
+ assert.ok(Math.abs(editor.percent(editor.start)-25)<1e-8);
+ assert.ok(Math.abs(editor.percent(editor.end)-50)<1e-8);
+ assert.equal(editor.waveSourceTime(.19),null);assert.equal(editor.waveSourceTime(.36),null);
+ assert.ok(Math.abs(editor.waveSourceTime(.25)-.2)<1e-8);
+ editor.shift(.1);assert.equal(editor.start,.1);assert.equal(editor.end,.4);assert.ok(Math.abs(range.offset-.3)<1e-8);
+ editor.setFade('in',.05);editor.setFade('out',.1);editor.commit();assert.equal(range.fadeIn,.05);assert.equal(range.fadeOut,.1);
+ editor.beginFade({clientX:100,clientY:50,pointerId:4,preventDefault(){},currentTarget:{setPointerCapture(){}}},'in');
+ editor.moveFade({clientX:110,clientY:80});editor.finishFade();assert.ok(editor.fadeIn>.05);assert.equal(editor.fadeInCurve,1.5);
+ const before=editor.clipEnd;editor.setStart(.15);editor.commit();assert.ok(Math.abs(editor.clipEnd-before)<1e-8);assert.ok(editor.offset>.3);
+ editor.setEnd(.2);editor.commit();assert.ok(range.fadeOut<=editor.outputDuration);
+ editor.setOffset(100);assert.ok(editor.clipEnd<=editor.maxDuration+1e-9);
+ assert.equal((source.match(/<canvas\s/g)||[]).length,1);assert.equal((source.match(/<svg/g)||[]).length,1);
+ const {renderAudioEdit}=await import('../src/rom/audio-edit.mjs');
+ const constant={samples:new Int16Array(16000).fill(10000),sampleRate:16000};
+ const faded=renderAudioEdit(constant,{start:.25,end:.75,stretch:1,offset:.1,fadeIn:.1,fadeOut:.1,fadeInCurve:2});
+ assert.equal(faded.samples.length,9600);assert.ok(faded.samples.slice(0,1601).every(v=>v===0));
+ assert.equal(faded.samples[2400],2500);assert.equal(faded.samples[5000],10000);assert.equal(faded.samples.at(-1),0);
+ assert.equal(constant.samples[0],10000);assert.throws(()=>renderAudioEdit(constant,{start:0,end:1,offset:-1}),/inválida/);
+ const trimmedEnd=editor.end,trimmedStart=editor.start;editor.setStretch(.25);assert.equal(editor.start,trimmedStart);assert.equal(editor.end,trimmedEnd);
+ editor.full();assert.equal(editor.start,0);assert.equal(editor.end,editor.duration);assert.equal(editor.offset,0);
  editor.setStretch(2);
  editor.setStretch(NaN);assert.equal(editor.stretch,2);editor.initialize();assert.equal(editor.stretch,1);
  console.log('PASS audio stretch: duration, unchanged pitch, silence/short clips, immutable input, limits and trim capacity controls');

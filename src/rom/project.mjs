@@ -1,3 +1,4 @@
+import {longAudioRules,hasLongAudio,validateLongAudio} from './audio-long.mjs';
 import {hasExpandedTeams,expandedRomBuffer,EXPANDED,EXPANDED_TEAMS} from './expanded-layout.mjs';
 import {expandedResources,expandTeamPatches,addExpandedTeamPatches,deleteExpandedTeamPatches,emptyExpandedTeamPatches,validateExpandedTeams,expandedLoaderUpgradePatches,upgradeExpandedTeamLoader} from './expanded-teams.mjs';
 import {wc26StudioGraphics} from './wc26-graphics.mjs';
@@ -25,11 +26,12 @@ import { deluxeAttributes, deluxeText, readDeluxeTeam } from './deluxe.mjs';
 import { GROUP_RULES,validateGroupStorage,graphicResources, FLAG_RULES, validateFlagStorage, flagBank, LABEL_RULES, labelBank, validateSmallLabelStorage, flagPatches, flagMatrix, smallLabelPatches, smallLabelMatrix } from './graphics.mjs';
 import { AUDIO_SAMPLES, decodeBrr } from './audio.mjs';
 import { readFormation, readFormationPreset, FORMATION_LABELS, validateFormation } from './formations.mjs';
-import { audioRegion } from './audio-edit.mjs';
+import { audioRegion, hasOneShotMarkers, hasGoalLoopMarkers } from './audio-edit.mjs';
 import {BIG_LABEL_ADDRESS,BIG_LABEL_ID,validateLabelLayout,bigTeamNamePatches,smallTeamNamePatches,teamNameTexts,CZECH_FONT_ADDRESS,validateCzechFont} from './team-labels.mjs';
 const internals=new WeakMap();
 const copyPatch=p=>({...p,bytes:Uint8Array.from(p.bytes)});
 const blankDetailPatch=()=>({id:`detail:${SHARED_BLANK_DETAIL}`,offset:SHARED_BLANK_DETAIL,bytes:new Uint8Array(32),label:'Restaurar tile transparente compartido'});
+const needsAudioSpace=(patches,rom)=>hasLongAudio(rom)||Array.from(patches).some(p=>p.id?.startsWith('audio-long:'));
 const equal=(a,b)=>a.length===b.length && a.every((byte,i)=>byte===b[i]);
 const base64=bytes=> {let text='';for(let i=0;i<bytes.length;i+=8192) text+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(text);};
 const unbase64=text=>Uint8Array.from(atob(text),c=>c.charCodeAt(0));
@@ -41,6 +43,7 @@ function allowedResources(rom) {
   rom=teamDataRom(rom);
   const registry=new Map();
   const add=(id,offset,size,type,extra={})=>registry.set(id,{offset,size,type,...extra});
+  for(const [id,offset,size,type] of longAudioRules())add(id,offset,size,type);
   const external=externalDeluxeLayout(rom);
   if(external){
     for(let team=0;team<external.teams;team++){
@@ -57,7 +60,7 @@ function allowedResources(rom) {
     }
     for(const resource of wc26StudioGraphics(rom,0).filter(r=>!r.externalKind))for(const part of resource.parts||[resource])add(part.id,part.offset,part.capacity,part.compressed?'compressed':'raw',{decodedSize:part.decodedSize});
     for(let team=0;team<external.teams;team++){const offset=loRom(0x980000|word(rom,external.detailTable+team*2));add(`detail:${offset}`,offset,32,'raw',{decodedSize:32});}
-    for(const sample of AUDIO_SAMPLES){const region=audioRegion(rom,sample);decodeBrr(region.bytes,['VictoryMusic','UnknownShout','UnknownIntroSample','TitleScreenNameDrop'].includes(sample.name));add(`audio:${region.offset}`,region.offset,region.capacity,region.reason?'bank-audio':region.segmented?'segmented-audio':'audio');}
+    for(const sample of AUDIO_SAMPLES){const region=audioRegion(rom,sample);decodeBrr(region.bytes,['VictoryMusic','UnknownShout','UnknownIntroSample','TitleScreenNameDrop'].includes(sample.name));add(`audio:${region.nativeOffset}`,region.nativeOffset,Math.floor((loRom(sample.end)-region.nativeOffset)/9)*9,region.reason?'bank-audio':region.segmented?'segmented-audio':region.oneShot?'one-shot-audio':'audio');}
     for(const [id,offset,size] of [...SCENARIO_RULES,...SCENARIO_TEXT_RULES,...SCENARIO_SUMMARY_RULES,...SCENARIO_DIFFICULTY_RULES])add(id,offset,size,id.startsWith('scenario-text:')?'scenario-text':id.startsWith('scenario-summary:')?'scenario-summary':id.startsWith('scenario-difficulty:')?'scenario-difficulty':'scenario');
     for(const [id,offset,size,type] of STADIUM_RULES.filter(([id])=>id.startsWith('stadium:yards:')||id.startsWith('stadium:field:')||id.startsWith('stadium:palette:')))add(id,offset,size,type);
     for(const r of stadiumGraphicRules(rom))add(r.id,r.offset,r.size,r.type,{decodedSize:r.decodedSize});
@@ -91,7 +94,7 @@ function allowedResources(rom) {
   for(const [address,size] of [[0x98c5d4,8192],[0x8cfb57,256],[0x8cfc59,256]]){const offset=loRom(address);add(`graphic:${offset}`,offset,size,'raw');}
   for(const sample of AUDIO_SAMPLES) {
     const region=audioRegion(rom,sample);
-    add(`audio:${region.offset}`,region.offset,region.capacity,region.reason?'bank-audio':region.segmented?'segmented-audio':'audio');
+    add(`audio:${region.nativeOffset}`,region.nativeOffset,Math.floor((loRom(sample.end)-region.nativeOffset)/9)*9,region.reason?'bank-audio':region.segmented?'segmented-audio':region.oneShot?'one-shot-audio':'audio');
   }
   for(const [id,offset,size] of SCENARIO_DIFFICULTY_RULES)add(id,offset,size,'scenario-difficulty');
   for(const [id,offset,size] of SCENARIO_RULES)add(id,offset,size,'scenario');
@@ -108,6 +111,7 @@ export class RomProject {
     if(session.game!=='issd') throw new Error('La edición binaria está disponible para ISS Deluxe USA.');
     const loaderFixes=expandedLoaderUpgradePatches(session.rom),validated=session.rom.slice();for(const p of loaderFixes)validated.set(p.bytes,p.offset);
     validateExtraTeams(validated,validated);
+    if(hasLongAudio(validated))validateLongAudio(validated,decodeBrr);
     internals.set(this,{original:session.rom,header:bytes.slice(0,session.headerSize),registry:allowedResources(session.rom),patches:new Map(loaderFixes.map(p=>[p.id,p])),undo:[],redo:[]});
     this.hash='';this.updatedAt=null;
   }
@@ -118,9 +122,10 @@ export class RomProject {
   get headerSize() {return internals.get(this).header.length;}
   validate(patches,context) {
     const {original,registry}=internals.get(this),used=[];
-    if(!context){context=internals.get(this).patches.has('teams56:size')||hasExpandedTeams(original)?expandedRomBuffer(original):original.slice();for(const p of internals.get(this).patches.values())context.set(p.bytes,p.offset);}
-    const candidate=patches.some(p=>p.id==='teams:metadata'&&p.bytes[4]===3)||hasExpandedTeams(context)?expandedRomBuffer(context):context.slice();
+    if(!context){context=needsAudioSpace(internals.get(this).patches.values(),original)||internals.get(this).patches.has('teams56:size')||hasExpandedTeams(original)?expandedRomBuffer(original):original.slice();for(const p of internals.get(this).patches.values())context.set(p.bytes,p.offset);}
+    const candidate=needsAudioSpace(patches,context)||patches.some(p=>p.id==='teams:metadata'&&p.bytes[4]===3)||hasExpandedTeams(context)?expandedRomBuffer(context):context.slice();
     for(const p of patches){const r=registry.get(p.id);if(!r||p.offset!==r.offset||!(p.bytes instanceof Uint8Array)||p.bytes.length!==r.size||p.offset<0||p.offset+p.bytes.length>candidate.length)throw new Error(`Recurso o tamaño no permitido: ${p.id}.`);candidate.set(p.bytes,p.offset);}
+    if(hasLongAudio(candidate)||patches.some(p=>p.id.startsWith('audio-long:')))validateLongAudio(candidate,decodeBrr);
     if(patches.some(p=>p.id.startsWith('dog-referee:')))validateDogReferee(candidate);
     if(patches.some(p=>p.id.startsWith('menu-text:')))validateMenuTexts(candidate,original);
     candidate.set(teamDataRom(candidate));
@@ -168,6 +173,13 @@ export class RomProject {
         for(let i=0;i<patch.bytes.length;i+=9)if((patch.bytes[i]&3)!==(original[patch.offset+i]&3))throw new Error('Marcas BRR de los fragmentos alteradas.');
         decodeBrr(patch.bytes,true);
       }
+      if(rule.type==='one-shot-audio') {
+        // Audio packs and recovered projects may retain the original loop.
+        // New one-shot data must have no loops or intermediate ends.
+        const originalMarkers=Array.from({length:patch.bytes.length/9},(_,i)=>i*9).every(i=>(patch.bytes[i]&3)===(original[patch.offset+i]&3));
+        decodeBrr(patch.bytes);
+        if(!originalMarkers && !hasGoalLoopMarkers(patch.bytes) && !hasOneShotMarkers(patch.bytes))throw new Error('Final BRR sin bucle inválido.');
+      }
       if(rule.type==='audio') {decodeBrr(patch.bytes);if(Array.from({length:patch.bytes.length/9},(_,i)=>patch.bytes[i*9]).some((h,i)=>(h&2)||(i<patch.bytes.length/9-1 && (h&1))) || !(patch.bytes.at(-9)&1)) throw new Error('Final BRR inválido.');}
     }
   }
@@ -179,6 +191,7 @@ export class RomProject {
       // migrated values already include every current squad and graphic edit.
       for(const [id,p] of next)if(changes.some(c=>c.id!==id&&c.offset<p.offset+p.bytes.length&&p.offset<c.offset+c.bytes.length))next.delete(id);
     }
+    if(changes.some(p=>p.id==='teams56:size'))next.delete('audio-long:size');
     if(changes.some(p=>p.id==='stadium:label-hook'))next.delete('teams:read:a4a046');
     if(changes.some(p=>p.id==='teams:metadata')&&!hasExtraTeams(s.original)){for(const id of ['labels:pool','labels:pointers','labels:select-loader','flags:pool','flags:pointers','flags:select-map'])next.delete(id);}
     for(const change of changes) {
@@ -188,7 +201,7 @@ export class RomProject {
       if(equal(p.bytes,paddedOriginal.slice(p.offset,p.offset+p.bytes.length))) next.delete(p.id);else next.set(p.id,p);
     }
     this.validate([...next.values()],s.original);
-    const candidate=next.has('teams56:size')||hasExpandedTeams(s.original)?expandedRomBuffer(s.original):s.original.slice();for(const patch of next.values())candidate.set(patch.bytes,patch.offset);
+    const candidate=needsAudioSpace(next.values(),s.original)||next.has('teams56:size')||hasExpandedTeams(s.original)?expandedRomBuffer(s.original):s.original.slice();for(const patch of next.values())candidate.set(patch.bytes,patch.offset);
     if(hasPhysicalTeams(candidate)&&!hasExpandedTeams(candidate))for(const p of physicalFallbackNamePatches(candidate)){
       candidate.set(p.bytes,p.offset);if(equal(p.bytes,s.original.slice(p.offset,p.offset+p.bytes.length)))next.delete(p.id);else next.set(p.id,p);
     }
@@ -284,7 +297,7 @@ export class RomProject {
   reset() {const s=internals.get(this);if(!s.patches.size)return;s.undo.push(s.patches);s.redo=[];s.patches=new Map(expandedLoaderUpgradePatches(s.original).map(p=>[p.id,p]));if(hasPhysicalTeams(s.original)&&s.original.slice(SHARED_BLANK_DETAIL,SHARED_BLANK_DETAIL+32).every(b=>b===255)){const repair=blankDetailPatch();s.patches.set(repair.id,repair);}this.updatedAt=new Date().toISOString();}
   undo() {const s=internals.get(this);if(!s.undo.length)return;s.redo.push(s.patches);s.patches=s.undo.pop();this.updatedAt=new Date().toISOString();}
   redo() {const s=internals.get(this);if(!s.redo.length)return;s.undo.push(s.patches);s.patches=s.redo.pop();this.updatedAt=new Date().toISOString();}
-  bytes() {const s=internals.get(this),bytes=this.patches.some(p=>p.id==='teams56:size')||hasExpandedTeams(s.original)?expandedRomBuffer(s.original):s.original.slice();this.validate(this.patches,s.original);for(const p of s.patches.values()) bytes.set(p.bytes,p.offset);return bytes;}
+  bytes() {const s=internals.get(this),bytes=needsAudioSpace(this.patches,s.original)||this.patches.some(p=>p.id==='teams56:size')||hasExpandedTeams(s.original)?expandedRomBuffer(s.original):s.original.slice();this.validate(this.patches,s.original);for(const p of s.patches.values()) bytes.set(p.bytes,p.offset);return bytes;}
   exportRom() {
     const s=internals.get(this),rom=this.bytes();
     if(hasPhysicalTeams(rom)&&rom.slice(SHARED_BLANK_DETAIL,SHARED_BLANK_DETAIL+32).some(Boolean))throw new Error('El tile transparente compartido debe conservarse vacío.');
@@ -337,7 +350,7 @@ export class RomProject {
     // final team owner was removed. Drop only that exact legacy erasure.
     const legacyPhysical=hasPhysicalTeams(project.original)||patches.some(p=>p.id==='teams:metadata'&&p.offset===TEAM_METADATA&&p.bytes.length===256&&p.bytes[4]===2);
     patches=patches.filter(p=>!(legacyPhysical&&p.id===`detail:${SHARED_BLANK_DETAIL}`&&p.offset===SHARED_BLANK_DETAIL&&p.bytes.length===32&&p.bytes.every(b=>b===255)));
-    const expanded=hasExpandedTeams(project.original)||patches.some(p=>p.id==='teams:metadata'&&p.bytes[4]===3);
+    const expanded=needsAudioSpace(patches,project.original)||hasExpandedTeams(project.original)||patches.some(p=>p.id==='teams:metadata'&&p.bytes[4]===3);
     const oldPool=patches.find(p=>p.id==='flags:pool');
     if(oldPool?.bytes.length===72*102){
       const oldRules=FLAG_RULES.slice(0,3).map(([id,offset,size],i)=>[id,offset,i===0?72*102:i===1?144:size]);
@@ -362,9 +375,10 @@ export class RomProject {
       project.validate(patches);const candidate=expanded?expandedRomBuffer(project.original):project.original;for(const p of patches)candidate.set(p.bytes,p.offset);
       if(legacyTitleLegal(candidate)){validateTitleLegal(candidate,project.original);const notice=titleLegalResources(candidate)[0];patches=[...patches.filter(p=>!p.id.startsWith('title-legal:')),...titleLegalPatches(project.original,candidate,notice.id,notice.matrix,notice.text,true)];}
     }
-    patches=upgradeGroupSelector(project.original,patches);
-    patches=upgradeExtraTeamSelector(project.original,patches);
-    patches=upgradeExpandedTeamLoader(project.original,patches);
+    const migrationOriginal=expanded?expandedRomBuffer(project.original):project.original;
+    patches=upgradeGroupSelector(migrationOriginal,patches);
+    patches=upgradeExtraTeamSelector(migrationOriginal,patches);
+    patches=upgradeExpandedTeamLoader(migrationOriginal,patches);
     project.transaction(patches);
     if(record.createdTeams){
       if(typeof record.createdTeams!=='object'||Array.isArray(record.createdTeams)||Object.keys(record.createdTeams).length>EXPANDED_TEAMS)throw new Error('Proyecto no compatible.');

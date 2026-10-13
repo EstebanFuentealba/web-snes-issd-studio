@@ -37,7 +37,15 @@ lib.retro_load_game.argtypes=[C.POINTER(Game)];lib.retro_load_game.restype=C.c_b
 assert lib.retro_load_game(C.byref(game))
 lib.retro_get_memory_data.argtypes=[C.c_uint];lib.retro_get_memory_data.restype=C.c_void_p
 lib.retro_get_memory_size.argtypes=[C.c_uint];lib.retro_get_memory_size.restype=C.c_size_t
-for frame in range(int(os.environ.get("ISSD_FRAMES","1000"))):lib.retro_run()
+# Deterministic native sound-event requests; these writes do not alter ROM code
+# or bypass the game's SPC700 loader/streaming protocol.
+writes=json.loads(os.environ.get("ISSD_WRAM_WRITES","[]"))
+for frame in range(int(os.environ.get("ISSD_FRAMES","1000"))):
+ for when,offset,values in writes:
+  if frame==when:
+   assert 0<=offset and offset+len(values)<=lib.retro_get_memory_size(2)
+   C.memmove(lib.retro_get_memory_data(2)+offset,bytes(values),len(values))
+ lib.retro_run()
 if capture_audio:open(sys.argv[3]+'.pcm','wb').write(audio_pcm)
 ram=C.string_at(lib.retro_get_memory_data(2),lib.retro_get_memory_size(2));open(sys.argv[3]+'.ram','wb').write(ram)
 vram=C.string_at(lib.retro_get_memory_data(3),lib.retro_get_memory_size(3));open(sys.argv[3]+'.vram','wb').write(vram)

@@ -45,6 +45,8 @@ global.crypto ||= require('node:crypto').webcrypto;
  const name=rom.slice(loRom(EXPANDED.names)+55*200,loRom(EXPANDED.names)+55*200+10);
  for(let i=0;i<10;i++)for(let row=0;row<2;row++)assert.equal(word(game.vram,(0x5b01+row*32+i)*2),0x2000|rom[loRom(0x878000)+name[i]*2+row],`Visible HUD name tile ${row}:${i}`);
  await require('./audio-stretch-runtime.cjs')(core);
+ await require('./audio-goal-runtime.cjs')(core);
+ await require('./audio-long-runtime.cjs')(core);
  await require('./hack-roms-runtime.cjs')(core);
  console.log(`PASS expanded runtime: stock main menu pixels/background/OAM, selector palettes, squad 55, all 56 flag/label caches, 691 name sprites and I. MILAN in handicap and a match with twenty 10-character names rendered into VRAM. Captures: ${directory}`);
 })().catch(e=>{console.error(e);process.exitCode=1;});

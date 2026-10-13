@@ -1,13 +1,25 @@
-import { loRom } from './binary.mjs';
+import {audioStorage,LONG_AUDIO,canExtendAudio,longAudioPatches} from './audio-long.mjs';
 import { AUDIO_SAMPLES, decodeBrr } from './audio.mjs';
 export const STREAMED=['TitleScreenNameDrop','VictoryMusic','UnknownShout','UnknownIntroSample'];
 export function audioRegion(rom,sample) {
-  const offset=loRom(sample.start),span=loRom(sample.end)-offset,capacity=Math.floor(span/9)*9;
+  const storage=audioStorage(rom,sample),{offset,capacity}=storage;
   const bytes=rom.slice(offset,offset+capacity);
   const headers=Array.from({length:capacity/9},(_,i)=>bytes[i*9]);
   const segmented=sample.name==='TitleScreenNameDrop';
-  const reason=segmented?'':STREAMED.includes(sample.name)?'Recurso transmitido por fragmentos: necesita conservar el protocolo SPC700.':headers.some(h=>h&2)?'Contiene loop BRR: falta verificar el punto de bucle del directorio SPC700.':headers.slice(0,-1).some(h=>h&1)?'Tiene finales intermedios: estructura de reproducción pendiente.':!(headers.at(-1)&1)?'Final BRR no verificado.':'';
-  return {offset,capacity,bytes,reason,segmented};
+  // This voice may be replaced as a one-shot: END without LOOP never
+  // follows the SPC directory's loop address. Other looped banks stay protected.
+  const oneShot=sample.name==='GOOOOOOOOOOOOAAAAAALLLLLL';
+  const reason=segmented?'':STREAMED.includes(sample.name)?'Recurso transmitido por fragmentos: necesita conservar el protocolo SPC700.':!oneShot&&headers.some(h=>h&2)?'Contiene loop BRR: falta verificar el punto de bucle del directorio SPC700.':headers.slice(0,-1).some(h=>h&1)?'Tiene finales intermedios: estructura de reproducción pendiente.':!(headers.at(-1)&1)?'Final BRR no verificado.':'';
+  return {...storage,offset,capacity,bytes,reason,segmented,oneShot,canExtend:canExtendAudio(sample)};
+}
+export function hasOneShotMarkers(bytes) {
+  return bytes.length>=9 && bytes.length%9===0 &&
+    Array.from({length:bytes.length/9},(_,i)=>bytes[i*9]&3).every((flags,i)=>flags===(i===bytes.length/9-1?1:0));
+}
+// Native goal allocation: 195 blocks, with LOOP flags from block 170.
+export function hasGoalLoopMarkers(bytes) {
+  return bytes.length===1755 && Array.from({length:195},(_,i)=>bytes[i*9]&3)
+    .every((flags,i)=>flags===(i===194?3:i>=170?2:0));
 }
 export function pitchRate(pitch) {
   if(!Number.isInteger(pitch)||pitch<1||pitch>0x3fff) throw new Error('El pitch DSP debe estar entre 1 y 16383.');
@@ -123,15 +135,19 @@ export function encodeBrr(samples,capacity) {
   }
   bytes[capacity-9]|=1;decodeBrr(bytes);return bytes;
 }
-export function replacementAudio(rom,sample,wav,pitch) {
+export function replacementAudio(rom,sample,wav,pitch,long=false) {
   const region=audioRegion(rom,sample);if(region.reason)throw new Error(region.reason);
+  const capacity=long&&region.canExtend?LONG_AUDIO.capacity:region.capacity;
   const rate=pitchRate(pitch),count=Math.floor(wav.samples.length*rate/wav.sampleRate);
-  if(count>region.capacity/9*16)throw new Error(`Duración máxima a este pitch: ${(region.capacity/9*16/rate).toFixed(3)} s. Elige un WAV más corto.`);
-  const samples=normalizeAudio(resample(wav.samples,wav.sampleRate,rate).subarray(0,region.capacity/9*16)),bytes=encodeBrr(samples,region.capacity);
+  if(count>capacity/9*16)throw new Error(`Duración máxima a este pitch: ${(capacity/9*16/rate).toFixed(3)} s. Elige un WAV más corto.`);
+  const samples=normalizeAudio(resample(wav.samples,wav.sampleRate,rate).subarray(0,capacity/9*16));
+  const useLong=region.extended||(long&&region.canExtend&&Math.ceil(samples.length/16)*9>region.capacity);
+  const size=useLong?Math.max(9,Math.ceil(samples.length/16)*9):region.capacity,bytes=encodeBrr(samples,size);
   // CODE_80C115 loads this fixed-size BRR bank at SPC $A66B. Its
   // directory uses blocks 0/200/897/2000, with a loop at block 103.
   // Keep every original end/loop marker and address while replacing PCM.
   if(region.segmented)for(let i=0;i<bytes.length;i+=9)bytes[i]=(bytes[i]&0xfc)|(region.bytes[i]&3);
+  if(useLong){const patches=longAudioPatches(rom,sample,bytes);return {patch:patches.find(p=>p.id.startsWith('audio-long:slot:')),patches,brrLength:bytes.length,samples:decodeBrr(bytes),rate};}
   return {patch:{id:`audio:${region.offset}`,label:`Audio · ${sample.name}`,offset:region.offset,bytes},samples:decodeBrr(bytes,region.segmented),rate};
 }
 
@@ -161,12 +177,32 @@ export function trimAudio(wav,start,end){
 export function normalizedAudioPatches(rom,patches) {
   const modified=new Set(patches.filter(p=>p.id.startsWith('audio:')).map(p=>p.id)),changes=[];
   for(const sample of AUDIO_SAMPLES){
-    const region=audioRegion(rom,sample),id=`audio:${region.offset}`;
+    const region=audioRegion(rom,sample),id=`audio:${region.nativeOffset}`;
+    if(region.extended){
+      if(patches.some(p=>p.id===`audio-long:slot:${region.slot}`))changes.push(...longAudioPatches(rom,sample,encodeBrr(normalizeAudio(decodeBrr(region.bytes)),region.capacity)));
+      continue;
+    }
     if(!modified.has(id))continue;
     if(region.reason)continue;
     const bytes=encodeBrr(normalizeAudio(decodeBrr(region.bytes,region.segmented)),region.capacity);
     for(let i=0;i<bytes.length;i+=9)bytes[i]=(bytes[i]&0xfc)|(region.bytes[i]&3);
     changes.push({id,label:`Audio normalizado · ${sample.name}`,offset:region.offset,bytes});
   }
-  return changes;
+  return Array.from(new Map(changes.map(p=>[p.id,p])).values());
+}
+
+// Output coordinates are seconds after trim and stretch; offset is leading silence.
+export function renderAudioEdit(wav,range) {
+  const {offset=0,fadeIn=0,fadeOut=0,fadeInCurve=1,fadeOutCurve=1}=range;
+  if (![offset,fadeIn,fadeOut,fadeInCurve,fadeOutCurve].every(Number.isFinite)||offset<0||fadeIn<0||fadeOut<0||fadeInCurve<.2||fadeInCurve>5||fadeOutCurve<.2||fadeOutCurve>5) throw new Error('Envolvente de audio inválida.');
+  const clip=stretchAudio(trimAudio(wav,range.start,range.end),range.stretch??1),rate=clip.sampleRate;
+  const padding=Math.round(offset*rate),length=padding+clip.samples.length;
+  if(length>10000000)throw new Error('Audio demasiado grande.');
+  const samples=new Int16Array(length),last=clip.samples.length-1;
+  for(let i=0;i<clip.samples.length;i++) {
+    const gainIn=fadeIn?Math.min(1,i/(fadeIn*rate))**fadeInCurve:1;
+    const gainOut=fadeOut?Math.min(1,(last-i)/(fadeOut*rate))**fadeOutCurve:1;
+    samples[padding+i]=Math.round(clip.samples[i]*gainIn*gainOut);
+  }
+  return {samples,sampleRate:rate};
 }

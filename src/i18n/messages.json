@@ -5138,5 +5138,110 @@
     "es": "Comprimir permite incluir más audio original en el mismo espacio. El tono se conserva.",
     "en": "Compression fits more original audio into the same space. Pitch is preserved.",
     "pt": "Comprimir permite incluir mais áudio original no mesmo espaço. O tom é preservado."
+  },
+  "El reemplazo de este grito se reproduce una sola vez, sin el bucle original.": {
+    "es": "El reemplazo de este grito se reproduce una sola vez, sin el bucle original.",
+    "en": "The replacement shout plays once, without the original loop.",
+    "pt": "O grito substituído toca uma única vez, sem o loop original."
+  },
+  "Final BRR sin bucle inválido.": {
+    "es": "Final BRR sin bucle inválido.",
+    "en": "Invalid non-looping BRR end.",
+    "pt": "Final BRR sem loop inválido."
+  },
+  "Audio largo inseguro (experimental)": {
+    "es": "Audio largo inseguro (experimental)",
+    "en": "Unsafe long audio (experimental)",
+    "pt": "Áudio longo inseguro (experimental)"
+  },
+  "Amplía la ROM a 4 MB y reubica esta voz. Las siguientes muestras se conservan. El juego puede interrumpirla con otro evento.": {
+    "es": "Amplía la ROM a 4 MB y reubica esta voz. Las siguientes muestras se conservan. El juego puede interrumpirla con otro evento.",
+    "en": "Expands the ROM to 4 MB and relocates this voice. Subsequent samples are preserved. Another game event may interrupt it.",
+    "pt": "Expande a ROM para 4 MB e realoca esta voz. As amostras seguintes são preservadas. Outro evento do jogo pode interrompê-la."
+  },
+  "Directorio de audio largo inválido.": {
+    "es": "Directorio de audio largo inválido.",
+    "en": "Invalid long audio directory.",
+    "pt": "Diretório de áudio longo inválido."
+  },
+  "El espacio reservado para audio largo está ocupado.": {
+    "es": "El espacio reservado para audio largo está ocupado.",
+    "en": "The space reserved for long audio is occupied.",
+    "pt": "O espaço reservado para áudio longo está ocupado."
+  },
+  "Esta muestra no admite audio largo.": {
+    "es": "Esta muestra no admite audio largo.",
+    "en": "This sample does not support long audio.",
+    "pt": "Esta amostra não aceita áudio longo."
+  },
+  "El audio largo supera la capacidad de un banco LoROM.": {
+    "es": "El audio largo supera la capacidad de un banco LoROM.",
+    "en": "Long audio exceeds one LoROM bank.",
+    "pt": "O áudio longo excede um banco LoROM."
+  },
+  "No queda espacio libre para otro audio largo.": {
+    "es": "No queda espacio libre para otro audio largo.",
+    "en": "No space remains for another long audio sample.",
+    "pt": "Não há espaço livre para outro áudio longo."
+  },
+  "El cargador de voces de esta ROM no es compatible con audio largo.": {
+    "es": "El cargador de voces de esta ROM no es compatible con audio largo.",
+    "en": "This ROM voice loader is incompatible with long audio.",
+    "pt": "O carregador de vozes desta ROM não é compatível com áudio longo."
+  },
+  "Tamaño de ROM para audio largo inválido.": {
+    "es": "Tamaño de ROM para audio largo inválido.",
+    "en": "Invalid ROM size for long audio.",
+    "pt": "Tamanho da ROM para áudio longo inválido."
+  },
+  "Longitud de transferencia de audio inválida.": {
+    "es": "Longitud de transferencia de audio inválida.",
+    "en": "Invalid audio transfer length.",
+    "pt": "Comprimento da transferência de áudio inválido."
+  },
+  "El audio largo debe terminar sin bucle.": {
+    "es": "El audio largo debe terminar sin bucle.",
+    "en": "Long audio must end without a loop.",
+    "pt": "O áudio longo deve terminar sem loop."
+  },
+  "Puntero de audio largo inválido.": {
+    "es": "Puntero de audio largo inválido.",
+    "en": "Invalid long audio pointer.",
+    "pt": "Ponteiro de áudio longo inválido."
+  },
+  "El controlador SPC700 de esta ROM no admite audio largo.": {
+    "es": "El controlador SPC700 de esta ROM no admite audio largo.",
+    "en": "This ROM SPC700 driver does not support long audio.",
+    "pt": "O controlador SPC700 desta ROM não aceita áudio longo."
+  },
+  "El guion de esta voz no admite audio largo.": {
+    "es": "El guion de esta voz no admite audio largo.",
+    "en": "This voice script does not support long audio.",
+    "pt": "O roteiro desta voz não aceita áudio longo."
+  },
+  "Arrastra el clip para moverlo, sus bordes para recortar y los controles amarillos para crear fades. ↔ cambia la duración conservando el tono.": {
+    "es": "Arrastra el clip para moverlo, sus bordes para recortar y los controles amarillos para crear fades. ↔ cambia la duración conservando el tono.",
+    "en": "Drag the clip to move it, its edges to trim, and the yellow handles to create fades. ↔ changes duration while preserving pitch.",
+    "pt": "Arraste o clipe para mover, suas bordas para recortar e os controles amarelos para criar fades. ↔ muda a duração preservando o tom."
+  },
+  "Mover clip": {
+    "es": "Mover clip",
+    "en": "Move clip",
+    "pt": "Mover clipe"
+  },
+  "Posición (s)": {
+    "es": "Posición (s)",
+    "en": "Position (s)",
+    "pt": "Posição (s)"
+  },
+  "Inicio": {
+    "es": "Inicio",
+    "en": "Start",
+    "pt": "Início"
+  },
+  "Fin": {
+    "es": "Fin",
+    "en": "End",
+    "pt": "Fim"
   }
 }
