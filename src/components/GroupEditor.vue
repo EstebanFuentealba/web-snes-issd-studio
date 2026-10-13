@@ -44,12 +44,13 @@ export default {
   props:{rom:Uint8Array,columns:{type:Number,default:3},groups:Array,teams:Array,modified:Boolean,readOnly:Boolean},emits:['change','restore','columns-change'],
   data(){return {maxGroups:MAX_GROUPS,selectedGroup:null,selectedTeams:[],search:''};},
   computed:{
-    titles(){if(this.readOnly)return [];return selectionGroupGraphics(this.rom);},
+    titles(){if(this.readOnly)return [];try{return selectionGroupGraphics(this.rom);}catch{return [];}},
     artwork(){return Object.fromEntries([...new Set(this.groups.flatMap(g=>g.teams))].map(team=>{
       if(externalDeluxeLayout(this.rom)){const p=wc26TeamPresentation(this.rom,team);return [team,{flag:{matrix:p.flag,colors:p.colors},label:{matrix:p.teamMatrix,colors:p.teamColors}}];}
       const colors=new Array(16).fill('transparent');
       colors.splice(12,4,...palette(this.rom,teamPaletteOffset(this.rom,teamPointer(this.rom,0xe7d8,team))+2,4));
-      return [team,{flag:{matrix:flagMatrix(this.rom,team),colors},label:{matrix:smallLabelMatrix(this.rom,team),colors:['transparent','#ffffff','#b8b8b8','#555555']}}];
+      const preview=read=>{try{return read();}catch{return null;}};
+      return [team,{flag:{matrix:preview(()=>flagMatrix(this.rom,team)),colors},label:{matrix:preview(()=>smallLabelMatrix(this.rom,team)),colors:['transparent','#ffffff','#b8b8b8','#555555']}}];
     }));},
     assignedTeams(){const assigned={};this.groups.forEach((group,index)=>{if(index!==this.selectedGroup)for(const team of group.teams)(assigned[team] ||= []).push(group.name);});return assigned;},
     filteredTeams(){return this.teams.map((name,index)=>({name,index})).filter(t=>t.name!==null).filter(t=>this.$t(t.name).toLowerCase().includes(this.search.toLowerCase()));}},

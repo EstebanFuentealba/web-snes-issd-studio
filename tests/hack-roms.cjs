@@ -4,6 +4,7 @@ global.crypto ||= require('node:crypto').webcrypto;
  const {openRom}=await import('../src/rom/binary.mjs');
  const {RomProject}=await import('../src/rom/project.mjs');
  const {readDeluxeTeam}=await import('../src/rom/deluxe.mjs');
+ const {teamNameTexts}=await import('../src/rom/team-labels.mjs');
  const {playerPatches}=await import('../src/rom/players.mjs');
  const {graphicResources,graphicPatches}=await import('../src/rom/graphics.mjs');
  const {AUDIO_SAMPLES,readAudioSample}=await import('../src/rom/audio.mjs');
@@ -19,11 +20,16 @@ global.crypto ||= require('node:crypto').webcrypto;
  const renamed=base.slice();renamed.set(Buffer.from('CUSTOM ISSD HACK      '),0x7fc0);assert.equal(openRom(renamed).isHack,true);
  const oneRoutine=changed.slice();oneRoutine.fill(0,0,16);assert.equal(openRom(oneRoutine).isHack,true);
  const wrongEngine=changed.slice();wrongEngine.fill(0,0,16);wrongEngine.fill(0,0x20000,0x20010);assert.throws(()=>openRom(wrongEngine),/compatible/);
+ const bigger=new Uint8Array(0x280000).fill(255);bigger.set(changed);assert.equal(openRom(bigger).isHack,true);
+ assert.throws(()=>openRom(new Uint8Array(0x280000)),/compatible/);
  const brokenPointers=changed.slice();brokenPointers.fill(0,0xe6c1,0xe6c3);assert.throws(()=>openRom(brokenPointers),/compatible/);
  assert.throws(()=>openRom(changed.subarray(0,changed.length-1)),/compatible/);
- const sources=[['synthetic erased header',changed]];
- const downloads=path.join(require('node:os').homedir(),'Downloads');
- for(const name of ["Futebol Brasileiro '96 (Hack).sfc","Superstar Soccer 2 - Ronaldinho 97 (U) [p1][!].fig"]){const f=path.join(downloads,name);if(fs.existsSync(f))sources.push([name,new Uint8Array(fs.readFileSync(f))]);}
+ const legacyNumbers=changed.slice();legacyNumbers[0x50000+7+5]=legacyNumbers[0x50000+5];
+ const legacyProject=await RomProject.create(legacyNumbers);
+ assert.doesNotThrow(()=>legacyProject.transaction(playerPatches(legacyProject.bytes(),0,0,{name:'TEST'})));
+ assert.throws(()=>legacyProject.transaction(playerPatches(legacyProject.bytes(),0,2,{no:legacyNumbers[0x50000+5]+1},false)),/únicos/);
+ const sources=[['synthetic erased header',changed],['synthetic legacy numbers',legacyNumbers]];
+ for(const {name,file} of require('./local-hack-roms.cjs')())sources.push([name,new Uint8Array(fs.readFileSync(file))]);
  for(const [name,input] of sources){
   const session=openRom(input),project=await RomProject.create(input);
   assert.equal(session.game,'issd');assert.equal(session.isHack,true);
@@ -31,7 +37,7 @@ global.crypto ||= require('node:crypto').webcrypto;
   for(let t=0;t<42;t++)assert.equal(readDeluxeTeam(project.bytes(),t).players.length,20);
   for(const sample of AUDIO_SAMPLES)readAudioSample(project.bytes(),sample);
   const warnings=[],resources=graphicResources(project.bytes(),0,warnings),label=resources.find(r=>r.kind==='label');
-  if(name!=='synthetic erased header'){
+  if(/Brasileiro|Ronaldinho/.test(name)){
    assert.equal(session.headerSize,512);assert.equal(label.matrix.length,16);assert.ok(warnings.length);
    const capabilities=editorCompatibility(project.bytes());assert.equal(capabilities.largeNames.supported,false);assert.equal(capabilities.menus.supported,false);assert.equal(capabilities.scenarios.supported,false);
    // Native 16px labels can be drawn without changing loaders/pointers/pools.
@@ -39,6 +45,8 @@ global.crypto ||= require('node:crypto').webcrypto;
    const reopened=openRom(project.exportRom());assert.equal(graphicResources(reopened.rom,0).find(r=>r.kind==='label').matrix.length,16);
    project.undo();assert.deepEqual(project.exportRom(),input);
   }
+  // A malformed legacy flag/label disables only that graphic, never rosters.
+  for(let t=0;t<42;t++){assert.doesNotThrow(()=>teamNameTexts(project.original,project.bytes(),t));const warnings=[];const resources=graphicResources(project.bytes(),t,warnings),team=readDeluxeTeam(project.bytes(),t);for(const warning of team.graphicWarnings||[]){assert.ok(warnings.some(w=>w.resource===warning.resource));assert.ok(!resources.some(r=>r.kind===(warning.resource==='Bandera del equipo'?'flag':'label')));}}
   project.transaction(playerPatches(project.bytes(),0,0,{name:'TEST'}));
   const exported=project.exportRom();assert.equal(exported.length,input.length);
   assert.deepEqual(exported.subarray(0,session.headerSize),input.subarray(0,session.headerSize));

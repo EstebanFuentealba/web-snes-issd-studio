@@ -268,7 +268,8 @@ const SMALL_NAMES=['ITALY','HOLLAND','ENGLAND','NORWAY','SPAIN','IRELAND','PORTU
 const STAR_BIG_NAMES=['ALL STAR','EUROSTAR.A','EUROSTAR.B','ASIAN STAR','AFRICAN STAR','ALL AMERICAN STAR'];
 export function teamNameTexts(original,current,team){
   if(!teamExists(teamDataRom(current),team))return {small:'',large:''};
-  const source=teamDataRom(original),small=smallLabelMatrix(current,team),baseline=smallLabelMatrix(source,teamExists(source,team)?team:activeTeamIds(source)[0]);
+  const source=teamDataRom(original);let small,baseline;
+  try{small=smallLabelMatrix(current,team);baseline=smallLabelMatrix(source,teamExists(source,team)?team:activeTeamIds(source)[0]);}catch{return {small:'',large:''};}
   let a,b,frame;
   try{a=labelLayout(original,hasExpandedTeams(current)?56:hasExtraTeams(current));b=labelLayout(current);frame=labelFrame(a,team);}catch{return {small:small.length===8&&JSON.stringify(small)===JSON.stringify(baseline)?SMALL_NAMES[team]||'':'',large:''};}
   const sameFrame=Array.from({length:4},(_,p)=>p).every(p=>Array.from({length:frame.count},(_,i)=>a.data[a.base+frame.start+i+p*a.sprites]).every((v,i)=>v===b.data[b.base+frame.start+i+p*b.sprites]));

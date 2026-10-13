@@ -12,6 +12,8 @@ export function loRom(address) {
 
 // Independent engine routines survive common data/graphics/voice hacks. A title
 // or file extension alone is insufficient to identify an erased/changed header.
+// Accept bank-aligned 2–4 MiB hacks only when the native tables remain readable;
+// individual graphic dimensions are checked separately by the editor.
 const ISSD_ENGINE_ANCHORS = [
   [0, [0x18,0xfb,0x78,0xd8,0xc2,0x30,0xa2,0xaf,0x01,0x9a,0xc2,0x30,0x8b,0xa9,0x00,0x00]],
   [0x20000, [0x9c,0xe0,0x11,0xa9,0x90,0x1b,0x5b,0x22,0xa9,0xdc,0x80,0xa9,0x00,0x00,0x5b,0xa5]],
@@ -19,7 +21,7 @@ const ISSD_ENGINE_ANCHORS = [
 ];
 function compatibleDeluxeHack(rom) {
   const expanded=hasExpandedTeams(rom)&&rom.length===EXPANDED_ROM_SIZE&&rom[0x7fd7]===12;
-  if ((rom.length !== 0x200000&&!expanded) || ISSD_ENGINE_ANCHORS.filter(([offset, bytes]) => bytes.every((b,i) => rom[offset+i] === b)).length < 2) return false;
+  if ((rom.length < 0x200000 || rom.length > EXPANDED_ROM_SIZE || rom.length % 0x8000 !== 0) || ISSD_ENGINE_ANCHORS.filter(([offset, bytes]) => bytes.every((b,i) => rom[offset+i] === b)).length < 2) return false;
   if(expanded){
     try{
       const count=rom[0x187e05];if(count<42||count>EXPANDED_TEAMS)return false;
@@ -45,10 +47,11 @@ function compatibleDeluxeHack(rom) {
         if (pointer || table === 0x1027a || table === 0xe7d8) fits(0x89, pointer, 2);
       }
       const label = decompress(rom, fits(rom[0xe6ba], word(rom, 0xe6c1 + team*2), 2));
-      if (![64, 128].includes(label.length)) return false;
+      // Permit bounded legacy graphic variants; rendering checks exact dimensions.
+      if (label.length < 64 || label.length > 256) return false;
       for (let part = 0; part < 2; part++) {
         const flag = decompress(rom, fits(rom[loRom(0x82f7a4)+6], word(rom, 0xe730 + team*4 + part*2), 2));
-        if (flag.length !== 96) return false;
+        if (flag.length < 96 || flag.length > 192) return false;
       }
     }
     return true;

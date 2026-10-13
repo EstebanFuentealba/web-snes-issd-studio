@@ -26,10 +26,11 @@ export function graphicResources(rom, team, warnings = []) {
     const offset=loRom(address), capacity=word(rom,offset)&0x7fff, data=decompress(rom,offset);
     return {id:`graphic:${offset}`,label,offset,capacity,bpp,columns,compressed:true,interleaved:!!(word(rom,offset)&0x8000),matrix:tiles(data,bpp,columns),colors,decodedSize:data.length};
   };
+  const optional=(resource,read)=>{try{return read();}catch(error){warnings.push({resource,reason:error.message});return [];}};
   const flagColors=new Array(16).fill('transparent');
   flagColors.splice(12,4,...palette(rom,teamPaletteOffset(rom,teamPointer(rom,0xe7d8,team))+2,4));
-  const result=[{id:`flag:${team}`,label:'Bandera completa · independiente',kind:'flag',team,bpp:4,columns:3,capacity:204,colors:flagColors,matrix:flagMatrix(rom,team)}];
-  result.push({id:`team-label:${team}`,kind:'label',team,label:'Rótulo del equipo',bpp:2,columns:4,capacity:smallLabelMatrix(rom,team).length===8?69:word(rom,loRom(labelBank(rom)<<16|teamPointer(rom,0xe6c1,team)))&0x7fff,matrix:smallLabelMatrix(rom,team),colors:['transparent','#ffffff','#b8b8b8','#555555']});
+  const result=optional('Bandera del equipo',()=>[{id:`flag:${team}`,label:'Bandera completa · independiente',kind:'flag',team,bpp:4,columns:3,capacity:204,colors:flagColors,matrix:flagMatrix(rom,team)}]);
+  result.push(...optional('Rótulo del equipo',()=>[{id:`team-label:${team}`,kind:'label',team,label:'Rótulo del equipo',bpp:2,columns:4,capacity:smallLabelMatrix(rom,team).length===8?69:word(rom,loRom(labelBank(rom)<<16|teamPointer(rom,0xe6c1,team)))&0x7fff,matrix:smallLabelMatrix(rom,team),colors:['transparent','#ffffff','#b8b8b8','#555555']}]));
   const kit=palette(rom,teamPaletteOffset(rom,teamPointer(rom,0x1027a,team))+2,16);kit[0]='transparent';
   const raw=(label,start,end,columns,colors=kit)=> {
     const offset=loRom(start),capacity=loRom(end)-offset;
@@ -47,8 +48,7 @@ export function graphicResources(rom, team, warnings = []) {
   result.push(raw('Balón · atlas compartido',0x9a8000,0x9a8600,8));
   result.push(dogRefereeSheet(rom));
   for(let hair=1;hair<=13;hair++) result.push(raw(`Pelo ${hair} · atlas compartido`,0x97cd58+(hair-1)*0x300,0x97cd58+hair*0x300,24));
-  const optional=(resource,read)=>{try{return read();}catch(error){warnings.push({resource,reason:error.message});return [];}};
-  result.push(...bootScreenResources(rom),...selectionGroupGraphics(rom),...optional('Logo completo de portada',()=>[titleLogo(rom)]),...optional('Fondo rojo de portada',()=>[titleLogo(rom,true)]),...titlePortraits(rom),...titleLegalResources(rom),...mainMenuGraphics(rom),...optional('Títulos de modo y contraseña',()=>screenTextResources(rom)));
+  result.push(...optional('Pantallas iniciales',()=>bootScreenResources(rom)),...optional('Rótulos de grupos',()=>selectionGroupGraphics(rom)),...optional('Logo completo de portada',()=>[titleLogo(rom)]),...optional('Fondo rojo de portada',()=>[titleLogo(rom,true)]),...optional('Fotos de portada',()=>titlePortraits(rom)),...optional('Texto legal de portada',()=>titleLegalResources(rom)),...optional('Menú principal',()=>mainMenuGraphics(rom)),...optional('Títulos de modo y contraseña',()=>screenTextResources(rom)));
   return result;
 }
 

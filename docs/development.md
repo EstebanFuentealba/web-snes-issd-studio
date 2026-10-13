@@ -166,3 +166,28 @@ VRAM name tiles and handicap label uploads, rather than only the name pool.
 Compact names retain native white/gray strokes and add black outline pixels.
 Only exact rasters from the prior generator are upgraded automatically;
 native names and custom pixel artwork remain intact.
+
+### Reconocimiento de hacks con estructura nativa
+
+La detección de hacks no depende del nombre del archivo ni del título SNES.
+Acepta ROMs LoROM de 2 a 4 MiB, alineadas a bancos de 32 KiB, con o sin
+cabecera de copiador de 512 bytes. Exige dos de tres rutinas independientes del
+motor ISSD y valida los punteros de nombres, formaciones, paletas y bloques
+comprimidos de los 42 equipos. Los perfiles de expansión del Studio y WC26
+conservan sus validaciones específicas.
+
+Los bloques gráficos de hacks antiguos pueden tener tamaños diferentes.
+Reconocer la ROM no habilita automáticamente la edición de esos recursos:
+si un gráfico no se puede representar con las dimensiones conocidas, se omite
+del editor gráfico y se informa el motivo. Sus bytes se conservan al editar
+jugadores. Los dorsales repetidos de la ROM original tampoco impiden editarla;
+una transacción no puede reducir la cantidad de dorsales distintos de un equipo.
+
+`tests/local-hack-roms.cjs` localiza fixtures del usuario en Downloads sin
+incluirlas en Git. `tests/hack-roms.cjs` comprueba apertura, lectura de los 42
+equipos, cambios acotados, cabecera, recuperación y undo/redo.
+`npm run test:expanded-runtime` también ejecuta `tests/hack-roms-runtime.cjs`
+para los hacks disponibles: arranca un partido original y otro exportado,
+comprueba veinte nombres editados en RAM y los tiles de TEST en VRAM. Una ROM
+que reubique tablas o modifique las rutinas de identificación puede requerir
+un perfil adicional; no se acepta solamente por su extensión o título.

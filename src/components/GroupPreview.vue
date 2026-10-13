@@ -11,10 +11,11 @@
     <ul class="preview-teams" :style="{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }">
       <li v-for="team in teamIds" :key="team" class="preview-team">
         <div class="flag-wrap">
-          <RomImage :matrix="artwork[team].flag.matrix" :colors="artwork[team].flag.colors" :label="teams[team]" />
+          <RomImage v-if="artwork[team].flag.matrix" :matrix="artwork[team].flag.matrix" :colors="artwork[team].flag.colors" :label="teams[team]" />
           <button v-if="!readOnly" class="remove-team" :aria-label="$t('Quitar equipo') + ' ' + $t(teams[team])" @click="$emit('remove', team)">×</button>
         </div>
-        <RomImage class="team-label" :matrix="artwork[team].label.matrix" :colors="artwork[team].label.colors" :label="teams[team]" />
+        <RomImage v-if="artwork[team].label.matrix" class="team-label" :matrix="artwork[team].label.matrix" :colors="artwork[team].label.colors" :label="teams[team]" />
+        <span v-else>{{ $t(teams[team]) }}</span>
       </li>
     </ul>
   </div>

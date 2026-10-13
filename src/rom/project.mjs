@@ -216,7 +216,8 @@ export class RomProject {
     validateExtraTeams(candidate,s.original);
     for(let team of activeTeamIds(candidate)){
       const count=rom=>new Set(Array.from({length:20},(_,i)=>rom[attributeOffset(rom,team,i)+5])).size;
-      const minimum=externalDeluxeLayout(s.original)?count(s.original):20;
+      // Preserve duplicate shirt numbers already present in legacy hacks.
+      const minimum=teamExists(s.original,team)?count(s.original):20;
       if(count(candidate)<minimum)throw new Error('Los identificadores/dorsales de cada equipo deben ser únicos.');
     }
     if(JSON.stringify([...next])===JSON.stringify([...s.patches])) return false;

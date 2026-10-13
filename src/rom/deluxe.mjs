@@ -1,9 +1,9 @@
 import {hasExpandedTeams,EXPANDED,playerNameLength} from './expanded-layout.mjs';
 import {wc26TeamPresentation} from './wc26-data.mjs';
 import {externalDeluxeLayout} from './external-layout.mjs';
-import {teamCount,teamExists,hasPhysicalTeams,PHYSICAL_STAR_NAMES,hasExtraTeams,teamPointer,teamPaletteOffset,teamTable,attributeOffset as playerAttributeOffset} from './team-count.mjs';
-import { word, loRom, decompress, tiles, palette } from './binary.mjs';
-import { flagBank, labelBank } from './graphics.mjs';
+import {teamExists,hasPhysicalTeams,PHYSICAL_STAR_NAMES,teamPointer,teamPaletteOffset,attributeOffset as playerAttributeOffset} from './team-count.mjs';
+import { word, loRom, palette } from './binary.mjs';
+import { flagMatrix, smallLabelMatrix } from './graphics.mjs';
 import { deluxeAppearance } from './appearance.mjs';
 
 // Native team order verified by issd-native/ISSDNative/issd_mod_rom.c.
@@ -38,15 +38,15 @@ export function readDeluxeTeam(rom, index) {
   });
   // Original pointer tables in Routine_Macros_ISSD.asm: DATA_81E730,
   // DATA_81E7D8 and DATA_81E6C1. Palette record starts with a size word.
-  const flag = [0, 2].flatMap(part => {
-    const address = flagBank(rom)<<16 | word(rom,teamTable(rom,0xe730)+(hasExtraTeams(rom)||index<42?index:0)*4+part);
-    return tiles(decompress(rom, loRom(address)), 4, 3);
-  });
+  // An unfamiliar graphic must not prevent roster editing. The graphics panel
+  // reports the unsupported resource and leaves its original bytes untouched.
+  const graphicWarnings=[];
+  const preview=(resource,read,height,width)=>{try{return read();}catch(error){graphicWarnings.push({resource,reason:error.message});return Array.from({length:height},()=>new Array(width).fill(0));}};
+  const flag=preview('Bandera del equipo',()=>flagMatrix(rom,index),16,24);
   const colors = new Array(16).fill('transparent');
   colors.splice(12, 4, ...palette(rom, teamPaletteOffset(rom,teamPointer(rom,0xe7d8,index)) + 2, 4));
-  const nameAddress = labelBank(rom)<<16 | teamPointer(rom,0xe6c1,index);
-  const teamMatrix = tiles(decompress(rom, loRom(nameAddress)), 2, 4);
-  return { name: DELUXE_TEAMS[index]||`TEAM ${index+1}`, sharedPlayerNames:index>=36&&index<42&&!hasPhysicalTeams(rom), players, flag, colors, teamMatrix, teamColors: ['transparent', '#ffffff', '#b8b8b8', '#555555'] };
+  const teamMatrix = preview('Rótulo del equipo',()=>smallLabelMatrix(rom,index),8,32);
+  return { name: DELUXE_TEAMS[index]||`TEAM ${index+1}`, sharedPlayerNames:index>=36&&index<42&&!hasPhysicalTeams(rom), players, flag, colors, teamMatrix, graphicWarnings, teamColors: ['transparent', '#ffffff', '#b8b8b8', '#555555'] };
 }
 
 // CODE_A49C89 / DATA_A4F643: star teams assemble names from national squads.
