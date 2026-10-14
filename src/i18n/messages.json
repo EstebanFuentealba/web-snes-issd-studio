@@ -5243,5 +5243,60 @@
     "es": "Fin",
     "en": "End",
     "pt": "Fim"
+  },
+  "Rueda del mouse: arriba para acercar, abajo para alejar y ver el clip completo.": {
+    "es": "Rueda del mouse: arriba para acercar, abajo para alejar y ver el clip completo.",
+    "en": "Mouse wheel: scroll up to zoom in, down to zoom out and see the entire clip.",
+    "pt": "Roda do mouse: para cima aproxima, para baixo afasta e mostra o clipe completo."
+  },
+  "Acercar audio": {
+    "es": "Acercar audio",
+    "en": "Zoom in",
+    "pt": "Aproximar áudio"
+  },
+  "Alejar audio": {
+    "es": "Alejar audio",
+    "en": "Zoom out",
+    "pt": "Afastar áudio"
+  },
+  "Controles de audio": {
+    "es": "Controles de audio",
+    "en": "Audio controls",
+    "pt": "Controles de áudio"
+  },
+  "Tiempo de reproducción": {
+    "es": "Tiempo de reproducción",
+    "en": "Playback time",
+    "pt": "Tempo de reprodução"
+  },
+  "Reproducir audio": {
+    "es": "Reproducir audio",
+    "en": "Play audio",
+    "pt": "Reproduzir áudio"
+  },
+  "Pausar audio": {
+    "es": "Pausar audio",
+    "en": "Pause audio",
+    "pt": "Pausar áudio"
+  },
+  "Ir al inicio del audio": {
+    "es": "Ir al inicio del audio",
+    "en": "Go to audio start",
+    "pt": "Ir ao início do áudio"
+  },
+  "Retroceder un segundo": {
+    "es": "Retroceder un segundo",
+    "en": "Skip back one second",
+    "pt": "Retroceder um segundo"
+  },
+  "Avanzar un segundo": {
+    "es": "Avanzar un segundo",
+    "en": "Skip forward one second",
+    "pt": "Avançar um segundo"
+  },
+  "Ir al final del clip": {
+    "es": "Ir al final del clip",
+    "en": "Go to clip end",
+    "pt": "Ir ao final do clipe"
   }
 }

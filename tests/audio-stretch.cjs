@@ -32,7 +32,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  const before=editor.clipEnd;editor.setStart(.15);editor.commit();assert.ok(Math.abs(editor.clipEnd-before)<1e-8);assert.ok(editor.offset>.3);
  editor.setEnd(.2);editor.commit();assert.ok(range.fadeOut<=editor.outputDuration);
  editor.setOffset(100);assert.ok(editor.clipEnd<=editor.maxDuration+1e-9);
- assert.equal((source.match(/<canvas\s/g)||[]).length,1);assert.equal((source.match(/<svg/g)||[]).length,1);
+ assert.equal((source.match(/<canvas\s/g)||[]).length,1);assert.equal((source.match(/<svg/g)||[]).length,4);
  const {renderAudioEdit}=await import('../src/rom/audio-edit.mjs');
  const constant={samples:new Int16Array(16000).fill(10000),sampleRate:16000};
  const faded=renderAudioEdit(constant,{start:.25,end:.75,stretch:1,offset:.1,fadeIn:.1,fadeOut:.1,fadeInCurve:2});
@@ -43,5 +43,33 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  editor.full();assert.equal(editor.start,0);assert.equal(editor.end,editor.duration);assert.equal(editor.offset,0);
  editor.setStretch(2);
  editor.setStretch(NaN);assert.equal(editor.stretch,2);editor.initialize();assert.equal(editor.stretch,1);
+ // Wheel zoom is a view operation: preserve edits and the rendered PCM.
+ editor.full();editor.offset=.2;editor.stretch=2;editor.fadeIn=.05;editor.fadeOut=.1;editor.commit();
+ const edit={...range},pcmBefore=renderAudioEdit(wav,range).samples;
+ editor.$refs.track={getBoundingClientRect:()=>({left:100,width:400})};editor.overview();
+ const total=editor.timelineDuration;
+ editor.wheelZoom({clientX:300,deltaY:-200,deltaMode:0});assert.ok(editor.viewSpan<total);
+ assert.ok(Math.abs(editor.viewStart+editor.viewSpan/2-total/2)<1e-9,'Zoom must keep the time under the cursor fixed');
+ for(let i=0;i<10;i++)editor.wheelZoom({clientX:500,deltaY:200,deltaMode:0});
+ assert.equal(editor.viewSpan,editor.maximumViewSpan);assert.equal(editor.viewStart,0);assert.ok(editor.percentLength(editor.outputDuration)<4,'The complete clip must be reducible to a small rectangle');assert.ok(editor.percent(editor.end)<100,'Zoom out must reveal the end of an overflowing clip');
+ for(let i=0;i<100;i++)editor.wheelZoom({clientX:100,deltaY:-10,deltaMode:1});
+ assert.ok(editor.viewSpan>=editor.minimumViewSpan);assert.ok(editor.viewStart>=0);
+ editor.wheelZoom({clientX:100,deltaY:1,deltaMode:2});assert.ok(editor.viewSpan>editor.minimumViewSpan);
+ const view=editor.viewSpan;editor.drag={};editor.wheelZoom({clientX:300,deltaY:200});assert.equal(editor.viewSpan,view);editor.drag=null;
+ editor.wheelZoom({clientX:300,deltaY:NaN});assert.equal(editor.viewSpan,view);
+ assert.deepEqual(range,edit);assert.deepEqual(renderAudioEdit(wav,range).samples,pcmBefore);
+ // Magnifier buttons share the wheel's limits without modifying the audio.
+ editor.overview();editor.zoomView(.5);assert.equal(editor.viewSpan,total/2);assert.ok(Math.abs(editor.viewStart-total/4)<1e-9);
+ for(let i=0;i<20;i++)editor.zoomView(2);assert.equal(editor.viewSpan,editor.maximumViewSpan);assert.equal(editor.viewStart,0);
+ for(let i=0;i<40;i++)editor.zoomView(.5);assert.equal(editor.viewSpan,editor.minimumViewSpan);
+ assert.deepEqual(range,edit);assert.deepEqual(renderAudioEdit(wav,range).samples,pcmBefore);
+ // The zoom limit includes the uploaded source even when auto-trim selects
+ // only a short fragment that fits the ROM.
+ editor.source={samples:new Int16Array(120000),sampleRate:1000,name:'two minutes'};editor.maxDuration=.5;editor.initialize();
+ assert.equal(editor.end,.5);assert.ok(editor.timelineDuration>=120);assert.ok(editor.viewSpan<2);
+ for(let i=0;i<30;i++)editor.wheelZoom({clientX:300,deltaY:500,deltaMode:0});
+ assert.equal(editor.viewSpan,editor.maximumViewSpan);assert.ok(editor.viewSpan>120*30);assert.equal(editor.viewStart,0);
+ editor.full();assert.ok(editor.percent(editor.end)<100);editor.wheelZoom({clientX:300,deltaY:500,deltaMode:0});
+ assert.ok(editor.percentLength(editor.outputDuration)<40,'A long complete source can be made smaller than fit-to-track');
  console.log('PASS audio stretch: duration, unchanged pitch, silence/short clips, immutable input, limits and trim capacity controls');
 })().catch(e=>{console.error(e);process.exitCode=1;});

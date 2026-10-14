@@ -310,3 +310,12 @@ la validación del proyecto sigue verificando el directorio y controlador SPC700
 Las regresiones de audio incluyen exportar, recuperar y reabrir un proyecto con
 un solo equipo y un jugador editado, además de arrancarlo y reproducir su voz
 ampliada mediante Snes9x.
+
+La barra bajo la pista controla la previsualización BRR preparada: reproducir,
+pausar, detener, saltar al inicio/final del clip, avanzar/retroceder un segundo y
+repetir. El contador y cursor leen el elemento de audio nativo mediante eventos
+y requestAnimationFrame; editar invalida la previsualización y detiene el cursor.
+El clic en la regla busca un tiempo sin modificar el recorte. Los controles de
+zoom comparten los límites de la rueda y funcionan con teclado.
+`tests/audio-transport.cjs` verifica controles, límites de búsqueda y limpieza
+del frame de animación usando también los métodos reales de `StudioEditor`.
