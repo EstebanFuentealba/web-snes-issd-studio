@@ -300,3 +300,13 @@ antes de la normalización/conversión BRR. `tests/audio-stretch-runtime.cjs`
 comprueba en el DSP real de Snes9x el silencio inicial y la atenuación de ambos
 fades sobre una señal de prueba recortada y estirada. Esta prueba usa el evento
 de portada; los límites de reproducción de cada evento del juego se mantienen.
+
+
+Las ROMs con audio largo se reconocen como una expansión propia de 4 MiB,
+independiente de la expansión TEAM v3. Esto evita que una ROM nativa con equipos
+eliminados pase por la detección genérica de hacks, que espera 42 tablas de
+equipos completas. La firma, tamaño, región USA y mapeo LoROM permiten leerla;
+la validación del proyecto sigue verificando el directorio y controlador SPC700.
+Las regresiones de audio incluyen exportar, recuperar y reabrir un proyecto con
+un solo equipo y un jugador editado, además de arrancarlo y reproducir su voz
+ampliada mediante Snes9x.

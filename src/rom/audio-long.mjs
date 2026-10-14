@@ -1,14 +1,15 @@
+import {LONG_AUDIO_METADATA,LONG_AUDIO_MAGIC,hasLongAudio} from './audio-long-format.mjs';
+export {hasLongAudio} from './audio-long-format.mjs';
 import {compress} from './graphics.mjs';
 import {loRom,word,decompress} from './binary.mjs';
 import {AUDIO_SAMPLES} from './audio-catalog.mjs';
 // Independent 32 KiB LoROM banks after the expanded-team resources (C0-C8).
-export const LONG_AUDIO={pool:0x280000,slots:32,slotSize:0x8000,capacity:21375,driver:0x380000,driverSize:0x8000,driverPointer:0x11e82,metadata:0x3e0000,metadataSize:256,pointers:0x11d9b};
-const magic=[73,83,83,65,85,68,1,0];
+export const LONG_AUDIO={pool:0x280000,slots:32,slotSize:0x8000,capacity:21375,driver:0x380000,driverSize:0x8000,driverPointer:0x11e82,metadata:LONG_AUDIO_METADATA,metadataSize:256,pointers:0x11d9b};
+const magic=LONG_AUDIO_MAGIC;
 export const ANNOUNCER_NAMES=["CornerKick","GoalKick","ThrowIn","FreeKick1","PenaltyKick","OffSide","Replay","HalfTime","InjuryTime","GreatSave1","GoodBowl","LongBall1","GreatCross","GoodHeader1","GreatTackle1","OnTheVolley","AmazingKick","GoodTouch","YouLose","YouWin","MatchDraw","PlayerChange","GoodClearance","KeepAFumble","OverTheBar1","PastThePost1","ThrewBall","Interception","NiceDummy1","GreatPunch1","BlockedShot","NoFoul","ItsOneOnOne","OneTwo","DirtyPlayRef","DownTheWay","Semifinal","Final","Kickoff","Foul","YellowCard","RedCard","HesOff","HeShoots1","ItsABigKick1","IncredibleControl","Goal","GoGo","OhNo","OwnGoal","OverTheBar2","ItsABigKick2","Intersection","GoodCharge","FreeKick2","GreatSave2","GreatTackle2","GoodHeader2","LongBall2","GoodLob1","NiceDummy2","PastThePost2","GreatPunch2","HeShoots2","OhNo","Corner","TimeUp","GoodLob2","Yes","GOOOOOOOOOOOOAAAAAALLLLLL","Explosion","DogBark","DogBark","DogBark"];
 const ptr=(rom,o)=>rom[o]|rom[o+1]<<8|rom[o+2]<<16;
 const record=sample=>8+AUDIO_SAMPLES.findIndex(s=>s.name===sample.name)*3;
 const address=slot=>0xd08000+slot*0x10000;
-export const hasLongAudio=rom=>magic.every((b,i)=>rom?.[LONG_AUDIO.metadata+i]===b);
 export const canExtendAudio=sample=>ANNOUNCER_NAMES.includes(sample.name)&&!['Explosion','DogBark','GOOOOOOOOOOOOAAAAAALLLLLL'].includes(sample.name);
 export function audioStorage(rom,sample){
  const nativeOffset=loRom(sample.start),i=LONG_AUDIO.metadata+record(sample),slot=hasLongAudio(rom)?rom[i]:255;

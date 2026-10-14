@@ -21,5 +21,17 @@ global.crypto ||= require('node:crypto').webcrypto;
  project.transaction(restoreLongAudioPatches(project.original,project.bytes(),sample));assert.equal(audioRegion(project.bytes(),sample).extended,false);assert.ok(audioRegion(project.bytes(),neighbor).extended);
  project.addTeam('TEST');assert.ok(audioRegion(project.bytes(),neighbor).extended);assert.equal(project.bytes().length,0x400000);
  assert.ok(LONG_AUDIO.capacity%9===0);
+ // Native 2 MiB projects with deleted squads cannot pass the generic hack
+ // reader's 42-team table checks when audio alone expands them to 4 MiB.
+ const sparse=await RomProject.create(input);sparse.createEmptyRom();sparse.addTeam('KEEP');
+ const {playerPatches}=await import('../src/rom/players.mjs'),{readDeluxeTeam}=await import('../src/rom/deluxe.mjs'),{openRom}=await import('../src/rom/binary.mjs');
+ sparse.transaction(playerPatches(sparse.bytes(),0,0,{name:'KEEPTEST'}));
+ const sparseAudio=replacementAudio(sparse.bytes(),sample,wav,1300,true);sparse.transaction(sparseAudio.patches);
+ const sparseExport=sparse.exportRom();assert.equal(openRom(sparseExport).game,'issd');
+ const sparseRecovered=await RomProject.import(sparse.record());assert.deepEqual(sparseRecovered.exportRom(),sparseExport);
+ const sparseReopened=await RomProject.create(sparseExport);assert.equal(readDeluxeTeam(sparseReopened.bytes(),0).players[0].name,'KEEPTEST');
+ assert.deepEqual(audioRegion(sparseReopened.bytes(),sample).bytes,audioRegion(sparse.bytes(),sample).bytes);
+ const smc=new Uint8Array(sparseExport.length+512);smc.set(sparseExport,512);assert.equal(openRom(smc).headerSize,512);
+ const wrongRegion=sparseExport.slice();wrongRegion[0x7fd9]=2;assert.throws(()=>openRom(wrongRegion),/compatible/);
  console.log('PASS long audio: relocation, neighboring voices, capacity limits, malformed pointers, native/v2 packs, project recovery, reopening, undo/redo, normalization, restoration and expanded-team composition');
 })().catch(e=>{console.error(e);process.exitCode=1;});

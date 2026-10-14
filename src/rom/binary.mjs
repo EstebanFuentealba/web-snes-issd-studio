@@ -1,3 +1,4 @@
+import {hasLongAudio} from './audio-long-format.mjs';
 import {hasExpandedTeams,EXPANDED_ROM_SIZE,EXPANDED_TABLES,EXPANDED_TEAMS} from './expanded-layout.mjs';
 import { externalDeluxeLayout } from './external-layout.mjs';
 export function word(rom, offset) {
@@ -70,7 +71,10 @@ export function openRom(input) {
     game = 'iss'; label = 'International Superstar Soccer (USA)'; size = 0x100000;
   }
   const expanded=game==='issd'&&hasExpandedTeams(rom)&&rom.length===EXPANDED_ROM_SIZE&&rom[0x7fd7]===12;
-  const standard = game && (rom.length === size||expanded) && rom[0x7fd9] === 1 && (rom[0x7fd5] & 0x0f) === 0;
+  // Audio relocation also expands native ROMs to 4 MiB, including projects
+  // with deleted squads. Project validation checks its directory and driver.
+  const expandedAudio=game==='issd'&&hasLongAudio(rom)&&rom.length===EXPANDED_ROM_SIZE&&rom[0x7fd7]===12;
+  const standard = game && (rom.length === size||expanded||expandedAudio) && rom[0x7fd9] === 1 && (rom[0x7fd5] & 0x0f) === 0;
   if (!standard && compatibleDeluxeHack(rom)) {
     game = 'issd'; label = 'ISS Deluxe · hack compatible'; isHack = true;
   } else if (!standard) {
