@@ -9,6 +9,7 @@ export {compress} from './compression.mjs';
 import {hasCustomGroups,readGroups,groupPageTitles} from './groups.mjs';
 import { decompress, tiles, word, loRom, palette } from './binary.mjs';
 import { titleLegalResources, titleLegalPatches } from './title-legal.mjs';
+import {teamPhotoResource} from './team-photo.mjs';
 import {dogRefereeSheet} from './dog-referee-graphics.mjs';
 
 import {encodeTiles} from './encode-tiles.mjs';
@@ -48,6 +49,7 @@ export function graphicResources(rom, team, warnings = []) {
   result.push(raw('Balón · atlas compartido',0x9a8000,0x9a8600,8));
   result.push(dogRefereeSheet(rom));
   for(let hair=1;hair<=13;hair++) result.push(raw(`Pelo ${hair} · atlas compartido`,0x97cd58+(hair-1)*0x300,0x97cd58+hair*0x300,24));
+  result.push(...optional('Foto del equipo en selección',()=>[teamPhotoResource(rom,team)]));
   result.push(...optional('Pantallas iniciales',()=>bootScreenResources(rom)),...optional('Rótulos de grupos',()=>selectionGroupGraphics(rom)),...optional('Logo completo de portada',()=>[titleLogo(rom)]),...optional('Fondo rojo de portada',()=>[titleLogo(rom,true)]),...optional('Fotos de portada',()=>titlePortraits(rom)),...optional('Texto legal de portada',()=>titleLegalResources(rom)),...optional('Menú principal',()=>mainMenuGraphics(rom)),...optional('Títulos de modo y contraseña',()=>screenTextResources(rom)));
   return result;
 }
@@ -152,7 +154,7 @@ export function graphicPatches(original,current,resource,matrix) {
   if(resource.kind==='group-label')return groupLabelPatches(original,current,resource,matrix);
   if(resource.kind==='flag')return flagPatches(original,current,resource.team,matrix);
   if(resource.kind==='label')return smallLabelPatches(original,current,resource.team,matrix);
-  if(!['sprite','composite','portrait','group-label','menu-layer'].includes(resource.kind))return [graphicPatch(original,resource,matrix)];
+  if(!['sprite','composite','portrait','group-label','menu-layer','team-photo'].includes(resource.kind))return [graphicPatch(original,resource,matrix)];
   if(matrix.length!==resource.matrix.length||matrix.some(row=>row.length!==resource.matrix[0].length))throw new Error('La resolución debe conservarse.');
   const strips=resource.parts.map(p=>tiles(p.compressed?decompress(current,p.offset):current.subarray(p.offset,p.offset+p.capacity),p.bpp,p.columns)),changed=new Map();
   matrix.forEach((row,y)=>row.forEach((pixel,x)=>{
@@ -161,7 +163,8 @@ export function graphicPatches(original,current,resource,matrix) {
     if(resource.kind==='portrait'&&pixel!==0&&resource.colors[pixel]==='transparent')throw new Error('Color fuera de la paleta de las fotos.');
     const owner=resource.owners[y][x];if(!owner||resource.editable&&!resource.editable[y][x])throw new Error('Ese píxel queda fuera de la zona editable del recurso.');
     if(resource.layers&&pixel===0){for(const layer of resource.layers[y][x]){const key=`${layer.part}:${layer.x}:${layer.y}`;if(changed.has(key)&&changed.get(key)!==0)throw new Error('El dibujo asigna colores distintos al mismo píxel reutilizado.');changed.set(key,0);strips[layer.part][layer.y][layer.x]=0;}return;}
-    if(resource.kind==='composite')pixel=closestLayerColor(resource.colors,pixel,owner.paletteBase);
+    if(resource.kind==='team-photo'&&pixel>owner.paletteBase&&pixel<owner.paletteBase+16)pixel-=owner.paletteBase;
+    else if(['composite','team-photo'].includes(resource.kind))pixel=closestLayerColor(resource.colors,pixel,owner.paletteBase);
     const key=`${owner.part}:${owner.x}:${owner.y}`;
     if(changed.has(key)&&changed.get(key)!==pixel)throw new Error('El dibujo asigna colores distintos al mismo píxel reutilizado.');
     changed.set(key,pixel);strips[owner.part][owner.y][owner.x]=pixel;
@@ -179,7 +182,7 @@ export function graphicPatches(original,current,resource,matrix) {
 function closestLayerColor(colors,pixel,base) {
   if(pixel===0||colors[pixel]==='transparent')return 0;
   const rgb=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)),source=rgb(colors[pixel]);let best=1,distance=Infinity;
-  for(let i=1;i<16;i++){const d=rgb(colors[base+i]).reduce((n,v,k)=>n+(v-source[k])**2,0);if(d<distance){distance=d;best=i;}}
+  for(let i=1;i<16;i++){if(!colors[base+i]||colors[base+i]==='transparent')continue;const d=rgb(colors[base+i]).reduce((n,v,k)=>n+(v-source[k])**2,0);if(d<distance){distance=d;best=i;}}
   return best;
 }
 // Title: DATA_829975/829987, two BG tilemaps and direct OAM DATA_88ED58.

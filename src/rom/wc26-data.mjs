@@ -1,3 +1,4 @@
+import {privatePaletteOffset} from './private-palettes.mjs';
 import {externalDeluxeLayout} from './external-layout.mjs';
 import {loRom,word,decompress,tiles,palette} from './binary.mjs';
 // WC26's repacked large font. These glyphs were verified by rendering its
@@ -120,7 +121,7 @@ export function wc26BigLabel(rom,index){
 }
 export function wc26Palette(rom,index,table,count){
   const profile=layout(rom),pointer=word(rom,(profile.paletteTables[table]??table)+index*2);
-  if(!pointer)return null;const offset=loRom(0x890000|pointer);
+  if(!pointer)return null;const offset=privatePaletteOffset(rom,pointer)??loRom(0x890000|pointer);
   if(word(rom,offset)!==count*2-1)throw new Error('Tamaño de paleta WC26 no compatible.');
   return {offset:offset+2,colors:palette(rom,offset+2,count),bytes:rom.slice(offset+2,offset+2+count*2)};
 }

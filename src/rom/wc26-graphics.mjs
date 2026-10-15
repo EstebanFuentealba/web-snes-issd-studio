@@ -1,3 +1,4 @@
+import {teamPhotoResource} from './team-photo.mjs';
 import {externalDeluxeLayout} from './external-layout.mjs';
 import {loRom,word,decompress,tiles} from './binary.mjs';
 import {graphicPatch,graphicPatches,spriteResource,titlePortraits} from './graphics.mjs';
@@ -63,6 +64,7 @@ export function wc26StudioGraphics(rom,team,warnings=[]){
     spriteResource(rom,'Portero completo · sprite compartido',[[0x90ccf2,224],[0x90cdd4,192]],0x988846,39,goalie),
     raw('Números de camisetas · atlas compartido',0x98e5d4,0xa40,2),
     raw('Balón · atlas compartido',0x9a8000,0x600,8),
+    ...optional('Foto del equipo en selección',()=>[teamPhotoResource(rom,team)]),
     ...optional('Árbitro perro',()=>[dogRefereeSheet(rom)]),
     ...Array.from({length:13},(_,i)=>raw(`Pelo ${i+1} · atlas compartido`,0x97cd58+i*0x300,0x300,24)),
     ...optional('Logo completo de portada',()=>[wc26TitleLogo(rom)]),

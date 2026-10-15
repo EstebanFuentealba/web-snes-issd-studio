@@ -1,4 +1,8 @@
-import {longAudioRules,hasLongAudio,validateLongAudio} from './audio-long.mjs';
+import {AUDIO_REVERB_RULES,validateAudioReverb,announcerReverbDisabled,announcerReverbPatches} from './audio-reverb.mjs';
+import {privatePaletteRules,privateTeamColorPatches,validatePrivatePalettes,hasPrivatePalettes,PALETTE_SPECS} from './private-palettes.mjs';
+import {kitDrawingResource} from './kits.mjs';
+import {teamPhotoPalettes} from './team-photo.mjs';
+import {longAudioRules,hasLongAudio,validateLongAudio,upgradeLongAudioPatches} from './audio-long.mjs';
 import {hasExpandedTeams,expandedRomBuffer,EXPANDED,EXPANDED_TEAMS} from './expanded-layout.mjs';
 import {expandedResources,expandTeamPatches,addExpandedTeamPatches,deleteExpandedTeamPatches,emptyExpandedTeamPatches,validateExpandedTeams,expandedLoaderUpgradePatches,upgradeExpandedTeamLoader} from './expanded-teams.mjs';
 import {wc26StudioGraphics} from './wc26-graphics.mjs';
@@ -23,7 +27,7 @@ import { openRom, word, loRom, decompress } from './binary.mjs';
 import { TITLE_LEGAL_RULES, validateTitleLegal, legacyTitleLegal, titleLegalResources, titleLegalPatches } from './title-legal.mjs';
 import { playerOffsets, playerPatches } from './players.mjs';
 import { deluxeAttributes, deluxeText, readDeluxeTeam } from './deluxe.mjs';
-import { GROUP_RULES,validateGroupStorage,graphicResources, FLAG_RULES, validateFlagStorage, flagBank, LABEL_RULES, labelBank, validateSmallLabelStorage, flagPatches, flagMatrix, smallLabelPatches, smallLabelMatrix } from './graphics.mjs';
+import { rgb555,GROUP_RULES,validateGroupStorage,graphicResources, FLAG_RULES, validateFlagStorage, flagBank, LABEL_RULES, labelBank, validateSmallLabelStorage, flagPatches, flagMatrix, smallLabelPatches, smallLabelMatrix } from './graphics.mjs';
 import { AUDIO_SAMPLES, decodeBrr } from './audio.mjs';
 import { readFormation, readFormationPreset, FORMATION_LABELS, validateFormation } from './formations.mjs';
 import { audioRegion, hasOneShotMarkers, hasGoalLoopMarkers } from './audio-edit.mjs';
@@ -44,8 +48,10 @@ function allowedResources(rom) {
   const registry=new Map();
   const add=(id,offset,size,type,extra={})=>registry.set(id,{offset,size,type,...extra});
   for(const [id,offset,size,type] of longAudioRules())add(id,offset,size,type);
+  for(const table of [0x1027a,0x10326])for(let direction=0;direction<8;direction++)for(const part of kitDrawingResource(rom,0,table,direction).parts.slice(0,2))add(part.id,part.offset,part.capacity,'raw',{decodedSize:part.decodedSize});
   const external=externalDeluxeLayout(rom);
   if(external){
+    for(const [id,offset,size,type] of privatePaletteRules(rom))add(id,offset,size,type);
     for(let team=0;team<external.teams;team++){
       for(let player=0;player<20;player++){
         const p=playerOffsets(rom,team,player);add(`name:${p.name}`,p.name,external.nameLength,'name');add(`attributes:${p.attributes}`,p.attributes,7,'attributes');
@@ -54,6 +60,7 @@ function allowedResources(rom) {
       for(const [table,count] of [[0x1027a,16],[0x102d0,16],[0x10326,11],[0x1037c,5],[0x103d2,1],[0xe7d8,4]]){
         const p=wc26Palette(rom,team,table,count);if(p)for(let i=0;i<count;i++)add(`palette:${p.offset+i*2}`,p.offset+i*2,2,'palette');
       }
+      try{for(const p of teamPhotoPalettes(rom,team))for(let i=0;i<p.count;i++)add(`palette:${p.offset+i*2}`,p.offset+i*2,2,'palette');}catch{}
       for(const [table,bank,parts] of [[external.flagTable,external.flagBank,2],[external.labelTable,external.labelBank,1]])for(let part=0;part<parts;part++){
         const offset=loRom(bank<<16|word(rom,table+team*parts*2+part*2));add(`graphic:${offset}`,offset,word(rom,offset)&0x7fff,'compressed',{decodedSize:decompress(rom,offset).length});
       }
@@ -78,6 +85,7 @@ function allowedResources(rom) {
       const offset=teamPaletteOffset(rom,pointer)+2;
       for(let i=0;i<count;i++) add(`palette:${offset+i*2}`,offset+i*2,2,'palette');
     }
+    try{for(const p of teamPhotoPalettes(rom,team))for(let i=0;i<p.count;i++)add(`palette:${p.offset+i*2}`,p.offset+i*2,2,'palette');}catch{}
     for(const resource of graphicResources(rom,team).filter(r=>r.parts))for(const part of resource.parts)add(part.id,part.offset,part.capacity,part.compressed?'compressed':'raw',{decodedSize:part.decodedSize});
     for(const [table,bank,parts] of [[0xe730,flagBank(rom)<<16,2],[0xe6c1,labelBank(rom)<<16,1]]) for(let part=0;part<parts;part++) {
       const offset=loRom(bank|word(rom,teamTable(rom,table)+team*parts*2+part*2));
@@ -85,7 +93,7 @@ function allowedResources(rom) {
     }
   }
   for(const resource of graphicResources(rom,0)) if(resource.shared || resource.label.includes('portada')) for(const part of resource.parts||[resource]) add(part.id,part.offset,part.capacity,part.compressed?'compressed':'raw',{decodedSize:part.decodedSize});
-  for(const [id,offset,size] of [...DOG_REFEREE_RULES,...FLAG_RULES,...LABEL_RULES,...SELECTION_RULES,...GROUP_RULES,...GROUP_TEXT_RULES,...GROUP_EDITOR_RULES,...TITLE_LEGAL_RULES,...MAIN_MENU_RULES,...BOOT_SCREEN_RULES,...EXTRA_TEAM_RULES])add(id,offset,size,'relocated-storage');
+  for(const [id,offset,size] of [...AUDIO_REVERB_RULES,...DOG_REFEREE_RULES,...FLAG_RULES,...LABEL_RULES,...SELECTION_RULES,...GROUP_RULES,...GROUP_TEXT_RULES,...GROUP_EDITOR_RULES,...TITLE_LEGAL_RULES,...MAIN_MENU_RULES,...BOOT_SCREEN_RULES,...EXTRA_TEAM_RULES])add(id,offset,size,'relocated-storage');
   for(const [id,offset,size,type] of extraTeamResources())add(id,offset,size,type);
   for(const [id,offset,size,type] of physicalTeamResources(rom))add(id,offset,size,type);
   add(`czech-font:${loRom(CZECH_FONT_ADDRESS)}`,loRom(CZECH_FONT_ADDRESS),word(rom,loRom(CZECH_FONT_ADDRESS))&0x7fff,'czech-font');
@@ -125,7 +133,10 @@ export class RomProject {
     if(!context){context=needsAudioSpace(internals.get(this).patches.values(),original)||internals.get(this).patches.has('teams56:size')||hasExpandedTeams(original)?expandedRomBuffer(original):original.slice();for(const p of internals.get(this).patches.values())context.set(p.bytes,p.offset);}
     const candidate=needsAudioSpace(patches,context)||patches.some(p=>p.id==='teams:metadata'&&p.bytes[4]===3)||hasExpandedTeams(context)?expandedRomBuffer(context):context.slice();
     for(const p of patches){const r=registry.get(p.id);if(!r||p.offset!==r.offset||!(p.bytes instanceof Uint8Array)||p.bytes.length!==r.size||p.offset<0||p.offset+p.bytes.length>candidate.length)throw new Error(`Recurso o tamaño no permitido: ${p.id}.`);candidate.set(p.bytes,p.offset);}
+    if(patches.some(p=>p.id.startsWith('kit-colors:'))&&!hasPrivatePalettes(candidate))throw new Error('Cargador de paletas independientes inválido.');
+    validatePrivatePalettes(candidate);
     if(hasLongAudio(candidate)||patches.some(p=>p.id.startsWith('audio-long:')))validateLongAudio(candidate,decodeBrr);
+    if(patches.some(p=>p.id.startsWith('audio-reverb:')))validateAudioReverb(candidate,original);
     if(patches.some(p=>p.id.startsWith('dog-referee:')))validateDogReferee(candidate);
     if(patches.some(p=>p.id.startsWith('menu-text:')))validateMenuTexts(candidate,original);
     candidate.set(teamDataRom(candidate));
@@ -159,6 +170,8 @@ export class RomProject {
         const menuFormations=FORMATION_LABELS.map((_,i)=>readFormationPreset(original,i).bytes);
         if(![...originalFormations,...menuFormations].some(bytes=>equal(bytes,patch.bytes)))validateFormation(patch.bytes);
       }
+      if(rule.type==='private-palette-pointer'&&(word(patch.bytes,0)<0x6000||word(patch.bytes,0)>=0x7c00))throw new Error('Referencia de paleta independiente inválida.');
+      if(rule.type==='private-palette-header'&&![31,21,9,1,7].includes(word(patch.bytes,0)))throw new Error('Registro de paleta independiente inválido.');
       if(rule.type==='palette' && patch.bytes[1]&0x80) throw new Error('Paleta BGR555 inválida.');
       if(patch.offset===SHARED_BLANK_DETAIL&&patch.bytes.some(Boolean))throw new Error('El tile transparente compartido debe conservarse vacío.');
       if(rule.type==='compressed' && decompress(patch.bytes,0).length!==rule.decodedSize) throw new Error('Resolución gráfica inválida.');
@@ -182,6 +195,21 @@ export class RomProject {
       }
       if(rule.type==='audio') {decodeBrr(patch.bytes);if(Array.from({length:patch.bytes.length/9},(_,i)=>patch.bytes[i*9]).some((h,i)=>(h&2)||(i<patch.bytes.length/9-1 && (h&1))) || !(patch.bytes.at(-9)&1)) throw new Error('Final BRR inválido.');}
     }
+  }
+  setTeamColor(team,table,index,color){return this.setTeamColors(team,table,[{index,color}]);}
+  setTeamColors(team,table,entries){
+    if(!Array.isArray(entries)||!entries.length)throw new Error('Paleta de equipo inválida.');
+    let current=this.bytes();const changes=new Map(),put=patch=>{changes.set(patch.id,patch);current.set(patch.bytes,patch.offset);};
+    for(const {index,color} of entries){
+      const pointer=teamPointer(current,table,team),spec=PALETTE_SPECS.find(([t])=>t===table);
+      if(!teamExists(current,team)||!pointer||!spec||!Number.isInteger(index)||index<0||index>=spec[1])throw new Error('Paleta de equipo inválida.');
+      const offset=teamPaletteOffset(current,pointer)+2+index*2,bytes=rgb555(color);
+      const shared=activeTeamIds(current).some(other=>other!==team&&PALETTE_SPECS.some(([t,n])=>{const p=teamPointer(current,t,other);if(!p)return false;const start=teamPaletteOffset(current,p)+2;return offset>=start&&offset<start+n*2;}));
+      if(shared&&externalDeluxeLayout(current)){privateTeamColorPatches(current,team,table,index,bytes).forEach(put);continue;}
+      if(shared&&!hasExpandedTeams(current)){const migration=expandTeamPatches(this.original,current);current=expandedRomBuffer(current);migration.forEach(put);}
+      const dest=teamPaletteOffset(current,teamPointer(current,table,team))+2+index*2;put({id:`palette:${dest}`,offset:dest,bytes,label:'Color del equipo'});
+    }
+    return this.transaction([...changes.values()]);
   }
   transaction(changes) {
     const s=internals.get(this),next=new Map(s.patches),paddedOriginal=expandedRomBuffer(s.original);
@@ -236,6 +264,15 @@ export class RomProject {
     if(JSON.stringify([...next])===JSON.stringify([...s.patches])) return false;
     // Keep creation references in the same snapshots as the ROM patches.
     next.createdTeams=hasEmptyTeams(candidate)?{}:{...s.patches.createdTeams};
+    next.audioTitles={...s.patches.audioTitles};
+    s.undo.push(s.patches);s.undo=s.undo.slice(-100);s.redo=[];s.patches=next;this.updatedAt=new Date().toISOString();return true;
+  }
+  audioTitle(name){return internals.get(this).patches.audioTitles?.[name]||'';}
+  setAudioTitle(name,title){
+    if(!AUDIO_SAMPLES.some(s=>s.name===name)||typeof title!=='string'||title.length>120)throw new Error('Título de audio inválido.');
+    title=title.trim();if(title===this.audioTitle(name))return false;
+    const s=internals.get(this),next=new Map(s.patches);next.createdTeams=s.patches.createdTeams;next.audioTitles={...s.patches.audioTitles};
+    if(title)next.audioTitles[name]=title;else delete next.audioTitles[name];
     s.undo.push(s.patches);s.undo=s.undo.slice(-100);s.redo=[];s.patches=next;this.updatedAt=new Date().toISOString();return true;
   }
   createEmptyRom(){const current=this.bytes();return this.transaction(hasExpandedTeams(current)?emptyExpandedTeamPatches(this.original,current):emptyTeamPatches(this.original,current));}
@@ -266,6 +303,7 @@ export class RomProject {
   removeTeam(team){return this.transaction(removeTeamPatches(this.original,this.bytes(),team));}
   restorePatches(id) {
     const state=internals.get(this),s={...state,original:teamDataRom(state.original)},rule=s.registry.get(id);if(!rule)throw new Error('Recurso desconocido.');
+    if(id==='audio-reverb:driver')return announcerReverbPatches(s.original,this.bytes(),announcerReverbDisabled(s.original));
     if(rule.offset===SHARED_BLANK_DETAIL)return [blankDetailPatch()];
     const pristine=(rule.offset+rule.size>s.original.length?expandedRomBuffer(s.original):s.original).slice(rule.offset,rule.offset+rule.size),defaultTeam=activeTeamIds(s.original)[0];
     if(pristine.every(b=>b===255)){
@@ -274,7 +312,7 @@ export class RomProject {
 
       if(rule.type==='name')for(const [base,n,first] of [[loRom(0x87818e),36,0],[loRom(0x8af8a0),6,36],[loRom(0x87fac8),6,42]])if(rule.offset>=base&&rule.offset<base+n*160){const team=Math.floor((rule.offset-base)/160)+first,i=Math.floor((rule.offset-base)%160/8),offset=playerOffsets(s.original,teamExists(s.original,team)?team:defaultTeam,i).name;return [{id,offset:rule.offset,bytes:s.original.slice(offset,offset+8),label:'Restaurar jugador'}];}
       if(rule.type==='formation')return [{id,offset:rule.offset,bytes:readFormation(s.original,defaultTeam).bytes,label:'Restaurar formación'}];
-      if(rule.type==='palette'){const current=this.bytes();for(const team of activeTeamIds(current))for(const [table,n] of [[0x1027a,16],[0x102d0,16],[0x10326,11],[0x1037c,5],[0x103d2,1],[0xe7d8,4]]){const ptr=teamPointer(current,table,team);if(!ptr)continue;const base=teamPaletteOffset(current,ptr)+2;if(rule.offset>=base&&rule.offset<base+n*2){const source=teamPointer(s.original,table,defaultTeam),offset=source?teamPaletteOffset(s.original,source)+2+rule.offset-base:0;return [{id,offset:rule.offset,bytes:source?s.original.slice(offset,offset+2):new Uint8Array(2),label:'Restaurar paleta'}];}}}
+      if(rule.type==='palette'){const current=this.bytes();for(const team of activeTeamIds(current))for(const [table,n] of [[0x1027a,16],[0x102d0,16],[0x10326,11],[0x1037c,5],[0x103d2,1],[0xe7d8,4]]){const ptr=teamPointer(current,table,team);if(!ptr)continue;const base=teamPaletteOffset(current,ptr)+2;if(rule.offset>=base&&rule.offset<base+n*2){const source=teamPointer(s.original,table,teamExists(s.original,team)?team:defaultTeam),offset=source?teamPaletteOffset(s.original,source)+2+rule.offset-base:0;return [{id,offset:rule.offset,bytes:source?s.original.slice(offset,offset+2):new Uint8Array(2),label:'Restaurar paleta'}];}}}
     }
     if(id.startsWith('dog-referee:'))return DOG_REFEREE_RULES.map(([id,offset,size])=>({id,offset,bytes:s.original.slice(offset,offset+size),label:'Restaurar árbitro perro'}));
     if(id.startsWith('group-editor:')||(id==='selection:all-stars'||id.startsWith('groups:'))&&this.patches.some(p=>p.id.startsWith('group-editor:')))return [...GROUP_EDITOR_RULES,...SELECTION_RULES,...GROUP_RULES,...GROUP_TEXT_RULES].map(([id,offset,size])=>({id,offset,bytes:s.original.slice(offset,offset+size),label:'Restaurar grupos'}));
@@ -294,7 +332,7 @@ export class RomProject {
     return [{id,offset:rule.offset,bytes:pristine,label:id}];
   }
   restore(id) {return this.transaction(this.restorePatches(id));}
-  reset() {const s=internals.get(this);if(!s.patches.size)return;s.undo.push(s.patches);s.redo=[];s.patches=new Map(expandedLoaderUpgradePatches(s.original).map(p=>[p.id,p]));if(hasPhysicalTeams(s.original)&&s.original.slice(SHARED_BLANK_DETAIL,SHARED_BLANK_DETAIL+32).every(b=>b===255)){const repair=blankDetailPatch();s.patches.set(repair.id,repair);}this.updatedAt=new Date().toISOString();}
+  reset() {const s=internals.get(this);if(!s.patches.size&&!Object.keys(s.patches.audioTitles||{}).length)return;s.undo.push(s.patches);s.redo=[];s.patches=new Map(expandedLoaderUpgradePatches(s.original).map(p=>[p.id,p]));if(hasPhysicalTeams(s.original)&&s.original.slice(SHARED_BLANK_DETAIL,SHARED_BLANK_DETAIL+32).every(b=>b===255)){const repair=blankDetailPatch();s.patches.set(repair.id,repair);}this.updatedAt=new Date().toISOString();}
   undo() {const s=internals.get(this);if(!s.undo.length)return;s.redo.push(s.patches);s.patches=s.undo.pop();this.updatedAt=new Date().toISOString();}
   redo() {const s=internals.get(this);if(!s.redo.length)return;s.undo.push(s.patches);s.patches=s.redo.pop();this.updatedAt=new Date().toISOString();}
   bytes() {const s=internals.get(this),bytes=needsAudioSpace(this.patches,s.original)||this.patches.some(p=>p.id==='teams56:size')||hasExpandedTeams(s.original)?expandedRomBuffer(s.original):s.original.slice();this.validate(this.patches,s.original);for(const p of s.patches.values()) bytes.set(p.bytes,p.offset);return bytes;}
@@ -319,10 +357,11 @@ export class RomProject {
   }
   record({includeOriginal=true}={}) {
     const s=internals.get(this);
-    return {format:'issd-studio-project',version:1,hash:this.hash,updatedAt:this.updatedAt,...(includeOriginal?{original:base64(this.exportOriginal())}:{}),patches:this.patches.map(p=>({...p,bytes:base64(p.bytes)})),createdTeams:JSON.parse(JSON.stringify(s.patches.createdTeams||{}))};
+    return {format:'issd-studio-project',version:1,hash:this.hash,updatedAt:this.updatedAt,...(includeOriginal?{original:base64(this.exportOriginal())}:{}),patches:this.patches.map(p=>({...p,bytes:base64(p.bytes)})),audioTitles:{...s.patches.audioTitles},createdTeams:JSON.parse(JSON.stringify(s.patches.createdTeams||{}))};
   }
   exportOriginal() {const s=internals.get(this),bytes=new Uint8Array(s.header.length+s.original.length);bytes.set(s.header);bytes.set(s.original,s.header.length);return bytes;}
   static async create(bytes) {const project=new RomProject(bytes);project.hash=await romHash(project.exportOriginal());
+    const audioUpgrade=upgradeLongAudioPatches(project.original);if(audioUpgrade.length)project.transaction(audioUpgrade);
     if(hasPhysicalTeams(project.original)&&project.original.slice(SHARED_BLANK_DETAIL,SHARED_BLANK_DETAIL+32).every(b=>b===255)){project.transaction([blankDetailPatch()]);internals.get(project).undo=[];}
     // Repair added-team anchors when opening a ROM exported by an earlier build.
     if(hasExtraTeams(project.original)&&!hasExpandedTeams(project.original)){
@@ -379,6 +418,7 @@ export class RomProject {
     patches=upgradeGroupSelector(migrationOriginal,patches);
     patches=upgradeExtraTeamSelector(migrationOriginal,patches);
     patches=upgradeExpandedTeamLoader(migrationOriginal,patches);
+    patches=upgradeLongAudioPatches(migrationOriginal,patches);
     project.transaction(patches);
     if(record.createdTeams){
       if(typeof record.createdTeams!=='object'||Array.isArray(record.createdTeams)||Object.keys(record.createdTeams).length>EXPANDED_TEAMS)throw new Error('Proyecto no compatible.');
@@ -387,6 +427,10 @@ export class RomProject {
         for(const r of baseline.graphics){const flag=r.kind==='flag';if(!['flag','label'].includes(r.kind)||r.matrix?.length!==(flag?16:8)||!r.matrix.every(row=>Array.isArray(row)&&row.length===(flag?24:32)&&row.every(p=>Number.isInteger(p)&&p>=0&&p<(flag?16:4)))||r.colors?.length!==(flag?16:4)||!r.colors.every(c=>c==='transparent'||/^#[a-f0-9]{6}$/i.test(c)))throw new Error('Proyecto no compatible.');}
       }
       internals.get(project).patches.createdTeams=JSON.parse(JSON.stringify(record.createdTeams));
+    }
+    if(record.audioTitles!==undefined){
+      if(!record.audioTitles||typeof record.audioTitles!=='object'||Array.isArray(record.audioTitles))throw new Error('Proyecto no compatible.');
+      for(const [name,title] of Object.entries(record.audioTitles))project.setAudioTitle(name,title);
     }
     internals.get(project).undo=[];project.updatedAt=record.updatedAt;return project;
   }

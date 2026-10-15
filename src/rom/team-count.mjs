@@ -1,3 +1,4 @@
+import {privatePaletteOffset} from './private-palettes.mjs';
 import {externalDeluxeLayout} from './external-layout.mjs';
 import {hasExpandedTeams,EXPANDED_TABLES,EXPANDED_TEAMS} from './expanded-layout.mjs';
 import {loRom,word} from './binary.mjs';
@@ -29,5 +30,5 @@ export function teamPointer(rom,table,team,stride=2){return word(rom,teamTable(r
 export function attributeOffset(rom,team,player=0){if(hasExpandedTeams(rom))return loRom(0xc28000)+team*140+player*7;const external=externalDeluxeLayout(rom);if(external)return external.attributes+team*140+player*7;return (team>=42&&hasExtraTeams(rom)?loRom(0x8af558)+(team-42)*140:0x50000+(team>=42?0:team)*140)+player*7;}
 // Banks C0–FF map both halves to ROM in a 4 MiB LoROM. Low-half pointers
 // distinguish relocated team palettes from every original $89 palette.
-export function teamPaletteOffset(rom,pointer){return hasExpandedTeams(rom)&&pointer<0x8000?loRom(0xc18000|pointer):loRom(0x890000|pointer);}
+export function teamPaletteOffset(rom,pointer){const owned=privatePaletteOffset(rom,pointer);if(owned!==null)return owned;return hasExpandedTeams(rom)&&pointer<0x8000?loRom(0xc18000|pointer):loRom(0x890000|pointer);}
 export const EXTRA_BIG_LABEL_ADDRESS=0xb0f080,EXTRA_BIG_LABEL_CAPACITY=3000;

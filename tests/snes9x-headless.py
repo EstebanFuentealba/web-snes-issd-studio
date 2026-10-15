@@ -40,12 +40,20 @@ lib.retro_get_memory_size.argtypes=[C.c_uint];lib.retro_get_memory_size.restype=
 # Deterministic native sound-event requests; these writes do not alter ROM code
 # or bypass the game's SPC700 loader/streaming protocol.
 writes=json.loads(os.environ.get("ISSD_WRAM_WRITES","[]"))
+state_frames=set(json.loads(os.environ.get("ISSD_STATE_FRAMES","[]")))
+if state_frames:
+ lib.retro_serialize_size.restype=C.c_size_t
+ lib.retro_serialize.argtypes=[C.c_void_p,C.c_size_t];lib.retro_serialize.restype=C.c_bool
 for frame in range(int(os.environ.get("ISSD_FRAMES","1000"))):
  for when,offset,values in writes:
   if frame==when:
    assert 0<=offset and offset+len(values)<=lib.retro_get_memory_size(2)
    C.memmove(lib.retro_get_memory_data(2)+offset,bytes(values),len(values))
  lib.retro_run()
+ if frame in state_frames:
+  size=lib.retro_serialize_size();state=C.create_string_buffer(size)
+  assert lib.retro_serialize(state,size),"Snes9x state capture failed"
+  open(sys.argv[3]+f'.{frame}.state','wb').write(state.raw)
 if capture_audio:open(sys.argv[3]+'.pcm','wb').write(audio_pcm)
 ram=C.string_at(lib.retro_get_memory_data(2),lib.retro_get_memory_size(2));open(sys.argv[3]+'.ram','wb').write(ram)
 vram=C.string_at(lib.retro_get_memory_data(3),lib.retro_get_memory_size(3));open(sys.argv[3]+'.vram','wb').write(vram)

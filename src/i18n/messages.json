@@ -5298,5 +5298,355 @@
     "es": "Ir al final del clip",
     "en": "Go to clip end",
     "pt": "Ir ao final do clipe"
+  },
+  "Calidad reducida": {
+    "es": "Calidad reducida",
+    "en": "Reduced quality",
+    "pt": "Qualidade reduzida"
+  },
+  "Dentro del tiempo": {
+    "es": "Dentro del tiempo",
+    "en": "Within time limit",
+    "pt": "Dentro do tempo"
+  },
+  "El tiempo se compara con la capacidad original del sample. Se pasa un poco indica hasta un 10 % adicional. Calidad reducida indica menos detalle en los agudos.": {
+    "es": "El tiempo se compara con la capacidad original del sample. Se pasa un poco indica hasta un 10 % adicional. Calidad reducida indica menos detalle en los agudos.",
+    "en": "Time is compared with the original sample capacity. Slightly over time means up to 10% extra. Reduced quality means less treble detail.",
+    "pt": "O tempo é comparado com a capacidade original do sample. Passa um pouco indica até 10% adicional. Qualidade reduzida indica menos detalhes nos agudos."
+  },
+  "Las voces más largas usan una copia de reproducción con menos detalle en los agudos para conservar el ambiente. El tono y la duración se mantienen; el audio original se conserva para editar.": {
+    "es": "Las voces más largas usan una copia de reproducción con menos detalle en los agudos para conservar el ambiente. El tono y la duración se mantienen; el audio original se conserva para editar.",
+    "en": "Longer voices use a playback copy with less high-frequency detail to preserve ambient sounds. Pitch and duration remain unchanged; the original audio is retained for editing.",
+    "pt": "As vozes mais longas usam uma cópia de reprodução com menos detalhes nos agudos para preservar o ambiente. O tom e a duração são mantidos; o áudio original é preservado para edição."
+  },
+  "Se pasa un poco": {
+    "es": "Se pasa un poco",
+    "en": "Slightly over time",
+    "pt": "Passa um pouco"
+  },
+  "Sin título": {
+    "es": "Sin título",
+    "en": "Untitled",
+    "pt": "Sem título"
+  },
+  "Supera el tiempo": {
+    "es": "Supera el tiempo",
+    "en": "Over time limit",
+    "pt": "Ultrapassa o tempo"
+  },
+  "Título del audio": {
+    "es": "Título del audio",
+    "en": "Audio title",
+    "pt": "Título do áudio"
+  },
+  "Espacio de audio": {
+    "es": "Espacio de audio",
+    "en": "Audio storage",
+    "pt": "Espaço de áudio"
+  },
+  "bancos de audio largo usados": {
+    "es": "bancos de audio largo usados",
+    "en": "long audio banks used",
+    "pt": "bancos de áudio longo usados"
+  },
+  "Cada audio largo reserva 32 KiB; el espacio original se conserva.": {
+    "es": "Cada audio largo reserva 32 KiB; el espacio original se conserva.",
+    "en": "Each long audio reserves 32 KiB; its original space is retained.",
+    "pt": "Cada áudio longo reserva 32 KiB; o espaço original é preservado."
+  },
+  "Los sonidos achurados exceden su capacidad o no tienen un banco libre. Reduce el recorte antes de aplicarlo.": {
+    "es": "Los sonidos achurados exceden su capacidad o no tienen un banco libre. Reduce el recorte antes de aplicarlo.",
+    "en": "Hatched sounds exceed their capacity or have no free bank. Shorten the clip before applying it.",
+    "pt": "Os sons hachurados excedem a capacidade ou não têm um banco livre. Reduza o trecho antes de aplicar."
+  },
+  "Peso de cada sonido": {
+    "es": "Peso de cada sonido",
+    "en": "Size of each sound",
+    "pt": "Tamanho de cada som"
+  },
+  "Recorte pendiente": {
+    "es": "Recorte pendiente",
+    "en": "Pending clip",
+    "pt": "Trecho pendente"
+  },
+  "Excede el espacio": {
+    "es": "Excede el espacio",
+    "en": "Exceeds storage",
+    "pt": "Excede o espaço"
+  },
+  "Camiseta": {
+    "es": "Camiseta",
+    "en": "Shirt",
+    "pt": "Camisa"
+  },
+  "Pantalón": {
+    "es": "Pantalón",
+    "en": "Shorts",
+    "pt": "Calção"
+  },
+  "Pantalón y medias": {
+    "es": "Pantalón y medias",
+    "en": "Shorts and socks",
+    "pt": "Calção e meias"
+  },
+  "Medias": {
+    "es": "Medias",
+    "en": "Socks",
+    "pt": "Meias"
+  },
+  "Botines": {
+    "es": "Botines",
+    "en": "Boots",
+    "pt": "Chuteiras"
+  },
+  "Dibujar camiseta y pantalón": {
+    "es": "Dibujar camiseta y pantalón",
+    "en": "Draw on shirt and shorts",
+    "pt": "Desenhar na camisa e no calção"
+  },
+  "Dibuja sobre las prendas del sprite real. El patrón de píxeles se comparte entre equipos y entre los dos uniformes; cada equipo conserva sus colores. Cada dirección usa sus propios tiles, aunque algunos se reutilizan.": {
+    "es": "Dibuja sobre las prendas del sprite real. El patrón de píxeles se comparte entre equipos y entre los dos uniformes; cada equipo conserva sus colores. Cada dirección usa sus propios tiles, aunque algunos se reutilizan.",
+    "en": "Draw on the actual sprite clothing. Pixels are shared between teams and both kits; each team keeps its colors. Each direction has its own tiles, with some reused.",
+    "pt": "Desenhe sobre a roupa do sprite real. Os pixels são compartilhados entre equipes e os dois uniformes; cada equipe mantém suas cores. Cada direção tem seus próprios tiles, com alguns reutilizados."
+  },
+  "Zona de dibujo": {
+    "es": "Zona de dibujo",
+    "en": "Drawing area",
+    "pt": "Área de desenho"
+  },
+  "Todas las prendas": {
+    "es": "Todas las prendas",
+    "en": "All clothing",
+    "pt": "Todas as peças"
+  },
+  "Foto del equipo en selección": {
+    "es": "Foto del equipo en selección",
+    "en": "Team selection photo",
+    "pt": "Foto da equipe na seleção"
+  },
+  "La foto usa gráficos y paletas distintos de los uniformes del partido. Sus tiles y algunos colores se comparten entre equipos.": {
+    "es": "La foto usa gráficos y paletas distintos de los uniformes del partido. Sus tiles y algunos colores se comparten entre equipos.",
+    "en": "The photo uses separate graphics and palettes from the match kits. Its tiles and some colors are shared between teams.",
+    "pt": "A foto usa gráficos e paletas diferentes dos uniformes da partida. Seus tiles e algumas cores são compartilhados entre equipes."
+  },
+  "Dibujar o importar foto del equipo": {
+    "es": "Dibujar o importar foto del equipo",
+    "en": "Draw or import team photo",
+    "pt": "Desenhar ou importar foto da equipe"
+  },
+  "Uniforme de la foto": {
+    "es": "Uniforme de la foto",
+    "en": "Photo kit",
+    "pt": "Uniforme da foto"
+  },
+  "Portero de la foto": {
+    "es": "Portero de la foto",
+    "en": "Photo goalkeeper",
+    "pt": "Goleiro da foto"
+  },
+  "Piel y pelo de la foto": {
+    "es": "Piel y pelo de la foto",
+    "en": "Photo skin and hair",
+    "pt": "Pele e cabelo da foto"
+  },
+  "Piel alternativa de la foto": {
+    "es": "Piel alternativa de la foto",
+    "en": "Photo alternate skin",
+    "pt": "Pele alternativa da foto"
+  },
+  "Aplica o descarta el dibujo pendiente antes de cambiar los colores.": {
+    "es": "Aplica o descarta el dibujo pendiente antes de cambiar los colores.",
+    "en": "Apply or discard the pending drawing before changing colors.",
+    "pt": "Aplique ou descarte o desenho pendente antes de mudar as cores."
+  },
+  "Dirección de uniforme inválida.": {
+    "es": "Dirección de uniforme inválida.",
+    "en": "Invalid kit direction.",
+    "pt": "Direção de uniforme inválida."
+  },
+  "Composición de foto no compatible.": {
+    "es": "Composición de foto no compatible.",
+    "en": "Unsupported photo composition.",
+    "pt": "Composição de foto não compatível."
+  },
+  "Tile de foto fuera de su recurso.": {
+    "es": "Tile de foto fuera de su recurso.",
+    "en": "Photo tile outside its resource.",
+    "pt": "Tile da foto fora de seu recurso."
+  },
+  "Diagonal abajo derecha": {
+    "es": "Diagonal abajo derecha",
+    "en": "Down-right",
+    "pt": "Diagonal inferior direita"
+  },
+  "Diagonal abajo izquierda": {
+    "es": "Diagonal abajo izquierda",
+    "en": "Down-left",
+    "pt": "Diagonal inferior esquerda"
+  },
+  "Diagonal arriba derecha": {
+    "es": "Diagonal arriba derecha",
+    "en": "Up-right",
+    "pt": "Diagonal superior direita"
+  },
+  "Diagonal arriba izquierda": {
+    "es": "Diagonal arriba izquierda",
+    "en": "Up-left",
+    "pt": "Diagonal superior esquerda"
+  },
+  "Dirección": {
+    "es": "Dirección",
+    "en": "Direction",
+    "pt": "Direção"
+  },
+  "Colores de la foto": {
+    "es": "Colores de la foto",
+    "en": "Photo colors",
+    "pt": "Cores da foto"
+  },
+  "Los colores se guardan para el equipo seleccionado. Las paletas compartidas se separan automáticamente; los sprites base siguen siendo compartidos.": {
+    "es": "Los colores se guardan para el equipo seleccionado. Las paletas compartidas se separan automáticamente; los sprites base siguen siendo compartidos.",
+    "en": "Colors are saved for the selected team. Shared palettes are separated automatically; base sprites remain shared.",
+    "pt": "As cores são salvas para a equipe selecionada. As paletas compartilhadas são separadas automaticamente; os sprites base continuam compartilhados."
+  },
+  "Paleta de equipo inválida.": {
+    "es": "Paleta de equipo inválida.",
+    "en": "Invalid team palette.",
+    "pt": "Paleta de equipe inválida."
+  },
+  "Color RGB de SNES": {
+    "es": "Color RGB de SNES",
+    "en": "SNES RGB color",
+    "pt": "Cor RGB do SNES"
+  },
+  "Aplicar color al equipo": {
+    "es": "Aplicar color al equipo",
+    "en": "Apply color to team",
+    "pt": "Aplicar cor à equipe"
+  },
+  "Color independiente del equipo": {
+    "es": "Color independiente del equipo",
+    "en": "Independent team color",
+    "pt": "Cor independente da equipe"
+  },
+  "Color del equipo": {
+    "es": "Color del equipo",
+    "en": "Team color",
+    "pt": "Cor da equipe"
+  },
+  "No hay espacio seguro para separar las paletas de este hack.": {
+    "es": "No hay espacio seguro para separar las paletas de este hack.",
+    "en": "There is no safe space to separate this hack’s palettes.",
+    "pt": "Não há espaço seguro para separar as paletas deste hack."
+  },
+  "Cargador de paletas independientes inválido.": {
+    "es": "Cargador de paletas independientes inválido.",
+    "en": "Invalid independent palette loader.",
+    "pt": "Carregador de paletas independentes inválido."
+  },
+  "Perfil de paletas independientes inválido.": {
+    "es": "Perfil de paletas independientes inválido.",
+    "en": "Invalid independent palette profile.",
+    "pt": "Perfil de paletas independentes inválido."
+  },
+  "Referencia de paleta independiente inválida.": {
+    "es": "Referencia de paleta independiente inválida.",
+    "en": "Invalid independent palette reference.",
+    "pt": "Referência de paleta independente inválida."
+  },
+  "Registro de paleta independiente inválido.": {
+    "es": "Registro de paleta independiente inválido.",
+    "en": "Invalid independent palette record.",
+    "pt": "Registro de paleta independente inválido."
+  },
+  "La importación conserva la silueta de los jugadores y el fondo original.": {
+    "es": "La importación conserva la silueta de los jugadores y el fondo original.",
+    "en": "Image import preserves the player silhouettes and the original background.",
+    "pt": "A importação preserva a silhueta dos jogadores e o fundo original."
+  },
+  "Prenda": {
+    "es": "Prenda",
+    "en": "Garment",
+    "pt": "Peça"
+  },
+  "Color primario": {
+    "es": "Color primario",
+    "en": "Primary color",
+    "pt": "Cor primária"
+  },
+  "Tono": {
+    "es": "Tono",
+    "en": "Shade",
+    "pt": "Tom"
+  },
+  "Elegir color": {
+    "es": "Elegir color",
+    "en": "Choose color",
+    "pt": "Escolher cor"
+  },
+  "Tonos automáticos": {
+    "es": "Tonos automáticos",
+    "en": "Automatic shades",
+    "pt": "Tons automáticos"
+  },
+  "¿Generar los demás tonos de esta prenda automáticamente?": {
+    "es": "¿Generar los demás tonos de esta prenda automáticamente?",
+    "en": "Generate the remaining shades of this garment automatically?",
+    "pt": "Gerar os outros tons desta peça automaticamente?"
+  },
+  "Se crearán tonos claros del mismo color. Solo cambia esta prenda del equipo seleccionado.": {
+    "es": "Se crearán tonos claros del mismo color. Solo cambia esta prenda del equipo seleccionado.",
+    "en": "Lighter shades of the same color will be created. Only this garment of the selected team changes.",
+    "pt": "Serão criados tons claros da mesma cor. Só muda esta peça da equipe selecionada."
+  },
+  "Sí, generar tonos": {
+    "es": "Sí, generar tonos",
+    "en": "Yes, generate shades",
+    "pt": "Sim, gerar tons"
+  },
+  "Solo el color primario": {
+    "es": "Solo el color primario",
+    "en": "Only the primary color",
+    "pt": "Só a cor primária"
+  },
+  "Piel, pelo y otros colores": {
+    "es": "Piel, pelo y otros colores",
+    "en": "Skin, hair and other colors",
+    "pt": "Pele, cabelo e outras cores"
+  },
+  "Cerrar dibujo por píxeles": {
+    "es": "Cerrar dibujo por píxeles",
+    "en": "Close pixel drawing",
+    "pt": "Fechar desenho em pixels"
+  },
+  "Otras paletas": {
+    "es": "Otras paletas",
+    "en": "Other palettes",
+    "pt": "Outras paletas"
+  },
+  "Seleccionar": {
+    "es": "Seleccionar",
+    "en": "Select",
+    "pt": "Selecionar"
+  },
+  "Uniforme": {
+    "es": "Uniforme",
+    "en": "Kit",
+    "pt": "Uniforme"
+  },
+  "Quitar reverberación de los relatos": {
+    "es": "Quitar reverberación de los relatos",
+    "en": "Remove commentary reverb",
+    "pt": "Remover reverberação da narração"
+  },
+  "Desactiva el eco del juego en los relatos de la ROM exportada. Conserva el efecto en los demás canales. No elimina el eco grabado en el archivo de audio.": {
+    "es": "Desactiva el eco del juego en los relatos de la ROM exportada. Conserva el efecto en los demás canales. No elimina el eco grabado en el archivo de audio.",
+    "en": "Disables game echo on commentary in the exported ROM. Keeps the effect on the other channels. Does not remove echo recorded in the audio file.",
+    "pt": "Desativa o eco do jogo na narração da ROM exportada. Mantém o efeito nos outros canais. Não remove o eco gravado no arquivo de áudio."
+  },
+  "Esta ROM no admite el ajuste de reverberación de los relatos.": {
+    "es": "Esta ROM no admite el ajuste de reverberación de los relatos.",
+    "en": "This ROM does not support commentary reverb adjustment.",
+    "pt": "Esta ROM não permite ajustar a reverberação da narração."
   }
 }

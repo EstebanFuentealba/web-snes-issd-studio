@@ -51,6 +51,8 @@ npm run build  # Build for production
 
 Based on research and tools by [Rodrigo Mallmann Guerra](https://github.com/rodmguerra/issparser), [Vladimir Protopopov](https://github.com/ProtonNoir/SNES-decompression-tools) and [sergiomanzur](https://github.com/sergiomanzur/issd-native).
 
+Special thanks to [**Twin Eagles Group (TEG)**](https://tegperu.org/) for the Futebol Brasileiro ROM hacks, some of the first ROM hacks I ever played; [**Chatty (FECIC)**](https://www.romhacking.net/community/6488/) for the ISSD editing tools; and [**Equipe Falcon Brasil**](https://equipefalconbrasil.blogspot.com/) for the new ROM hacks they have released. Thank you all for inspiring me to create this project.
+
 Independent fan project, unaffiliated with Konami or Nintendo. Game names and assets belong to their respective owners. Use ROMs obtained in accordance with applicable laws.
 
 

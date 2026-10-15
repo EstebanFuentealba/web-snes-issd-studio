@@ -236,6 +236,26 @@ regresión comprueba la terminación en el DSP; no cubre el disparador ni la
 secuencia de voces del evento de gol durante un partido.
 
 
+### Reverberación de los relatos
+
+Configuración permite quitar el eco del canal de relatos en la ROM exportada.
+`audio-reverb.mjs` modifica únicamente la instrucción SPC `$19A2`: `OR A,#$00`
+se convierte en `AND A,#$DF`, excluyendo la voz DSP 5 de la máscara EON.
+Los otros siete bits, volúmenes de eco, feedback, FIR y búfer se conservan.
+El bloque nativo comprimido ocupa `$1E8000` y reserva 11052 bytes; se valida
+todo el controlador descomprimido salvo esos dos bytes. Con audio largo se
+regenera también su controlador reubicado dentro de la misma transacción.
+La opción admite deshacer, proyectos guardados y volver a abrir la ROM exportada.
+WC26 y controladores no reconocidos muestran el control deshabilitado.
+
+`tests/audio-reverb-runtime.cjs`, incluido en `test:expanded-runtime`, compara
+tonos y silencios en relatos nativos y largos durante un partido real. Comprueba
+EON `$FF → $DF`, la duración de la voz, la desaparición de la cola en el PCM,
+los parámetros de eco y los dos canales de público activos. Cada variante usa
+su propio silencio de referencia: recomprimir el controlador altera ligeramente
+los tiempos de arranque y no permite exigir la misma fase del audio ambiental.
+La opción no elimina reverberación que ya esté grabada en el archivo importado.
+
 ### Audio largo experimental
 
 El checkbox «Audio largo inseguro (experimental)» admite voces normales del
@@ -251,21 +271,29 @@ almacena `floor((bytesBRR + 2) / 3)`, como el cargador nativo `$80BFAE` espera.
 El directorio propio del editor está en FC:8000; sus registros indican banco y
 longitud BRR. Los bancos C0–C8 de equipos expandidos quedan independientes.
 
-Reubicar la muestra por sí solo no prolonga la reproducción: el guion de
-PastThePost2 (`SPC $208D`) tiene un gate de `$42` ticks (~1,05 segundos). El
-editor descomprime el controlador nativo BD:8000, conserva todas sus
-instrucciones y parámetros salvo la duración de las voces ampliadas, establece
-sus gates en 255 ticks y guarda la copia recomprimida en F0:8000. Actualiza el
-puntero de carga en `$829E82`. La validación compara el controlador completo
-contra esa transformación; rechaza cambios de instrucciones, punteros o
-longitudes inconsistentes.
+El controlador nativo reserva las muestras residentes desde SPC `$6900`.
+El cargador antiguo copiaba voces largas desde `$4900` sin limitar la escritura:
+una voz de 3 segundos llegaba a `$8BDE` y borraba efectos y ambiente. La revisión
+`ISS AUD 1.1` usa el padding original del controlador para un búfer en
+`$3800–$68FF`, con 12537 bytes BRR útiles, una tabla de voces en `$3720` y un hook
+acotado en `$3780`. Fuerza la primera caché para voces ampliadas e invalida la
+segunda; conserva el protocolo de repetición F1 sin esperar un nuevo payload.
+La música de alta prioridad conserva prioridad y descarta la transferencia de
+voz sin tocar sus muestras.
 
-La capacidad experimental es de 21375 bytes BRR / 38000 muestras (~3,742 s al
-pitch de inspección 1300), con margen frente al gate. El pitch real depende del
-evento, y otras voces pueden interrumpir o retrasar el audio. No es duración
-ilimitada. Los paquetes de audio v2 incluyen las muestras reubicadas; v1 sigue
-siendo compatible. Guardar, recuperar, normalizar, deshacer y restaurar mantienen
-la relación entre muestra, banco, gate y puntero.
+Si el BRR original excede esos 12537 bytes, se crea una copia filtrada a media
+frecuencia y se baja la nota del guion una octava (`$33 → $27`). Se mantienen
+duración y tono; se reduce el detalle de agudos. El banco ROM de 32 KB conserva
+el BRR original íntegro después de la copia de reproducción. El directorio guarda
+la longitud original y `audioStorage` distingue el offset de edición del de
+reproducción. Los paquetes v2 siguen transfiriendo el BRR original sin pérdida.
+Los proyectos y ROMs 1.0 migran automáticamente, conservando sus otras ediciones.
+
+La capacidad de edición sigue en 21375 bytes BRR / 38000 muestras (~3,742 s al
+pitch de inspección 1300). El tamaño combinado de archivo y copia filtrada cabe
+en 32 KB. El pitch real depende del evento; voces de mayor prioridad pueden
+interrumpir la reproducción. El driver de audio se guarda en F0:8000 y su
+validación compara el contenido completo y las copias de reproducción.
 
 `tests/audio-long.cjs` comprueba aislamiento de las otras 75 muestras,
 recuperación, exportación/importación de paquetes, validación, historial y
@@ -319,3 +347,58 @@ El clic en la regla busca un tiempo sin modificar el recorte. Los controles de
 zoom comparten los límites de la rueda y funcionan con teclado.
 `tests/audio-transport.cjs` verifica controles, límites de búsqueda y limpieza
 del frame de animación usando también los métodos reales de `StudioEditor`.
+
+El cambio de «Audio largo inseguro» regenera explícitamente el preview tras el
+siguiente ciclo de Vue si el watcher de capacidad no lo preparó. Esto cubre
+muestras ya reubicadas cuya capacidad efectiva no cambia con el checkbox, y
+conserva la selección sin exigir mover el clip. El harness de
+`tests/audio-length-harness.cjs` ejecuta los métodos reales del editor;
+`tests/audio-long-runtime.cjs` exporta el resultado de expandir al 200 % y
+activar el checkbox sin otro evento de selección, y comprueba su duración y
+pitch en el evento nativo de Snes9x.
+
+`tests/audio-crowd-runtime.cjs` reproduce la sobrescritura del formato anterior
+con NiceDummy1 y un WAV de tres segundos, y comprueba el ambiente activo y los
+bytes residentes después de reproducir y repetir esa voz. Intercala HalfTime y
+GoodTouch y verifica la identidad de sus datos BRR en ARAM. Si se configura
+`ISSD_AUDIO_PROJECT`, importa el proyecto del usuario con su ROM USA original,
+comprueba conservación de cada parche ajeno al audio largo y de cada BRR
+archivado, entra a jugar y vence el reloj durante la voz larga para comprobar
+el evento nativo HalfTime y su pantalla de resultados. `ISSD_STATE_FRAMES`
+permite capturas libretro de estado sólo de lectura para inspeccionar ARAM y
+registros del DSP, además del PCM y las capturas habituales.
+
+### Kit drawing and selection photographs
+
+Appearance now groups match colors by hair, skin, shirt (indices 7–9), shorts
+(10–12), socks (13–14), and boots (15). Goalkeeper colors omit the transparent
+entry and use indices 7–9 for the shirt and 10–11 for shorts/socks. RGB controls
+use the SNES 0–31 channel range. `kits.mjs` follows the eight native DMA descriptors
+for each role; clothing masks use the original pose so painting or erasing does
+not remove the area from subsequent edits. Reused source pixels are propagated
+across the visible pose. Body tiles remain shared between teams and both kits.
+
+`team-photo.mjs` follows the live long table operands in `CODE_85AFA0`, including
+relocated team tables. It composes the actual selection photograph from the
+OAM frames, static VRAM uploads and the dynamic accessory cache at $7FA000 and
+$7FC000. Photo palettes and body graphics are separate from match uniforms.
+Photograph sprites and some colors remain shared; image import preserves the
+native sprite footprint and the original compressed allocations. Erasing clears
+all overlapping source layers at the edited point.
+
+`RomProject.setTeamColor` writes colors to the selected team without a repeated
+confirmation dialog. Native shared palettes use the existing 4 MiB team migration,
+which copies every team's current colors before changing the selected record.
+WC26 retains its 2 MiB layout: `private-palettes.mjs` reserves 56 128-byte records
+in verified blank space $B0E000–$B0FBFF, with a DMA dispatch at $B0FC00. Low palette
+pointers $6000–$7BFF select these records; other pointers keep the native loader.
+The allocation is rejected if that space contains unrelated hack data. Palette
+isolation, the loader, headers and ownership are validated during recovery and
+export; restoration uses the corresponding team's original record.
+
+`tests/kits.cjs` checks 24 kit poses, garment masks, 42 native photographs,
+isolation, recovery and restoration. `tests/kits-runtime.cjs`, included in
+`test:expanded-runtime`, compares native and WC26 photographs with Snes9x screen
+pixels, checks edited photograph uploads and rendered pixels, checks drawn kit
+tiles in match VRAM, and checks native/WC26 isolated colors at their actual
+palette destinations. PNG evidence is saved in `artifacts/kits-runtime/`.

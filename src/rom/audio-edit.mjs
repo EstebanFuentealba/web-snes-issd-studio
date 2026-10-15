@@ -1,3 +1,4 @@
+import {encodeBrr} from './audio-brr.mjs';
 import {audioStorage,LONG_AUDIO,canExtendAudio,longAudioPatches} from './audio-long.mjs';
 import { AUDIO_SAMPLES, decodeBrr } from './audio.mjs';
 export const STREAMED=['TitleScreenNameDrop','VictoryMusic','UnknownShout','UnknownIntroSample'];
@@ -118,23 +119,8 @@ export function normalizeAudio(samples) {
   return Int16Array.from(samples,value=>Math.sign(value)*Math.round(limit(Math.abs(value)*gain)));
 }
 
-// Filter 0 makes independent blocks, preserving fixed allocation and providing
-// deterministic quantization. It sacrifices compression quality, never memory safety.
-export function encodeBrr(samples,capacity) {
-  if(!Number.isInteger(capacity)||capacity<9||capacity%9||samples.length<1||samples.length>capacity/9*16)throw new Error(`El audio supera la capacidad de ${capacity/9*16} muestras.`);
-  const bytes=new Uint8Array(capacity);
-  for(let block=0;block<capacity/9;block++) {
-    const input=Array.from({length:16},(_,i)=>samples[block*16+i]||0);let best;
-    for(let shift=1;shift<=12;shift++) {
-      const step=2**shift,nibbles=input.map(v=>Math.max(-8,Math.min(7,Math.round(v/step))));
-      const error=nibbles.reduce((sum,v,i)=>sum+(input[i]-v*step)**2,0);
-      if(!best||error<best.error)best={shift,nibbles,error};
-    }
-    bytes[block*9]=best.shift<<4;
-    for(let i=0;i<8;i++)bytes[block*9+1+i]=((best.nibbles[i*2]&15)<<4)|(best.nibbles[i*2+1]&15);
-  }
-  bytes[capacity-9]|=1;decodeBrr(bytes);return bytes;
-}
+export {encodeBrr} from './audio-brr.mjs';
+
 export function replacementAudio(rom,sample,wav,pitch,long=false) {
   const region=audioRegion(rom,sample);if(region.reason)throw new Error(region.reason);
   const capacity=long&&region.canExtend?LONG_AUDIO.capacity:region.capacity;
@@ -147,7 +133,7 @@ export function replacementAudio(rom,sample,wav,pitch,long=false) {
   // directory uses blocks 0/200/897/2000, with a loop at block 103.
   // Keep every original end/loop marker and address while replacing PCM.
   if(region.segmented)for(let i=0;i<bytes.length;i+=9)bytes[i]=(bytes[i]&0xfc)|(region.bytes[i]&3);
-  if(useLong){const patches=longAudioPatches(rom,sample,bytes);return {patch:patches.find(p=>p.id.startsWith('audio-long:slot:')),patches,brrLength:bytes.length,samples:decodeBrr(bytes),rate};}
+  if(useLong){const patches=longAudioPatches(rom,sample,bytes),meta=patches.find(p=>p.id==='audio-long:metadata').bytes,slot=meta[8+AUDIO_SAMPLES.findIndex(s=>s.name===sample.name)*3],patch=patches.find(p=>p.id===`audio-long:slot:${slot}`),divisor=bytes.length>LONG_AUDIO.spcCapacity?2:1,playbackLength=divisor===2?Math.ceil(bytes.length/18)*9:bytes.length;return {patch,patches,brrLength:bytes.length,playbackDivisor:divisor,samples:decodeBrr(patch.bytes.slice(2,2+playbackLength)),rate:rate/divisor};}
   return {patch:{id:`audio:${region.offset}`,label:`Audio · ${sample.name}`,offset:region.offset,bytes},samples:decodeBrr(bytes,region.segmented),rate};
 }
 

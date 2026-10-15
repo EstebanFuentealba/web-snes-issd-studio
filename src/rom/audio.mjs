@@ -4,37 +4,12 @@ import { AUDIO_SAMPLES } from './audio-catalog.mjs';
 export { AUDIO_SAMPLES };
 export const DEFAULT_SAMPLE_RATE = 8000;
 
-// BRR predictor/filter arithmetic follows the SNES half-scale domain.
-// Reference: issd-native/deps/snesrecomp/runner/src/snes/dsp.c.
-export function decodeBrr(bytes, streamed = false) {
-  if (!bytes.length || bytes.length % 9) throw new Error('Muestra BRR incompleta.');
-  const samples = [];
-  let previous = 0, older = 0;
-  for (let block = 0; block < bytes.length; block += 9) {
-    const header = bytes[block], shift = header >>> 4, filter = (header >>> 2) & 3;
-    for (let n = 0; n < 16; n++) {
-      const packed = bytes[block + 1 + (n >>> 1)];
-      let value = n % 2 ? packed & 15 : packed >>> 4;
-      if (value > 7) value -= 16;
-      value = shift <= 12 ? (value << shift) >> 1 : value & ~0x7ff;
-      if (filter === 1) value += previous + (-previous >> 4);
-      if (filter === 2) value += 2 * previous + (3 * -previous >> 5) - older + (older >> 4);
-      if (filter === 3) value += 2 * previous + (13 * -previous >> 6) - older + (3 * older >> 4);
-      value = Math.max(-32768, Math.min(32767, value));
-      value = ((value & 0x7fff) << 17) >> 17;
-      older = previous; previous = value;
-      samples.push(value * 2);
-    }
-    // Preview plays once, even for samples carrying a loop flag.
-    if ((header & 1) && !streamed) return Int16Array.from(samples);
-  }
-  if (bytes[bytes.length - 9] & 1) return Int16Array.from(samples);
-  throw new Error('La muestra BRR no tiene bloque final.');
-}
+import {decodeBrr} from './audio-brr.mjs';
+export {decodeBrr};
 
-export function readAudioSample(rom, sample) {
+export function readAudioSample(rom, sample,playback=false) {
   const region=audioStorage(rom,sample);
-  const start = region.offset, end = region.extended?start+region.capacity:loRom(sample.end);
+  const start = playback&&region.extended?region.playbackOffset:region.offset, end = region.extended?start+(playback?region.playbackCapacity:region.capacity):loRom(sample.end);
   if (end > rom.length || end <= start) throw new Error('Muestra fuera de la ROM.');
   let bytes = rom.slice(start, end);
   // Five catalog ranges include three zero padding bytes after the final block.

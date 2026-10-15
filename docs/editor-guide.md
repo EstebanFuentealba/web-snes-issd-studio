@@ -41,8 +41,8 @@ The graphics selector groups all 30 native dog referee sprites into one editable
 The Pixel Art Maker edits native tiles and palettes for flags, labels, player and goalkeeper sprites, hairstyles, shirt numbers, ball graphics, logos and other screens. Import PNG, JPG, WebP, GIF or BMP images with cropping, resizing, color quantization and preview. You can preserve the original palette, flip artwork or restore resources.
 
 - Flags use 24 × 16 pixels and up to four colors; small team labels use 32 × 8 pixels.
-- Uniform-detail editing currently covers the front-facing chest tile; additional poses remain planned.
-- Uniform, goalkeeper, skin, hair and flag colors use SNES BGR555 palettes. Shared resources are marked because edits can affect multiple appearances.
+- Uniform drawing covers eight player and goalkeeper directions; shared source pixels update together.
+- Uniform, goalkeeper, skin, hair and flag colors use SNES BGR555 palettes. Team colors are isolated automatically; shared sprite artwork still affects its other uses.
 - Compressed resources must fit their storage limits. The group-title atlas has a compressed capacity of 1,850 bytes.
 
 ### Startup, title and mode screens
@@ -85,6 +85,8 @@ WAV replacement accepts 8-bit or 16-bit PCM, mono or stereo, and converts to BRR
 
 Imported clips are normalized to a common active-signal RMS level with soft peak limiting. **Normalizar audios modificados** normalizes applied replacements together, preserving playback markers and undo. Silence stays silent; in-game event volume and DSP envelopes still affect loudness.
 
+**Configuración → Quitar reverberación de los relatos** disables the game's echo send on the commentary channel in the exported ROM, including long voices. Other channels retain their echo settings. The setting supports undo and saved projects; unchecking restores the original echo behavior. It cannot remove reverb already recorded in an imported audio file. The control is unavailable for WC26 and unrecognized sound drivers.
+
 Preview does not fully emulate SNES envelopes, echo or pitch. Playback frequencies are not verified for every event; the 12 kHz inspection reference is not a universal game frequency. Sequenced music editing remains planned.
 
 ## Emulator
@@ -126,3 +128,28 @@ WC26 flags retain their own directory entries for all 56 teams, including the ei
 Gráficos now uses Pixel Art Maker for the shared player and goalkeeper sprites, relocated shirt details, shirt numbers, ball, all thirteen hair atlases, the dog referee sheet, five title portraits, main-menu font/panel/background and mode/password artwork. These resources use the same pixel ownership and palette rules as the native editor, preserve each original allocation, and support image import, restoration, undo/redo, project recovery and export. Changes to shared artwork affect all its uses; shirt-detail sharing is resolved through WC26's 56-entry directory. Applying unchanged artwork preserves the original compressed bytes. Graphics whose layout cannot be decoded are reported individually instead of hiding the whole editor. WC26's title logo and blue background follow its actual DMA sources: the base BG atlas, the trophy overwrite at VRAM $26F0 and the OAM text atlas. They preserve the original tilemaps, flips, palettes, OAM positions and compressed allocations. Large-name rewriting, intro-screen repacking and menu text rewriting still require separate WC26 storage verification.
 
 WC26 stadium editing includes 38 graphic resources, native assembled views, selector weather graphics and per-stadium miniatures. The adapter reads the stadium upload scripts for the relocated poster at `$9BFA90` and ground/walls at `$878486`; obsolete addresses contain other assets and are never written. Editing preserves the original compressed reservation across repeated changes, and supports palette edits, restoration, undo/redo and project/ROM recovery. Stadium name rewriting remains disabled for this profile.
+
+### Uniformes y foto del equipo
+
+En **Apariencia**, elige Tipo 1/local, Tipo 2/visitante o Portero. Los colores se
+editan desde una vista grande del jugador: selecciona **Camiseta**, **Pantalón**
+o **Medias**, luego un tono y el selector de color o **RGB** (0 a 31). Al cambiar
+el **Color primario**, el editor pregunta si deseas generar los demás tonos de
+la prenda, aplicar solo ese color o cancelar. La vista previa muestra los tonos
+propuestos; el conjunto se guarda y se deshace como una sola operación.
+Los colores adicionales, el dibujo por píxeles y la foto permanecen plegados
+hasta que los necesites. Cada cambio se aplica al equipo seleccionado.
+Las paletas compartidas se separan automáticamente. En ROMs nativas que necesitan
+esa separación se utiliza la expansión existente a 4 MiB; WC26 conserva 2 MiB.
+
+**Dibujar camiseta y pantalón** permite dibujar, borrar, rellenar e importar una
+imagen sobre las prendas de las ocho direcciones. Selecciona una zona para
+proteger las otras prendas y la cabeza. Pulsa **Aplicar gráfico a la ROM** para
+guardar el dibujo. Los colores son independientes por equipo; los tiles del
+cuerpo se comparten entre equipos y entre los dos uniformes.
+
+La **Foto del equipo en selección** tiene su propia vista y colores. Su botón
+abre el editor de píxeles con importación y exportación de imágenes. Los gráficos
+compartidos afectan a sus otros usos; el dibujo conserva la silueta de los sprites
+y debe caber en el espacio comprimido original. El fondo del estadio es otro
+recurso y no se reemplaza con esta foto.

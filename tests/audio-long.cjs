@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 global.crypto ||= require('node:crypto').webcrypto;
 (async()=>{
- const {RomProject}=await import('../src/rom/project.mjs'),{AUDIO_SAMPLES,readAudioSample}=await import('../src/rom/audio.mjs'),{audioRegion,replacementAudio,normalizedAudioPatches}=await import('../src/rom/audio-edit.mjs'),{LONG_AUDIO,restoreLongAudioPatches}=await import('../src/rom/audio-long.mjs'),{createAudioPack,audioPackPatches}=await import('../src/rom/audio-pack.mjs');
+ const {RomProject}=await import('../src/rom/project.mjs'),{AUDIO_SAMPLES,readAudioSample}=await import('../src/rom/audio.mjs'),{audioRegion,replacementAudio,normalizedAudioPatches,pitchRate}=await import('../src/rom/audio-edit.mjs'),{LONG_AUDIO,restoreLongAudioPatches}=await import('../src/rom/audio-long.mjs'),{createAudioPack,audioPackPatches}=await import('../src/rom/audio-pack.mjs');
  const input=new Uint8Array(fs.readFileSync(path.join(__dirname,'../roms/International Superstar Soccer Deluxe (USA).sfc'))),sample=AUDIO_SAMPLES.find(s=>s.name==='PastThePost2');
  const wav={samples:Int16Array.from({length:48000},(_,i)=>Math.round(12000*Math.sin(i/12))),sampleRate:24000},project=await RomProject.create(input);
  assert.throws(()=>replacementAudio(project.bytes(),sample,wav,1300),/Duración máxima/);
@@ -33,5 +33,29 @@ global.crypto ||= require('node:crypto').webcrypto;
  assert.deepEqual(audioRegion(sparseReopened.bytes(),sample).bytes,audioRegion(sparse.bytes(),sample).bytes);
  const smc=new Uint8Array(sparseExport.length+512);smc.set(sparseExport,512);assert.equal(openRom(smc).headerSize,512);
  const wrongRegion=sparseExport.slice();wrongRegion[0x7fd9]=2;assert.throws(()=>openRom(wrongRegion),/compatible/);
+ // Expanding a clip can invalidate its preview before enabling the larger
+ // allocation. The checkbox must rebuild it without a second range event.
+ const createAudioLengthHarness=require('./audio-length-harness.cjs');
+ const range={start:.05,end:1.05,stretch:1.9,offset:.1,fadeIn:.05,fadeOut:.08,fadeInCurve:2,fadeOutCurve:.5},rangeCopy={...range},wavCopy=wav.samples.slice();
+ const editor=await createAudioLengthHarness({rom:input,sample,wav,range});
+ editor.prepareAudioTrim(range);assert.equal(editor.audioReplacement,null);
+ editor.audioLong=true;await editor.changeAudioLength();
+ assert.ok(editor.audioReplacement?.patches,'Checking long audio must prepare the expanded clip immediately');assert.ok(editor.audioUrl);assert.equal(editor.audioPreviewIsTrim,true);
+ assert.deepEqual(editor.audioRange,rangeCopy);assert.deepEqual(wav.samples,wavCopy);
+ const expandedProject=await RomProject.create(input);
+ const fullBank=replacementAudio(input,sample,{samples:new Int16Array(LONG_AUDIO.capacity/9*16).fill(10000),sampleRate:pitchRate(1300)},1300,true);expandedProject.transaction(fullBank.patches);
+ const fullRegion=audioRegion(expandedProject.bytes(),sample);
+ assert.equal(fullRegion.playbackDivisor,2);assert.ok(fullRegion.playbackCapacity<=LONG_AUDIO.spcCapacity);
+ assert.deepEqual(fullRegion.bytes,fullBank.patch.bytes.slice(2+fullRegion.playbackCapacity,2+fullRegion.playbackCapacity+fullRegion.capacity),'Keep original BRR behind the bounded playback copy');
+ assert.equal(readAudioSample(expandedProject.bytes(),sample,true).length,fullRegion.playbackCapacity/9*16);
+ const brokenPlayback=fullBank.patch.bytes.slice();brokenPlayback[3]^=1;
+ assert.throws(()=>expandedProject.transaction([{...fullBank.patch,bytes:brokenPlayback}]),/reproducción segura/);
+ const archivedPack=createAudioPack(expandedProject.bytes()),archivedReceiving=await RomProject.create(input);
+ archivedReceiving.transaction(audioPackPatches(archivedReceiving.bytes(),archivedPack));assert.deepEqual(archivedReceiving.exportRom(),expandedProject.exportRom());
+ const extended=await createAudioLengthHarness({rom:expandedProject.bytes(),sample,wav,range});
+ const capacity=extended.audioCapacitySeconds;extended.prepareAudioTrim(range);assert.ok(extended.audioReplacement);
+ extended.audioLong=true;await extended.changeAudioLength();assert.equal(extended.audioCapacitySeconds,capacity);
+ assert.ok(extended.audioReplacement,'Checkbox refresh must also work when capacity is already identical');assert.deepEqual(extended.audioRange,rangeCopy);
+ editor.audioLong=false;await editor.changeAudioLength();assert.equal(editor.audioReplacement,null);assert.equal(editor.audioUrl,'');assert.deepEqual(editor.audioRange,rangeCopy);
  console.log('PASS long audio: relocation, neighboring voices, capacity limits, malformed pointers, native/v2 packs, project recovery, reopening, undo/redo, normalization, restoration and expanded-team composition');
 })().catch(e=>{console.error(e);process.exitCode=1;});
