@@ -1,4 +1,5 @@
 {
+  "Lista de pistas": {"es":"Lista de pistas","en":"Tracklist","pt":"Lista de faixas"},
   "% de capacidad": {
     "es": "% de capacidad",
     "en": "% of capacity",
@@ -1351,8 +1352,8 @@
   },
   "Pegar": {
     "es": "Pegar",
-    "en": "Paste",
-    "pt": "Colar"
+    "pt": "Colar",
+    "en": "Paste"
   },
   "Pelo": {
     "es": "Pelo",
@@ -1886,8 +1887,8 @@
   },
   "Zoom": {
     "es": "Zoom",
-    "en": "Zoom",
-    "pt": "Zoom"
+    "pt": "Zoom",
+    "en": "Zoom"
   },
   "bytes BRR disponibles ·": {
     "es": "bytes BRR disponibles ·",
@@ -4331,8 +4332,8 @@
   },
   "Vista": {
     "es": "Vista",
-    "en": "View",
-    "pt": "Vista"
+    "pt": "Vista",
+    "en": "View"
   },
   "Este recurso compartido se muestra en un estadio donde aparece durante el partido.": {
     "es": "Este recurso compartido se muestra en un estadio donde aparece durante el partido.",
@@ -5626,8 +5627,8 @@
   },
   "Seleccionar": {
     "es": "Seleccionar",
-    "en": "Select",
-    "pt": "Selecionar"
+    "pt": "Selecionar",
+    "en": "Select"
   },
   "Uniforme": {
     "es": "Uniforme",
@@ -5648,5 +5649,880 @@
     "es": "Esta ROM no admite el ajuste de reverberación de los relatos.",
     "en": "This ROM does not support commentary reverb adjustment.",
     "pt": "Esta ROM não permite ajustar a reverberação da narração."
+  },
+  "1/16 beat": {
+    "es": "1/16 beat",
+    "pt": "1/16 beat",
+    "en": "1/16 beat"
+  },
+  "1/2 beat": {
+    "es": "1/2 beat",
+    "pt": "1/2 beat",
+    "en": "1/2 beat"
+  },
+  "1/4 beat": {
+    "es": "1/4 beat",
+    "pt": "1/4 beat",
+    "en": "1/4 beat"
+  },
+  "1/8 beat": {
+    "es": "1/8 beat",
+    "pt": "1/8 beat",
+    "en": "1/8 beat"
+  },
+  "Abrir Piano Roll": {
+    "es": "Abrir Piano Roll",
+    "pt": "Abrir Piano Roll",
+    "en": "Open Piano Roll"
+  },
+  "Acercar": {
+    "es": "Acercar",
+    "pt": "Aproximar",
+    "en": "Zoom in"
+  },
+  "Alejar": {
+    "es": "Alejar",
+    "pt": "Afastar",
+    "en": "Zoom out"
+  },
+  "Altura del Piano Roll": {
+    "es": "Altura del Piano Roll",
+    "pt": "Altura do Piano Roll",
+    "en": "Piano Roll height"
+  },
+  "Aplicar música a la ROM": {
+    "es": "Aplicar música a la ROM",
+    "pt": "Aplicar música à ROM",
+    "en": "Apply music to ROM"
+  },
+  "Archivo SPC inválido.": {
+    "es": "Archivo SPC inválido.",
+    "pt": "Arquivo SPC inválido.",
+    "en": "Invalid SPC file."
+  },
+  "Banco de instrumentos no compatible.": {
+    "es": "Banco de instrumentos no compatible.",
+    "pt": "Banco de instrumentos incompatível.",
+    "en": "Unsupported instrument bank."
+  },
+  "Beat": {
+    "es": "Beat",
+    "pt": "Beat",
+    "en": "Beat"
+  },
+  "Bucle musical con variación no compatible.": {
+    "es": "Bucle musical con variación no compatible.",
+    "pt": "Loop musical com variação incompatível.",
+    "en": "Music loop with variations is not supported."
+  },
+  "Bucle musical condicional no compatible.": {
+    "es": "Bucle musical condicional no compatible.",
+    "pt": "Loop musical condicional incompatível.",
+    "en": "Conditional music loop is not supported."
+  },
+  "Bucle musical inválido.": {
+    "es": "Bucle musical inválido.",
+    "pt": "Loop musical inválido.",
+    "en": "Invalid music loop."
+  },
+  "Cada canal SPC700 admite una sola nota simultánea.": {
+    "es": "Cada canal SPC700 admite una sola nota simultánea.",
+    "pt": "Cada canal SPC700 aceita apenas uma nota por vez.",
+    "en": "Each SPC700 channel supports one simultaneous note."
+  },
+  "Cambiar duración de la región": {
+    "es": "Cambiar duración de la región",
+    "pt": "Alterar duração da região",
+    "en": "Resize region"
+  },
+  "Canal": {
+    "es": "Canal",
+    "pt": "Canal",
+    "en": "Channel"
+  },
+  "Canales SPC700": {
+    "es": "Canales SPC700",
+    "pt": "Canais SPC700",
+    "en": "SPC700 channels"
+  },
+  "Canción": {
+    "es": "Canción",
+    "pt": "Música",
+    "en": "Song"
+  },
+  "Canción SPC no compatible.": {
+    "es": "Canción SPC no compatible.",
+    "pt": "Música SPC incompatível.",
+    "en": "Unsupported SPC song."
+  },
+  "Cerrar Piano Roll": {
+    "es": "Cerrar Piano Roll",
+    "pt": "Fechar Piano Roll",
+    "en": "Close Piano Roll"
+  },
+  "Comando musical no compatible.": {
+    "es": "Comando musical no compatible.",
+    "pt": "Comando musical incompatível.",
+    "en": "Unsupported music command."
+  },
+  "Compás": {
+    "es": "Compás",
+    "pt": "Compasso",
+    "en": "Bar"
+  },
+  "Copiar": {
+    "es": "Copiar",
+    "pt": "Copiar",
+    "en": "Copy"
+  },
+  "Cortar": {
+    "es": "Cortar",
+    "pt": "Recortar",
+    "en": "Cut"
+  },
+  "Cursor de edición": {
+    "es": "Cursor de edición",
+    "pt": "Cursor de edição",
+    "en": "Edit cursor"
+  },
+  "Cursor de edición; reproducción SPC no disponible en este panel.": {
+    "es": "Cursor de edición; reproducción SPC no disponible en este panel.",
+    "pt": "Cursor de edição; reprodução SPC indisponível neste painel.",
+    "en": "Edit cursor; SPC playback is unavailable in this panel."
+  },
+  "Deshacer": {
+    "es": "Deshacer",
+    "pt": "Desfazer",
+    "en": "Undo"
+  },
+  "Deshacer edición musical": {
+    "es": "Deshacer edición musical",
+    "pt": "Desfazer edição musical",
+    "en": "Undo music edit"
+  },
+  "Desplazar línea de tiempo": {
+    "es": "Desplazar línea de tiempo",
+    "pt": "Deslocar linha do tempo",
+    "en": "Pan timeline"
+  },
+  "Dibujar notas": {
+    "es": "Dibujar notas",
+    "pt": "Desenhar notas",
+    "en": "Draw notes"
+  },
+  "Doble clic para abrir; arrastra para mover la región.": {
+    "es": "Doble clic para abrir; arrastra para mover la región.",
+    "pt": "Clique duas vezes para abrir; arraste para mover a região.",
+    "en": "Double-click to open; drag to move the region."
+  },
+  "Driver musical no compatible.": {
+    "es": "Driver musical no compatible.",
+    "pt": "Driver musical incompatível.",
+    "en": "Unsupported music driver."
+  },
+  "Duplicar": {
+    "es": "Duplicar",
+    "pt": "Duplicar",
+    "en": "Duplicate"
+  },
+  "Duración en ticks": {
+    "es": "Duración en ticks",
+    "pt": "Duração em ticks",
+    "en": "Duration in ticks"
+  },
+  "Duración musical inválida.": {
+    "es": "Duración musical inválida.",
+    "pt": "Duração musical inválida.",
+    "en": "Invalid music duration."
+  },
+  "Edita notas en el piano roll. Los patrones compartidos cambian en todas sus repeticiones. Se muestra un ciclo de los bucles infinitos.": {
+    "es": "Edita notas en el piano roll. Los patrones compartidos cambian en todas sus repeticiones. Se muestra un ciclo de los bucles infinitos.",
+    "pt": "Edite notas no piano roll. Padrões compartilhados mudam em todas as repetições. Um ciclo dos loops infinitos é mostrado.",
+    "en": "Edit notes in the piano roll. Shared patterns change in all their repetitions. One cycle of infinite loops is shown."
+  },
+  "El MIDI supera los canales disponibles de esta canción.": {
+    "es": "El MIDI supera los canales disponibles de esta canción.",
+    "pt": "O MIDI excede os canais disponíveis nesta música.",
+    "en": "MIDI exceeds the available channels in this song."
+  },
+  "El SPC supera los canales disponibles de esta canción.": {
+    "es": "El SPC supera los canales disponibles de esta canción.",
+    "pt": "O SPC excede os canais disponíveis nesta música.",
+    "en": "SPC exceeds the available channels in this song."
+  },
+  "El SPC usa otro driver musical.": {
+    "es": "El SPC usa otro driver musical.",
+    "pt": "O SPC usa outro driver musical.",
+    "en": "The SPC uses a different music driver."
+  },
+  "El archivo musical supera el límite de 2 MB.": {
+    "es": "El archivo musical supera el límite de 2 MB.",
+    "pt": "O arquivo musical excede o limite de 2 MB.",
+    "en": "Music file exceeds the 2 MB limit."
+  },
+  "El número de canales no coincide con el evento musical nativo.": {
+    "es": "El número de canales no coincide con el evento musical nativo.",
+    "pt": "O número de canais não corresponde ao evento musical nativo.",
+    "en": "The channel count does not match the native music event."
+  },
+  "El piano indica alturas; la escucha se realiza en Emulador.": {
+    "es": "El piano indica alturas; la escucha se realiza en Emulador.",
+    "pt": "O piano indica alturas; ouça no Emulador.",
+    "en": "The piano indicates pitches; listen in Emulator."
+  },
+  "El portapapeles musical está vacío.": {
+    "es": "El portapapeles musical está vacío.",
+    "pt": "A área de transferência musical está vazia.",
+    "en": "The music clipboard is empty."
+  },
+  "Eliminar": {
+    "es": "Eliminar",
+    "pt": "Excluir",
+    "en": "Delete"
+  },
+  "Eliminar nota": {
+    "es": "Eliminar nota",
+    "pt": "Excluir nota",
+    "en": "Delete note"
+  },
+  "Escucha los cambios aplicados en Emulador. La exportación SPC incluye un arranque independiente; el piano roll no emula el DSP.": {
+    "es": "Escucha los cambios aplicados en Emulador. La exportación SPC incluye un arranque independiente; el piano roll no emula el DSP.",
+    "pt": "Ouça as alterações aplicadas no Emulador. A exportação SPC inclui inicialização independente; o piano roll não emula o DSP.",
+    "en": "Listen to applied changes in Emulator. SPC export includes standalone initialization; the piano roll does not emulate the DSP."
+  },
+  "Escuchar en Emulador": {
+    "es": "Escuchar en Emulador",
+    "pt": "Ouvir no Emulador",
+    "en": "Listen in Emulator"
+  },
+  "Esta nota hereda la duración de un evento anterior.": {
+    "es": "Esta nota hereda la duración de un evento anterior.",
+    "pt": "Esta nota herda a duração de um evento anterior.",
+    "en": "This note inherits its length from a previous event."
+  },
+  "Estructura nativa protegida": {
+    "es": "Estructura nativa protegida",
+    "pt": "Estrutura nativa protegida",
+    "en": "Protected native structure"
+  },
+  "Estudio musical": {
+    "es": "Estudio musical",
+    "pt": "Estúdio musical",
+    "en": "Music studio"
+  },
+  "Exportar MIDI": {
+    "es": "Exportar MIDI",
+    "pt": "Exportar MIDI",
+    "en": "Export MIDI"
+  },
+  "Exportar SPC": {
+    "es": "Exportar SPC",
+    "pt": "Exportar SPC",
+    "en": "Export SPC"
+  },
+  "Formato y límites": {
+    "es": "Formato y límites",
+    "pt": "Formato e limites",
+    "en": "Format and limits"
+  },
+  "Herramientas musicales": {
+    "es": "Herramientas musicales",
+    "pt": "Ferramentas musicais",
+    "en": "Music tools"
+  },
+  "Importar MIDI o SPC": {
+    "es": "Importar MIDI o SPC",
+    "pt": "Importar MIDI ou SPC",
+    "en": "Import MIDI or SPC"
+  },
+  "Instrumento": {
+    "es": "Instrumento",
+    "pt": "Instrumento",
+    "en": "Instrument"
+  },
+  "La canción supera su espacio original en la ROM.": {
+    "es": "La canción supera su espacio original en la ROM.",
+    "pt": "A música excede o espaço original na ROM.",
+    "en": "The song exceeds its original ROM allocation."
+  },
+  "La previsualización de Samples reproduce BRR; no ejecuta secuencias SPC700. Aplica la música y escúchala en Emulador.": {
+    "es": "La previsualización de Samples reproduce BRR; no ejecuta secuencias SPC700. Aplica la música y escúchala en Emulador.",
+    "pt": "A prévia de Samples reproduz BRR; não executa sequências SPC700. Aplique a música e ouça no Emulador.",
+    "en": "Samples preview plays BRR; it does not run SPC700 sequences. Apply music and listen in Emulator."
+  },
+  "La secuencia musical excede el límite de eventos.": {
+    "es": "La secuencia musical excede el límite de eventos.",
+    "pt": "A sequência excede o limite de eventos.",
+    "en": "Music sequence exceeds the event limit."
+  },
+  "Los patrones nativos comparten comandos y efectos. Mover, agregar o eliminar eventos requiere una secuencia simple; se conservan los bytes originales.": {
+    "es": "Los patrones nativos comparten comandos y efectos. Mover, agregar o eliminar eventos requiere una secuencia simple; se conservan los bytes originales.",
+    "pt": "Os padrões nativos compartilham comandos e efeitos. Mover, adicionar ou excluir eventos exige uma sequência simples; os bytes originais são preservados.",
+    "en": "Native patterns share commands and effects. Moving, adding or deleting events requires a simple sequence; original bytes are preserved."
+  },
+  "MIDI no compatible: usa formato 0/1, tempo constante y notas sin superposición por canal.": {
+    "es": "MIDI no compatible: usa formato 0/1, tempo constante y notas sin superposición por canal.",
+    "pt": "MIDI incompatível: use formato 0/1, tempo constante e notas sem sobreposição por canal.",
+    "en": "Unsupported MIDI: use format 0/1, constant tempo and no overlapping notes per channel."
+  },
+  "MIDI: tempo constante, una nota simultánea por canal y notas de hasta 255 ticks. Los programas MIDI deben corresponder a instrumentos de ISSD. La conversión conserva notas y velocidad; no importa efectos MIDI.": {
+    "es": "MIDI: tempo constante, una nota simultánea por canal y notas de hasta 255 ticks. Los programas MIDI deben corresponder a instrumentos de ISSD. La conversión conserva notas y velocidad; no importa efectos MIDI.",
+    "pt": "MIDI: tempo constante, uma nota por canal e notas de até 255 ticks. Os programas MIDI devem corresponder aos instrumentos de ISSD. A conversão mantém notas e velocidade; não importa efeitos MIDI.",
+    "en": "MIDI: constant tempo, one simultaneous note per channel and notes up to 255 ticks. MIDI programs must match ISSD instruments. Conversion keeps notes and velocity; MIDI effects are not imported."
+  },
+  "Maximizar Piano Roll": {
+    "es": "Maximizar Piano Roll",
+    "pt": "Maximizar Piano Roll",
+    "en": "Maximize Piano Roll"
+  },
+  "Música": {
+    "es": "Música",
+    "pt": "Música",
+    "en": "Music"
+  },
+  "Música · SPC700": {
+    "es": "Música · SPC700",
+    "pt": "Música · SPC700",
+    "en": "Music · SPC700"
+  },
+  "Navegar por la canción": {
+    "es": "Navegar por la canción",
+    "pt": "Navegar pela música",
+    "en": "Navigate song"
+  },
+  "No se pudo iniciar el motor SPC700.": {
+    "es": "No se pudo iniciar el motor SPC700.",
+    "en": "Could not start the SPC700 engine.",
+    "pt": "Não foi possível iniciar o motor SPC700."
+  },
+  "Nota": {
+    "es": "Nota",
+    "pt": "Nota",
+    "en": "Note"
+  },
+  "Nota MIDI fuera de rango.": {
+    "es": "Nota MIDI fuera de rango.",
+    "pt": "Nota MIDI fora do intervalo.",
+    "en": "MIDI note out of range."
+  },
+  "Notas": {
+    "es": "Notas",
+    "pt": "Notas",
+    "en": "Notes"
+  },
+  "Nueva secuencia": {
+    "es": "Nueva secuencia",
+    "pt": "Nova sequência",
+    "en": "New sequence"
+  },
+  "Operación musical no compatible.": {
+    "es": "Operación musical no compatible.",
+    "pt": "Operação musical incompatível.",
+    "en": "Unsupported music operation."
+  },
+  "Piano Roll": {
+    "es": "Piano Roll",
+    "pt": "Piano Roll",
+    "en": "Piano Roll"
+  },
+  "Piano roll SPC700": {
+    "es": "Piano roll SPC700",
+    "pt": "Piano roll SPC700",
+    "en": "SPC700 piano roll"
+  },
+  "Playlist multitrack": {
+    "es": "Playlist multitrack",
+    "pt": "Playlist multifaixa",
+    "en": "Multitrack playlist"
+  },
+  "Posición temporal": {
+    "es": "Posición temporal",
+    "pt": "Posição temporal",
+    "en": "Timeline position"
+  },
+  "Preparando reproducción SPC…": {
+    "es": "Preparando reproducción SPC…",
+    "en": "Preparing SPC playback…",
+    "pt": "Preparando reprodução SPC…"
+  },
+  "Previsualización SPC con los cambios pendientes.": {
+    "es": "Previsualización SPC con los cambios pendientes.",
+    "en": "SPC preview includes pending edits.",
+    "pt": "A prévia SPC inclui as alterações pendentes."
+  },
+  "Puntero musical fuera del bloque.": {
+    "es": "Puntero musical fuera del bloque.",
+    "pt": "Ponteiro musical fora do bloco.",
+    "en": "Music pointer outside the block."
+  },
+  "Recurso musical no compatible.": {
+    "es": "Recurso musical no compatible.",
+    "pt": "Recurso musical incompatível.",
+    "en": "Unsupported music resource."
+  },
+  "Regiones visuales de hasta cuatro compases, derivadas de las notas. Shift permite selección múltiple; doble clic abre el Piano Roll. Ctrl/⌘ + rueda ajusta el zoom; Shift + rueda desplaza el tiempo.": {
+    "es": "Regiones visuales de hasta cuatro compases, derivadas de las notas. Shift permite selección múltiple; doble clic abre el Piano Roll. Ctrl/⌘ + rueda ajusta el zoom; Shift + rueda desplaza el tiempo.",
+    "pt": "Regiões visuais de até quatro compassos, derivadas das notas. Shift permite seleção múltipla; clique duplo abre o Piano Roll. Ctrl/⌘ + roda ajusta o zoom; Shift + roda desloca o tempo.",
+    "en": "Visual regions of up to four bars, derived from notes. Shift enables multiple selection; double-click opens Piano Roll. Ctrl/⌘ + wheel zooms; Shift + wheel pans."
+  },
+  "Región": {
+    "es": "Región",
+    "pt": "Região",
+    "en": "Region"
+  },
+  "Región nativa: doble clic para editar notas; estructura protegida.": {
+    "es": "Región nativa: doble clic para editar notas; estructura protegida.",
+    "pt": "Região nativa: clique duas vezes para editar notas; estrutura protegida.",
+    "en": "Native region: double-click to edit notes; structure protected."
+  },
+  "Rehacer": {
+    "es": "Rehacer",
+    "pt": "Refazer",
+    "en": "Redo"
+  },
+  "Rehacer edición musical": {
+    "es": "Rehacer edición musical",
+    "pt": "Refazer edição musical",
+    "en": "Redo music edit"
+  },
+  "Reproduciendo SPC700": {
+    "es": "Reproduciendo SPC700",
+    "en": "Playing SPC700",
+    "pt": "Reproduzindo SPC700"
+  },
+  "Restaurar canción": {
+    "es": "Restaurar canción",
+    "pt": "Restaurar música",
+    "en": "Restore song"
+  },
+  "Restaurar panel": {
+    "es": "Restaurar panel",
+    "pt": "Restaurar painel",
+    "en": "Restore panel"
+  },
+  "SPC: admite el driver de ISSD; importa solo la secuencia, conservando los instrumentos y el código de la ROM de destino.": {
+    "es": "SPC: admite el driver de ISSD; importa solo la secuencia, conservando los instrumentos y el código de la ROM de destino.",
+    "pt": "SPC: aceita o driver de ISSD; importa apenas a sequência, mantendo instrumentos e código da ROM de destino.",
+    "en": "SPC: supports the ISSD driver; imports only the sequence, retaining the destination ROM instruments and code."
+  },
+  "Samples": {
+    "es": "Samples",
+    "pt": "Samples",
+    "en": "Samples"
+  },
+  "Secuencia SPC inválida.": {
+    "es": "Secuencia SPC inválida.",
+    "pt": "Sequência SPC inválida.",
+    "en": "Invalid SPC sequence."
+  },
+  "Secuencia musical inválida.": {
+    "es": "Secuencia musical inválida.",
+    "pt": "Sequência musical inválida.",
+    "en": "Invalid music sequence."
+  },
+  "Secuencia simple": {
+    "es": "Secuencia simple",
+    "pt": "Sequência simples",
+    "en": "Simple sequence"
+  },
+  "Selecciona notas o regiones.": {
+    "es": "Selecciona notas o regiones.",
+    "pt": "Selecione notas ou regiões.",
+    "en": "Select notes or regions."
+  },
+  "Selecciona una nota y usa ↑ / ↓ para cambiar el tono. En una secuencia nueva, pulsa la cuadrícula para agregar notas.": {
+    "es": "Selecciona una nota y usa ↑ / ↓ para cambiar el tono. En una secuencia nueva, pulsa la cuadrícula para agregar notas.",
+    "pt": "Selecione uma nota e use ↑ / ↓ para mudar o tom. Em uma nova sequência, clique na grade para adicionar notas.",
+    "en": "Select a note and use ↑ / ↓ to change pitch. In a new sequence, click the grid to add notes."
+  },
+  "Selección musical inválida.": {
+    "es": "Selección musical inválida.",
+    "pt": "Seleção musical inválida.",
+    "en": "Invalid music selection."
+  },
+  "Sin ajuste (1 tick)": {
+    "es": "Sin ajuste (1 tick)",
+    "pt": "Sem ajuste (1 tick)",
+    "en": "No snap (1 tick)"
+  },
+  "Snap": {
+    "es": "Snap",
+    "pt": "Snap",
+    "en": "Snap"
+  },
+  "Song Navigator": {
+    "es": "Song Navigator",
+    "pt": "Song Navigator",
+    "en": "Song Navigator"
+  },
+  "Subrutina musical anidada no compatible.": {
+    "es": "Subrutina musical anidada no compatible.",
+    "pt": "Sub-rotina musical aninhada incompatível.",
+    "en": "Nested music subroutine is not supported."
+  },
+  "Tempo nativo": {
+    "es": "Tempo nativo",
+    "pt": "Tempo nativo",
+    "en": "Native tempo"
+  },
+  "Tiempo MIDI fuera de rango.": {
+    "es": "Tiempo MIDI fuera de rango.",
+    "pt": "Tempo MIDI fora do intervalo.",
+    "en": "MIDI time out of range."
+  },
+  "Valor musical fuera de rango.": {
+    "es": "Valor musical fuera de rango.",
+    "pt": "Valor musical fora do intervalo.",
+    "en": "Music value out of range."
+  },
+  "Velocidad": {
+    "es": "Velocidad",
+    "pt": "Velocidade",
+    "en": "Velocity"
+  },
+  "Ver canción completa": {
+    "es": "Ver canción completa",
+    "pt": "Ver música completa",
+    "en": "Fit song"
+  },
+  "Zoom horizontal": {
+    "es": "Zoom horizontal",
+    "pt": "Zoom horizontal",
+    "en": "Horizontal zoom"
+  },
+  "Zoom vertical": {
+    "es": "Zoom vertical",
+    "pt": "Zoom vertical",
+    "en": "Vertical zoom"
+  },
+  "bytes comprimidos": {
+    "es": "bytes comprimidos",
+    "pt": "bytes comprimidos",
+    "en": "compressed bytes"
+  },
+  "canales": {
+    "es": "canales",
+    "pt": "canais",
+    "en": "channels"
+  },
+  "compases": {
+    "es": "compases",
+    "pt": "compassos",
+    "en": "bars"
+  },
+  "de referencia": {
+    "es": "de referencia",
+    "pt": "de referência",
+    "en": "reference"
+  },
+  "notas seleccionadas": {
+    "es": "notas seleccionadas",
+    "pt": "notas selecionadas",
+    "en": "selected notes"
+  },
+  "ticks por pulso": {
+    "es": "ticks por pulso",
+    "pt": "ticks por pulso",
+    "en": "ticks per beat"
+  },
+  "¿Descartar los cambios musicales pendientes?": {
+    "es": "¿Descartar los cambios musicales pendientes?",
+    "pt": "Descartar alterações musicais pendentes?",
+    "en": "Discard pending music changes?"
+  },
+  "Solo": {
+    "es": "Solo",
+    "en": "Solo",
+    "pt": "Solo"
+  },
+  "Escuchar solo este canal": {
+    "es": "Escuchar solo este canal",
+    "en": "Listen to this channel only",
+    "pt": "Ouvir apenas este canal"
+  },
+  "Escuchar todos los canales": {
+    "es": "Escuchar todos los canales",
+    "en": "Listen to all channels",
+    "pt": "Ouvir todos os canais"
+  },
+  "Preparar MIDI para SPC700": {
+    "es": "Preparar MIDI para SPC700",
+    "en": "Prepare MIDI for SPC700",
+    "pt": "Preparar MIDI para SPC700"
+  },
+  "Elige el fragmento y las voces antes de importar. El archivo original se conserva completo.": {
+    "es": "Elige el fragmento y las voces antes de importar. El archivo original se conserva completo.",
+    "en": "Choose the passage and voices before importing. The original file stays intact.",
+    "pt": "Escolha o trecho e as vozes antes de importar. O arquivo original permanece completo."
+  },
+  "Compás inicial": {
+    "es": "Compás inicial",
+    "en": "Starting bar",
+    "pt": "Compasso inicial"
+  },
+  "Compases a importar": {
+    "es": "Compases a importar",
+    "en": "Bars to import",
+    "pt": "Compassos a importar"
+  },
+  "Voces utilizadas": {
+    "es": "Voces utilizadas",
+    "en": "Voices used",
+    "pt": "Vozes utilizadas"
+  },
+  "Polifonía máxima": {
+    "es": "Polifonía máxima",
+    "en": "Peak polyphony",
+    "pt": "Polifonia máxima"
+  },
+  "Voces": {
+    "es": "Voces",
+    "en": "Voices",
+    "pt": "Vozes"
+  },
+  "Instrumento SNES": {
+    "es": "Instrumento SNES",
+    "en": "SNES instrument",
+    "pt": "Instrumento SNES"
+  },
+  "Los acordes se reparten entre voces monofónicas. Las notas que exceden las voces elegidas se omiten. Los instrumentos MIDI se sustituyen por los instrumentos SNES seleccionados.": {
+    "es": "Los acordes se reparten entre voces monofónicas. Las notas que exceden las voces elegidas se omiten. Los instrumentos MIDI se sustituyen por los instrumentos SNES seleccionados.",
+    "en": "Chords are split across monophonic voices. Notes exceeding the selected voice budget are omitted. MIDI instruments are replaced by the selected SNES instruments.",
+    "pt": "Os acordes são divididos entre vozes monofônicas. Notas que excedem as vozes escolhidas são omitidas. Os instrumentos MIDI são substituídos pelos instrumentos SNES selecionados."
+  },
+  "Notas del fragmento": {
+    "es": "Notas del fragmento",
+    "en": "Passage notes",
+    "pt": "Notas do trecho"
+  },
+  "Notas omitidas": {
+    "es": "Notas omitidas",
+    "en": "Notes omitted",
+    "pt": "Notas omitidas"
+  },
+  "Notas largas divididas": {
+    "es": "Notas largas divididas",
+    "en": "Long notes split",
+    "pt": "Notas longas divididas"
+  },
+  "Notas transpuestas por rango": {
+    "es": "Notas transpuestas por rango",
+    "en": "Notes transposed to fit range",
+    "pt": "Notas transpostas para caber no alcance"
+  },
+  "Espacio comprimido": {
+    "es": "Espacio comprimido",
+    "en": "Compressed size",
+    "pt": "Espaço comprimido"
+  },
+  "Controles o efectos MIDI no importados": {
+    "es": "Controles o efectos MIDI no importados",
+    "en": "MIDI controls or effects not imported",
+    "pt": "Controles ou efeitos MIDI não importados"
+  },
+  "Los cambios de tempo se convierten a posiciones con tempo constante.": {
+    "es": "Los cambios de tempo se convierten a posiciones con tempo constante.",
+    "en": "Tempo changes are converted to positions at a constant tempo.",
+    "pt": "As mudanças de andamento são convertidas em posições com andamento constante."
+  },
+  "Notas con cierre reparado": {
+    "es": "Notas con cierre reparado",
+    "en": "Notes with repaired endings",
+    "pt": "Notas com finais corrigidos"
+  },
+  "Importar fragmento al borrador": {
+    "es": "Importar fragmento al borrador",
+    "en": "Import passage into draft",
+    "pt": "Importar trecho para o rascunho"
+  },
+  "Instrumentos MIDI sustituidos por instrumentos SNES.": {
+    "es": "Instrumentos MIDI sustituidos por instrumentos SNES.",
+    "en": "MIDI instruments replaced by SNES instruments.",
+    "pt": "Instrumentos MIDI substituídos por instrumentos SNES."
+  },
+  "MIDI: prepara un fragmento, reparte los acordes entre voces y elige instrumentos SNES. Revisa las notas omitidas y el presupuesto antes de importar. Los efectos MIDI no se conservan.": {
+    "es": "MIDI: prepara un fragmento, reparte los acordes entre voces y elige instrumentos SNES. Revisa las notas omitidas y el presupuesto antes de importar. Los efectos MIDI no se conservan.",
+    "en": "MIDI: prepare a passage, split chords across voices and choose SNES instruments. Review omitted notes and storage before importing. MIDI effects are not preserved.",
+    "pt": "MIDI: prepare um trecho, divida os acordes entre vozes e escolha instrumentos SNES. Confira as notas omitidas e o espaço antes de importar. Os efeitos MIDI não são preservados."
+  },
+  "Archivo MIDI inválido o truncado.": {
+    "es": "Archivo MIDI inválido o truncado.",
+    "en": "Invalid or truncated MIDI file.",
+    "pt": "Arquivo MIDI inválido ou truncado."
+  },
+  "MIDI no compatible: usa formato 0/1 con división métrica.": {
+    "es": "MIDI no compatible: usa formato 0/1 con división métrica.",
+    "en": "Unsupported MIDI: use format 0/1 with metrical division.",
+    "pt": "MIDI não compatível: use formato 0/1 com divisão métrica."
+  },
+  "El MIDI no contiene notas.": {
+    "es": "El MIDI no contiene notas.",
+    "en": "The MIDI contains no notes.",
+    "pt": "O MIDI não contém notas."
+  },
+  "La distribución de voces supera los canales disponibles.": {
+    "es": "La distribución de voces supera los canales disponibles.",
+    "en": "The voice allocation exceeds the available channels.",
+    "pt": "A distribuição de vozes excede os canais disponíveis."
+  },
+  "El fragmento elegido no contiene notas.": {
+    "es": "El fragmento elegido no contiene notas.",
+    "en": "The selected passage contains no notes.",
+    "pt": "O trecho escolhido não contém notas."
+  },
+  "El fragmento supera el espacio de la canción. Reduce los compases o las voces.": {
+    "es": "El fragmento supera el espacio de la canción. Reduce los compases o las voces.",
+    "en": "The passage exceeds song storage. Reduce the bars or voices.",
+    "pt": "O trecho excede o espaço da música. Reduza os compassos ou as vozes."
+  },
+  "notas": {
+    "es": "notas",
+    "en": "notes",
+    "pt": "notas"
+  },
+  "SPC externo: reproducción": {
+    "es": "SPC externo: reproducción",
+    "en": "External SPC playback",
+    "pt": "Reprodução de SPC externo"
+  },
+  "Volver al editor ISSD": {
+    "es": "Volver al editor ISSD",
+    "en": "Return to the ISSD editor",
+    "pt": "Voltar ao editor ISSD"
+  },
+  "Este SPC se puede escuchar con su driver e instrumentos originales. Su secuencia no es compatible con el driver de ISSD; todavía no se puede convertir a notas editables ni aplicar a la ROM.": {
+    "es": "Este SPC se puede escuchar con su driver e instrumentos originales. Su secuencia no es compatible con el driver de ISSD; todavía no se puede convertir a notas editables ni aplicar a la ROM.",
+    "en": "This SPC can be played with its original driver and instruments. Its sequence is incompatible with the ISSD driver; conversion to editable notes or application to the ROM is not yet available.",
+    "pt": "Este SPC pode ser ouvido com seu driver e instrumentos originais. Sua sequência não é compatível com o driver de ISSD; ainda não é possível convertê-la em notas editáveis ou aplicá-la à ROM."
+  },
+  "Posición en segundos": {
+    "es": "Posición en segundos",
+    "en": "Position in seconds",
+    "pt": "Posição em segundos"
+  },
+  "Voz DSP": {
+    "es": "Voz DSP",
+    "en": "DSP voice",
+    "pt": "Voz DSP"
+  },
+  "SPC de ISSD: importa su secuencia. Otros drivers: abre el SPC para escucharlo, conservando su audio original; la conversión a la ROM todavía no está disponible.": {
+    "es": "SPC de ISSD: importa su secuencia. Otros drivers: abre el SPC para escucharlo, conservando su audio original; la conversión a la ROM todavía no está disponible.",
+    "en": "ISSD SPC: import its sequence. Other drivers: open the SPC to listen to its original audio; ROM conversion is not yet available.",
+    "pt": "SPC de ISSD: importa sua sequência. Outros drivers: abre o SPC para ouvir seu áudio original; a conversão para a ROM ainda não está disponível."
+  },
+  "Crear una versión editable": {
+    "es": "Crear una versión editable",
+    "en": "Create an editable version",
+    "pt": "Criar uma versão editável"
+  },
+  "Crear una versión editable para agregar notas": {
+    "es": "Crear una versión editable para agregar notas",
+    "en": "Create an editable version to add notes",
+    "pt": "Criar uma versão editável para adicionar notas"
+  },
+  "Para dibujar notas, crea una versión simple del fragmento. Se conservan sus notas y tiempos; se sustituyen los instrumentos y se eliminan los efectos y comandos nativos. Puedes deshacer la conversión.": {
+    "es": "Para dibujar notas, crea una versión simple del fragmento. Se conservan sus notas y tiempos; se sustituyen los instrumentos y se eliminan los efectos y comandos nativos. Puedes deshacer la conversión.",
+    "en": "To draw notes, create a simple version of the passage. It keeps its notes and timing, replaces instruments, and removes native effects and commands. You can undo the conversion.",
+    "pt": "Para desenhar notas, crie uma versão simples do trecho. As notas e os tempos são mantidos; os instrumentos são substituídos e os efeitos e comandos nativos são removidos. É possível desfazer a conversão."
+  },
+  "Elige el fragmento y los instrumentos de la versión editable. Los bucles se expanden como notas; sus comandos originales no se mantienen.": {
+    "es": "Elige el fragmento y los instrumentos de la versión editable. Los bucles se expanden como notas; sus comandos originales no se mantienen.",
+    "en": "Choose the passage and instruments for the editable version. Loops expand into notes; their original commands are not retained.",
+    "pt": "Escolha o trecho e os instrumentos da versão editável. Os loops são expandidos em notas; seus comandos originais não são mantidos."
+  },
+  "Crear versión editable y dibujar": {
+    "es": "Crear versión editable y dibujar",
+    "en": "Create editable version and draw",
+    "pt": "Criar versão editável e desenhar"
+  },
+  "Versión editable: instrumentos sustituidos y efectos nativos eliminados.": {
+    "es": "Versión editable: instrumentos sustituidos y efectos nativos eliminados.",
+    "en": "Editable version: instruments replaced and native effects removed.",
+    "pt": "Versão editável: instrumentos substituídos e efeitos nativos removidos."
+  },
+  "Los patrones nativos comparten comandos y efectos. Usa Dibujar notas para preparar una versión editable; se indicarán los cambios antes de convertir.": {
+    "es": "Los patrones nativos comparten comandos y efectos. Usa Dibujar notas para preparar una versión editable; se indicarán los cambios antes de convertir.",
+    "en": "Native patterns share commands and effects. Use Draw notes to prepare an editable version; changes are shown before conversion.",
+    "pt": "Os padrões nativos compartilham comandos e efeitos. Use Desenhar notas para preparar uma versão editável; as alterações são mostradas antes da conversão."
+  },
+  "Contraer notas": {
+    "es": "Contraer notas",
+    "en": "Shorten notes",
+    "pt": "Encurtar notas"
+  },
+  "Expandir notas": {
+    "es": "Expandir notas",
+    "en": "Lengthen notes",
+    "pt": "Alongar notas"
+  },
+  "Acortar las notas seleccionadas según Snap": {
+    "es": "Acortar las notas seleccionadas según Snap",
+    "en": "Shorten selected notes by the Snap step",
+    "pt": "Encurtar as notas selecionadas conforme o Snap"
+  },
+  "Alargar las notas seleccionadas según Snap": {
+    "es": "Alargar las notas seleccionadas según Snap",
+    "en": "Lengthen selected notes by the Snap step",
+    "pt": "Alongar as notas selecionadas conforme o Snap"
+  },
+  "Arrastra para acortar o alargar la nota": {
+    "es": "Arrastra para acortar o alargar la nota",
+    "en": "Drag to shorten or lengthen the note",
+    "pt": "Arraste para encurtar ou alongar a nota"
+  },
+  "Arrastra el borde derecho de una nota para acortar o alargar su duración. Shift + ←/→ ajusta las notas seleccionadas según Snap.": {
+    "es": "Arrastra el borde derecho de una nota para acortar o alargar su duración. Shift + ←/→ ajusta las notas seleccionadas según Snap.",
+    "en": "Drag the right edge of a note to shorten or lengthen its duration. Shift + ←/→ adjusts selected notes by the Snap step.",
+    "pt": "Arraste a borda direita de uma nota para encurtar ou alongar sua duração. Shift + ←/→ ajusta as notas selecionadas conforme o Snap."
+  },
+  "Estudio musical de sólo lectura. Puedes explorar y escuchar las canciones o subir un archivo SPC para reproducirlo sin modificar la ROM.": {
+    "es": "Estudio musical de sólo lectura. Puedes explorar y escuchar las canciones o subir un archivo SPC para reproducirlo sin modificar la ROM.",
+    "en": "Read-only music studio. Explore and listen to songs or upload an SPC file to play it without modifying the ROM.",
+    "pt": "Estúdio musical somente leitura. Explore e ouça as músicas ou carregue um arquivo SPC para reproduzi-lo sem modificar a ROM."
+  },
+  "Subir archivo SPC": {
+    "es": "Subir archivo SPC",
+    "en": "Upload SPC file",
+    "pt": "Carregar arquivo SPC"
+  },
+  "Sólo lectura": {
+    "es": "Sólo lectura",
+    "en": "Read only",
+    "pt": "Somente leitura"
+  },
+  "Posición de reproducción": {
+    "es": "Posición de reproducción",
+    "en": "Playback position",
+    "pt": "Posição de reprodução"
+  },
+  "Previsualización SPC de sólo lectura.": {
+    "es": "Previsualización SPC de sólo lectura.",
+    "en": "Read-only SPC preview.",
+    "pt": "Prévia SPC somente leitura."
+  },
+  "Selecciona un archivo SPC (.spc).": {
+    "es": "Selecciona un archivo SPC (.spc).",
+    "en": "Select an SPC file (.spc).",
+    "pt": "Selecione um arquivo SPC (.spc)."
+  },
+  "Doble clic para ver las notas.": {
+    "es": "Doble clic para ver las notas.",
+    "en": "Double-click to view notes.",
+    "pt": "Clique duas vezes para ver as notas."
+  },
+  "Archivo SPC: reproducción": {
+    "es": "Archivo SPC: reproducción",
+    "en": "SPC file: playback",
+    "pt": "Arquivo SPC: reprodução"
+  },
+  "Volver a las canciones de la ROM": {
+    "es": "Volver a las canciones de la ROM",
+    "en": "Back to ROM songs",
+    "pt": "Voltar às músicas da ROM"
+  },
+  "Reproducción de sólo lectura con el driver e instrumentos originales del archivo SPC. La ROM permanece sin cambios.": {
+    "es": "Reproducción de sólo lectura con el driver e instrumentos originales del archivo SPC. La ROM permanece sin cambios.",
+    "en": "Read-only playback with the SPC file’s original driver and instruments. The ROM remains unchanged.",
+    "pt": "Reprodução somente leitura com o driver e instrumentos originais do arquivo SPC. A ROM permanece sem alterações."
   }
 }

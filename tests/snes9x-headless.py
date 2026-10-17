@@ -44,7 +44,31 @@ state_frames=set(json.loads(os.environ.get("ISSD_STATE_FRAMES","[]")))
 if state_frames:
  lib.retro_serialize_size.restype=C.c_size_t
  lib.retro_serialize.argtypes=[C.c_void_p,C.c_size_t];lib.retro_serialize.restype=C.c_bool
+# Optional isolated SPC boot check. The ordinary ROM tests never use this.
+# Snes9x's SND block stores ARAM followed by SMP registers as 41 LE32s
+# (apu/bapu/smp/smp_state.cpp). Keep the core's DSP/timing state, reset the
+# instruction pipeline and CPU registers, and let the SPC initialize itself.
+spc_boot=os.environ.get("ISSD_SPC_BOOT")
 for frame in range(int(os.environ.get("ISSD_FRAMES","1000"))):
+ if spc_boot and frame==1000:
+  spc=open(spc_boot,'rb').read()
+  assert len(spc)>=0x10200 and spc.startswith(b'SNES-SPC700 Sound File Data v0.30')
+  lib.retro_serialize_size.restype=C.c_size_t
+  lib.retro_serialize.argtypes=[C.c_void_p,C.c_size_t];lib.retro_serialize.restype=C.c_bool
+  lib.retro_unserialize.argtypes=[C.c_void_p,C.c_size_t];lib.retro_unserialize.restype=C.c_bool
+  size=lib.retro_serialize_size();state=C.create_string_buffer(size)
+  assert lib.retro_serialize(state,size)
+  saved=bytearray(state.raw);snd=saved.index(b'SND:')+11
+  saved[snd:snd+65536]=spc[256:65792]
+  saved[snd+65536+164:snd+65536+164+128]=spc[0x10100:0x10180]
+  values={3:struct.unpack_from('<H',spc,37)[0],4:spc[43],5:spc[39],6:spc[40],7:spc[41],16:(spc[0x1f1]>>7)&1,17:spc[0x1f2],18:spc[0x1f8],19:spc[0x1f9]}
+  for bit in range(8):values[8+bit]=(spc[42]>>(7-bit))&1
+  for timer,base in enumerate([20,25,30]):
+   values[base]=(spc[0x1f1]>>timer)&1
+   values[base+1]=spc[0x1fa+timer]
+  for index in range(1,41):
+   struct.pack_into('<I',saved,snd+65536+index*4,values.get(index,0))
+  state=C.create_string_buffer(bytes(saved));assert lib.retro_unserialize(state,size)
  for when,offset,values in writes:
   if frame==when:
    assert 0<=offset and offset+len(values)<=lib.retro_get_memory_size(2)

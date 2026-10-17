@@ -12,7 +12,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),{parse}=require
  await controlAudioPreview(media,{action:'seek',time:NaN});assert.equal(media.currentTime,0);
  await controlAudioPreview(media,{action:'play'});media.currentTime=.5;await controlAudioPreview(media,{action:'stop'});assert.equal(media.currentTime,0);assert.equal(media.paused,true);
  await assert.rejects(()=>controlAudioPreview({...media,play:()=>Promise.reject(new Error('blocked'))},{action:'play'}),/blocked/);
- const source=fs.readFileSync(__dirname+'/../src/components/AudioTrim.vue','utf8'),options=new Function(source.split('<script>')[1].split('</script>')[0].replace('export default','return'))();
+ const source=fs.readFileSync(__dirname+'/../src/components/AudioTrim.vue','utf8'),options=new Function('AUDIO_TRANSPORT_CONTROLS','timelineRatio','timelineTime','zoomTimeline',source.split('<script>')[1].split('</script>')[0].replace(/^import .*;$/gm,'').replace('export default','return'))((await import('../src/editor/audio-transport.mjs')).AUDIO_TRANSPORT_CONTROLS,...await Promise.all(['timelineRatio','timelineTime','zoomTimeline'].map(async key=>(await import('../src/editor/timeline.mjs'))[key])));
  let command;const editor={...options.data(),source:{samples:new Int16Array(16000),sampleRate:16000},maxDuration:2.5,previewReady:true,playback:{time:.2,duration:2.5,playing:false},$refs:{track:{getBoundingClientRect:()=>({left:100,width:400})}},$nextTick(){},$emit(event,value){if(event==='transport')command=value;}};
  for(const [name,fn] of Object.entries(options.methods))editor[name]=fn.bind(editor);
  for(const [name,fn] of Object.entries(options.computed))Object.defineProperty(editor,name,{get:fn.bind(editor)});
@@ -40,5 +40,22 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),{parse}=require
  await parent.transportAudio({action:'play'});parent.resetAudioPlayback();assert.equal(frames.size,0);assert.deepEqual(parent.audioPlayback,audioPlaybackState(null));
  parent.showAudio(new Int16Array(10),16000);assert.equal(parent.audioPreviewIsTrim,true);
  parent.showAudio(new Int16Array(10),16000,false,'ROM',false);assert.equal(parent.audioPreviewIsTrim,false);
+ // Standalone ROM preview uses the same transport without exposing editing actions.
+ const previewSource=fs.readFileSync(__dirname+'/../src/components/AudioSamplePreview.vue','utf8');
+ const previewOptions=new Function('AUDIO_TRANSPORT_CONTROLS',previewSource.split('<script>')[1].split('</script>')[0].replace(/^import .*;$/gm,'').replace('export default','return'))([]);
+ const previewEditor={track:{samples:new Int16Array(32000),rate:16000},playback:{time:.5},$refs:{lane:{getBoundingClientRect:()=>({left:100,width:400})}},$emit(event,value){command=value;}};
+ Object.defineProperty(previewEditor,'duration',{get:previewOptions.computed.duration.bind(previewEditor)});
+ for(const [name,method] of Object.entries(previewOptions.methods))previewEditor[name]=method.bind(previewEditor);
+ previewEditor.transport('start');assert.deepEqual(command,{action:'seek',time:0});
+ previewEditor.transport('end');assert.deepEqual(command,{action:'seek',time:2});
+ previewEditor.transport('backward');assert.equal(command.time,0);
+ previewEditor.transport('forward');assert.equal(command.time,1.5);
+ for(const action of ['play','pause','stop','loop']){previewEditor.transport(action);assert.deepEqual(command,{action});}
+ previewEditor.seek({clientX:300,preventDefault(){}});assert.deepEqual(command,{action:'seek',time:1});
+ previewEditor.seek({clientX:900,preventDefault(){}});assert.equal(command.time,2);
+ assert.equal(previewEditor.timecode(65.123),'01:05.123');
+ previewEditor.track={samples:new Int16Array(0),rate:16000};command=null;previewEditor.transport('play');assert.equal(command,null);
+ assert.match(studio,/AudioSamplePreview v-if="audioUrl&&audioPreviewTrack&&\(!audioSource\|\|!audioPreviewIsTrim\)"/);
+ assert.ok(!studio.includes(':controls="!audioSource||!audioPreviewIsTrim"'),'ROM preview must use the track transport');
  console.log('PASS audio transport: native preview play/pause/stop, bounded seek, timecode, loop, disabled editing and animation frame cleanup');
 })().catch(e=>{console.error(e);process.exitCode=1;});

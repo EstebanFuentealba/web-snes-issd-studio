@@ -56,26 +56,19 @@
   </div>
 </template>
 <script>
+import {AUDIO_TRANSPORT_CONTROLS} from '../editor/audio-transport.mjs';
+import {timelineRatio,timelineTime,zoomTimeline} from '../editor/timeline.mjs';
 export default {
   props:{source:Object,maxDuration:Number,busy:Boolean,disabled:Boolean,previewReady:Boolean,playback:Object,loop:Boolean},emits:['upload','range','preview','discard','editing','transport'],
-  data(){return {transportControls:[
-    {action:'stop',label:'Detener',path:'M6 6h12v12H6z'},
-    {action:'play',label:'Reproducir audio',path:'M7 4l14 8-14 8z'},
-    {action:'pause',label:'Pausar audio',path:'M6 4h4v16H6zM14 4h4v16h-4z'},
-    {action:'start',label:'Ir al inicio del audio',path:'M4 4v16M19 4L6 12l13 8z'},
-    {action:'backward',label:'Retroceder un segundo',path:'M12 5L2 12l10 7zM22 5l-10 7 10 7z'},
-    {action:'forward',label:'Avanzar un segundo',path:'M2 5l10 7-10 7zM12 5l10 7-10 7z'},
-    {action:'end',label:'Ir al final del clip',path:'M20 4v16M5 4l13 8-13 8z'},
-    {action:'loop',label:'Repetir preview',path:'M4 10V7h14l-3-3M20 14v3H6l3 3M18 7l-3 3M6 17l3-3'},
-  ],start:0,end:0,stretch:1,offset:0,fadeIn:0,fadeOut:0,fadeInCurve:1,fadeOutCurve:1,fadeDrag:null,stretchDrag:null,drag:null,dragging:false,viewStart:0,viewSpan:1};},
+  data(){return {transportControls:AUDIO_TRANSPORT_CONTROLS,start:0,end:0,stretch:1,offset:0,fadeIn:0,fadeOut:0,fadeInCurve:1,fadeOutCurve:1,fadeDrag:null,stretchDrag:null,drag:null,dragging:false,viewStart:0,viewSpan:1};},
   computed:{transportAvailable(){return this.previewReady&&!this.busy&&!this.drag&&!this.stretchDrag&&!this.fadeDrag;},timecode(){const milliseconds=Math.max(0,Math.round((this.playback?.time||0)*1000));return String(Math.floor(milliseconds/60000)).padStart(2,'0')+':'+String(Math.floor(milliseconds/1000)%60).padStart(2,'0')+'.'+String(milliseconds%1000).padStart(3,'0');},clipEnd(){return this.offset+this.outputDuration;},fadePath(){const length=this.outputDuration||1,a=this.fadeIn/length*1000,b=this.fadeOut/length*1000;let path='M 0 '+(a?158:8);for(let i=1;i<=32;i++){const x=a*i/32;path+=' L '+x+' '+(158-150*(i/32)**this.fadeInCurve);}path+=' L '+(1000-b)+' 8';for(let i=1;i<=32;i++)path+=' L '+(1000-b+b*i/32)+' '+(158-150*(1-i/32)**this.fadeOutCurve);return path;},timelineDuration(){return Math.max(this.maxDuration,this.clipEnd,this.offset+(this.duration-this.start)*this.stretch)*1.08;},maximumViewSpan(){return this.timelineDuration*32;},minimumViewSpan(){return Math.min(this.timelineDuration,Math.max(this.minimum*4,Math.max(this.outputDuration,this.maxDuration)/1000));},outputDuration(){return (this.end-this.start)*this.stretch;},selectionCapacity(){return Math.max(this.minimum*this.stretch,this.maxDuration-this.offset)/this.stretch;},duration(){return this.source?this.source.samples.length/this.source.sampleRate:0;},minimum(){return this.source?1/this.source.sampleRate:.001;}},
   watch:{offset(){this.$nextTick(()=>this.draw());},start(){this.$nextTick(()=>this.draw());},end(){this.$nextTick(()=>this.draw());},stretch(){this.$nextTick(()=>this.draw());},source(){this.initialize();},maxDuration(){if(this.source){this.setOffset(this.offset);if(this.clipEnd>this.maxDuration)this.fit();else this.commit();}}},mounted(){if(this.source)this.initialize();},
   methods:{
     transport(action){if(!this.transportAvailable)return;let time=this.playback?.time||0;if(action==='start')time=0;else if(action==='end')time=this.clipEnd;else if(action==='backward')time-=1;else if(action==='forward')time+=1;this.$emit('transport',{action:['start','end','backward','forward'].includes(action)?'seek':action,time:Math.max(0,Math.min(this.playback?.duration||this.clipEnd,time))});},
-    seekTrack(event){if(!this.transportAvailable)return;event.preventDefault();const bounds=this.$refs.track.getBoundingClientRect();if(!bounds.width)return;const time=this.viewStart+Math.max(0,Math.min(1,(event.clientX-bounds.left)/bounds.width))*this.viewSpan;this.$emit('transport',{action:'seek',time:Math.max(0,Math.min(this.playback?.duration||this.clipEnd,time))});},
+    seekTrack(event){if(!this.transportAvailable)return;event.preventDefault();const bounds=this.$refs.track.getBoundingClientRect();if(!bounds.width)return;const time=timelineTime((event.clientX-bounds.left)/bounds.width,this.viewStart,this.viewSpan);this.$emit('transport',{action:'seek',time:Math.max(0,Math.min(this.playback?.duration||this.clipEnd,time))});},
     upload(event){const file=event.target.files?.[0];event.target.value='';if(file)this.$emit('upload',file);},
     drop(event){this.dragging=false;if(this.disabled||this.busy)return;const file=event.dataTransfer.files?.[0];if(file)this.$emit('upload',file);},
-    outputPercent(time){return (time-this.viewStart)/this.viewSpan*100;},percent(time){return this.outputPercent(this.offset+(time-this.start)*this.stretch);},percentLength(time){return time/this.viewSpan*100;},
+    outputPercent(time){return timelineRatio(time,this.viewStart,this.viewSpan)*100;},percent(time){return this.outputPercent(this.offset+(time-this.start)*this.stretch);},percentLength(time){return time/this.viewSpan*100;},
     initialize(){if(!this.source)return;this.offset=0;this.fadeIn=0;this.fadeOut=0;this.fadeInCurve=1;this.fadeOutCurve=1;this.stretch=1;this.start=0;this.end=Math.min(this.duration,Math.floor(this.selectionCapacity*this.source.sampleRate)/this.source.sampleRate);this.viewStart=0;this.viewSpan=this.timelineDuration;if(this.end/this.duration<.15)this.zoom();else this.$nextTick(()=>this.draw());this.commit();},
     waveSourceTime(time){return time<this.offset||time>=this.clipEnd?null:this.start+(time-this.offset)/this.stretch;},
     draw(){const canvas=this.$refs.wave;if(!canvas||!this.source)return;const ctx=canvas.getContext('2d'),samples=this.source.samples,rate=this.source.sampleRate;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.strokeStyle='#57d9b1';ctx.beginPath();for(let x=0;x<canvas.width;x++){const time=this.viewStart+x/canvas.width*this.viewSpan,next=time+this.viewSpan/canvas.width,mapped=this.waveSourceTime(time);let lo=0,hi=0;if(mapped!==null){const a=Math.floor(mapped*rate),mappedNext=this.waveSourceTime(next),b=Math.min(samples.length,Math.max(a+1,Math.floor((mappedNext===null?this.end:mappedNext)*rate)));for(let i=a;i<b;i++){lo=Math.min(lo,samples[i]||0);hi=Math.max(hi,samples[i]||0);}}ctx.moveTo(x,132-lo/32768*70);ctx.lineTo(x,132-hi/32768*70);}ctx.stroke();},
@@ -104,9 +97,8 @@ export default {
     },
     zoomView(factor,anchor=.5){
       if(!this.source||this.drag||this.stretchDrag||this.fadeDrag||!Number.isFinite(factor)||factor<=0)return;
-      const time=this.viewStart+anchor*this.viewSpan;
-      this.viewSpan=Math.max(this.minimumViewSpan,Math.min(this.maximumViewSpan,this.viewSpan*factor));
-      this.viewStart=Math.max(0,Math.min(this.timelineDuration-this.viewSpan,time-anchor*this.viewSpan));
+      const view=zoomTimeline({start:this.viewStart,span:this.viewSpan,total:this.timelineDuration,minSpan:this.minimumViewSpan,maxSpan:this.maximumViewSpan},factor,anchor);
+      this.viewStart=view.start;this.viewSpan=view.span;
       this.$nextTick(()=>this.draw());
     },
     zoom(){this.viewSpan=Math.min(this.timelineDuration,Math.max(this.minimum*4,this.outputDuration*3));this.viewStart=Math.max(0,Math.min(this.timelineDuration-this.viewSpan,this.offset-(this.viewSpan-this.outputDuration)/2));this.$nextTick(()=>this.draw());},

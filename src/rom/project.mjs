@@ -1,3 +1,4 @@
+import {musicResources,validateMusicResource} from './music.mjs';
 import {AUDIO_REVERB_RULES,validateAudioReverb,announcerReverbDisabled,announcerReverbPatches} from './audio-reverb.mjs';
 import {privatePaletteRules,privateTeamColorPatches,validatePrivatePalettes,hasPrivatePalettes,PALETTE_SPECS} from './private-palettes.mjs';
 import {kitDrawingResource} from './kits.mjs';
@@ -73,6 +74,7 @@ function allowedResources(rom) {
     for(const r of stadiumGraphicRules(rom))add(r.id,r.offset,r.size,r.type,{decodedSize:r.decodedSize});
     return registry;
   }
+  for(const r of musicResources(rom))add(r.id,r.offset,r.capacity,'music');
   for(const [id,offset,size] of MENU_TEXT_RULES)add(id,offset,size,'menu-text');
   for(let team of activeTeamIds(rom)) {
     const formation=readFormation(rom,team);add(formation.id,formation.offset,31,'formation');
@@ -155,6 +157,7 @@ export class RomProject {
         const allowed=hasPhysicalTeams(candidate);
         if(!allowed||patch.bytes[0]!==original[patch.offset]||patch.bytes[1]!==original[patch.offset+1]||patch.bytes.slice(2).some(b=>b!==255))throw new Error('Borrado de recurso nativo inválido.');
       }
+      if(rule.type==='music')validateMusicResource(candidate,original,patch.id);
       if(rule.type.startsWith('stadium-'))validateStadiumResource(rule.type,patch.bytes);
       if(rule.type==='scenario-difficulty')validateScenarioDifficulty(patch.bytes);
       if(rule.type==='scenario-summary')validateScenarioSummary(patch.bytes);

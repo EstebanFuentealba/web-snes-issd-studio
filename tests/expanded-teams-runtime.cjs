@@ -45,6 +45,7 @@ global.crypto ||= require('node:crypto').webcrypto;
  const name=rom.slice(loRom(EXPANDED.names)+55*200,loRom(EXPANDED.names)+55*200+10);
  for(let i=0;i<10;i++)for(let row=0;row<2;row++)assert.equal(word(game.vram,(0x5b01+row*32+i)*2),0x2000|rom[loRom(0x878000)+name[i]*2+row],`Visible HUD name tile ${row}:${i}`);
  await require('./kits-runtime.cjs')(core);
+ await require('./music-runtime.cjs')(core);
  await require('./audio-stretch-runtime.cjs')(core);
  await require('./audio-goal-runtime.cjs')(core);
  await require('./audio-long-runtime.cjs')(core);

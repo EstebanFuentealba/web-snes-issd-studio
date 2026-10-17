@@ -79,6 +79,8 @@ The design editor exposes 38 native graphic blocks, stadium icons and palettes f
 
 ## Audio
 
+The Samples and Música tabs share the dark studio theme, including sample controls, storage usage, upload and trimming panels. ROM sample previews show a named track, waveform, playback cursor and transport controls (play, pause, stop, seek and repeat). Click the track or use arrow/Home/End keys to seek; Space toggles playback.
+
 Inspect all 76 original BRR samples, preview waveforms and DSP pitch information, or export decoded WAV files. Preview frequency can be set to 8, 16 or 32 kHz.
 
 WAV replacement accepts 8-bit or 16-bit PCM, mono or stereo, and converts to BRR. Preview before applying. Up to 69 samples can be replaced within fixed storage allocations; looped or fragmented samples may be restricted.
@@ -87,7 +89,7 @@ Imported clips are normalized to a common active-signal RMS level with soft peak
 
 **Configuración → Quitar reverberación de los relatos** disables the game's echo send on the commentary channel in the exported ROM, including long voices. Other channels retain their echo settings. The setting supports undo and saved projects; unchecking restores the original echo behavior. It cannot remove reverb already recorded in an imported audio file. The control is unavailable for WC26 and unrecognized sound drivers.
 
-Preview does not fully emulate SNES envelopes, echo or pitch. Playback frequencies are not verified for every event; the 12 kHz inspection reference is not a universal game frequency. Sequenced music editing remains planned.
+Preview does not fully emulate SNES envelopes, echo or pitch. Playback frequencies are not verified for every event; the 12 kHz inspection reference is not a universal game frequency. Read-only sequenced music inspection and SPC playback are available separately in the Música tab (see below).
 
 ## Emulator
 
@@ -153,3 +155,33 @@ abre el editor de píxeles con importación y exportación de imágenes. Los gr�
 compartidos afectan a sus otros usos; el dibujo conserva la silueta de los sprites
 y debe caber en el espacio comprimido original. El fondo del estadio es otro
 recurso y no se reemplaza con esta foto.
+
+### Music (SPC700)
+
+Audio has two tabs: **Samples** retains the BRR/voice tools; **Música** is a
+read-only music studio. Inspect the native song channels in Playlist, Song
+Navigator and Piano Roll. Select notes to see pitch, duration and velocity as
+text. Use horizontal/vertical zoom, scroll, panel resizing and the song/channel
+selectors to explore. There are no note editing, drawing, duration, clipboard,
+MIDI, new-sequence, apply, restore or musical undo/redo controls or
+mutation shortcuts. Previously applied project music is still displayed as saved;
+opening the studio does not undo those changes.
+
+Play/pause/stop and repeat execute the SPC700 driver. Each track's **Solo**
+button isolates its voice; press it again to restore the full mix. Click or drag
+the rulers or orange cursor to seek; running playback resumes on release.
+View settings are stored for the browser session and do not change ROM bytes.
+The 48-PPQN ruler uses a reference 4/4 grid. Native loops remain visible across
+the shared span; a region can include rests between its note thumbnails.
+
+**Subir archivo SPC** accepts only `.spc`. Native ISSD and other games' snapshots
+both open in a separate read-only player with original driver/instruments,
+metadata, playback, seeking in seconds and Solo for the eight DSP voices.
+Loading a file never imports its sequence into the project or writes to the ROM.
+**Volver a las canciones de la ROM** returns to the previous native view. Invalid
+files leave the previous preview intact. Metadata sets the preview duration where
+available (otherwise 185 seconds), capped at one hour.
+
+**Exportar SPC** downloads the currently selected ROM song as a standalone SPC
+without modifying the project. It is disabled while a separately uploaded SPC is
+open; return to ROM songs to export one.

@@ -12,7 +12,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  assert.deepEqual(stretchAudio({samples:new Int16Array(1000),sampleRate:16000},2).samples,new Int16Array(2000));
  for(const length of [0,1,15,100])for(const factor of [.5,2])assert.equal(stretchAudio({samples:new Int16Array(length).fill(1234),sampleRate:16000},factor).samples.length,Math.round(length*factor));
  // Exercise trim controls: capacity is measured after stretch, with original time coordinates.
- const source=fs.readFileSync(__dirname+'/../src/components/AudioTrim.vue','utf8'),options=new Function(source.split('<script>')[1].split('</script>')[0].replace('export default','return'))();
+ const source=fs.readFileSync(__dirname+'/../src/components/AudioTrim.vue','utf8'),options=new Function('AUDIO_TRANSPORT_CONTROLS','timelineRatio','timelineTime','zoomTimeline',source.split('<script>')[1].split('</script>')[0].replace(/^import .*;$/gm,'').replace('export default','return'))((await import('../src/editor/audio-transport.mjs')).AUDIO_TRANSPORT_CONTROLS,...await Promise.all(['timelineRatio','timelineTime','zoomTimeline'].map(async key=>(await import('../src/editor/timeline.mjs'))[key])));
  let range;const editor={...options.data(),source:{...wav,name:'tone'},maxDuration:.8,$refs:{},$nextTick(){},$emit(event,value){if(event==='range')range=value;}};
  for(const [name,method] of Object.entries(options.methods))editor[name]=method.bind(editor);
  for(const [name,get] of Object.entries(options.computed))Object.defineProperty(editor,name,{get:get.bind(editor)});

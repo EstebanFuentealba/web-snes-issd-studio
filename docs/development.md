@@ -402,3 +402,143 @@ isolation, recovery and restoration. `tests/kits-runtime.cjs`, included in
 pixels, checks edited photograph uploads and rendered pixels, checks drawn kit
 tiles in match VRAM, and checks native/WC26 isolated colors at their actual
 palette destinations. PNG evidence is saved in `artifacts/kits-runtime/`.
+
+### Native music decoding and retained codecs
+
+`music-catalog.mjs` records 20 native **compressed** sequence allocations from
+`AssetPointersAndFiles.asm` (VictoryMusic is streamed BRR, excluded). Sequence
+headers are loaded at SPC $4900. The first little-endian pointer determines the
+channel count, cross-checked against the native song event (8, 6 or 3 voices). `music.mjs` decodes bounded note/pattern execution and edits source
+note bytes without rebuilding effects. Command argument lengths follow the
+native table at SPC $1637 (two-byte stride), with FC's extra instrument byte,
+F1's five parameters, and six-byte F3 lookahead after notes/rests. Unsupported
+conditional loops fail closed. Driver signatures gate access; WC26 is excluded.
+
+The `music:*` registry validates allocation, compressed size, decoded pointers
+and events. No ROM memory is reserved or relocated. Simple imported scores use
+explicit notes and rests, tempo, pan, volume and instruments; reject polyphony
+within one voice and out-of-range values. `music-midi.mjs` handles the supported
+SMF subset without dependencies. `music-spc.mjs` creates a standard SPC memory
+image with an optional trailing editor metadata block; its boot code at SPC
+$3718 and initialization JMP exist **only inside exported SPC files**. Native
+ROM engine code and shared BRR resources remain intact. The isolated boot loads
+resident BRR from $BFC0B6 into SPC $6900 and the appropriate streamed bank from
+$829D17/$829D73 into SPC $A66B. The native event ID comes from $829D23.
+
+`tests/music.cjs` covers format validation and project lifecycle.
+`tests/music-runtime.cjs`, included in `test:expanded-runtime`, sends a MIDI/SPC
+score through normal ROM export and the real game's loader and compares DSP pitch
+and audible PCM across an octave edit. It also boots exported SPCs independently
+via the optional `ISSD_SPC_BOOT` headless harness, with explicit Snes9x SMP state
+initialization; ordinary native game checks never use that override.
+
+Format research reference: [VGMTrans Konami SNES sequence reader](https://github.com/vgmtrans/vgmtrans/blob/master/src/main/formats/KonamiSnes/KonamiSnesSeq.cpp), cross-checked against the local ISSD driver/disassembly. No external player dependency or game data is bundled.
+
+### DAW view architecture
+
+`src/editor/timeline.mjs` centralizes unit-independent coordinate conversion,
+clamping, anchored zoom and integer tick snapping. `AudioTrim.vue` and the music
+workspace both use it; `audio-transport.mjs` shares the Samples transport icons
+and action vocabulary. The music preview executes the actual SPC driver rather than synthesizing decoded notes.
+
+`music-score.mjs` retains codecs and historical transformation helpers for
+project compatibility and binary/runtime tests. The current `MusicEditor.vue`
+UI is read only: it has no mutation handlers, clipboard, MIDI conversion,
+project transaction calls, apply/restore or draft history. `MusicPlaylist` is
+passed `editable=false`; `MusicPianoRoll` additionally receives `readOnly=true`
+to prevent native pitch dragging as well as structural edits. The note inspector
+renders text. Editing keyboard shortcuts are absent.
+
+`MusicEditor.vue` owns selection, viewport and playback position. Navigator,
+Playlist, ruler, note previews and Piano Roll share that state. Only view state
+is persisted to sessionStorage. Native music already saved in a project is read
+normally. Read-only SPC export uses `writeSpc` and a browser download without project
+mutation. SPC upload uses `inspectSpc` for both native and foreign snapshots and
+always plays original bytes in `MusicSpcPreview`; it never invokes `readSpc` or
+imports into RomProject. The file input remains available without native songs.
+MIDI and malformed SPC files are rejected without changing the active preview.
+
+`tests/music-daw.cjs` verifies nested read-only templates for native/simple
+songs, absent editing controls, nonmutating keyboard/drag interaction, playback,
+seeking/Solo and both native/foreign SPC upload without sequence/project changes.
+The pure codec and Snes9x regressions remain available for existing projects.
+
+Music playback uses `music-playback.mjs` to queue stereo PCM with Web Audio,
+`music-playback-worker.mjs` to emulate off the UI thread, and `music-renderer.mjs`
+to run the pinned ISC spc700-js emulator in `src/vendor/spc700-js`. `writeSpc`
+boots the current song with native instrument banks. PCM is generated at 32 kHz and
+resampled by Web Audio. A bounded lookahead queues at most roughly one second;
+the cursor follows AudioContext time, excluding initial queue latency. Pause
+suspends that context. Seek rebuilds state by executing skipped samples; stop,
+editing and unmount terminate the worker, queued audio and context. No project
+patches are applied by preview. Native tempo changes remain audible, although
+the UI positions currently use the decoded reference tempo.
+
+`MusicTimeRuler` also renders the draggable full-height cursor through its
+`markerOnly` mode, sharing coordinate conversion and pointer capture with the
+ruler. The navigator preserves viewport dragging and provides a separate marker
+hit area for seeking. All emit `scrub-start` / `seek` / `scrub-end` to the root;
+this suspends preview during a gesture and rebuilds the SPC state only once on
+release. Pointer cancellation and lost capture finish the gesture idempotently.
+The DAW tests exercise both marker modes, bounds, unrelated pointers, release,
+minimap seeking and conditional audio resumption.
+
+Track solo is preview-only state owned by MusicEditor. The selected 0–7 channel
+is passed through MusicPlayback's load message to MusicRenderer before any
+seek samples are executed. The SPC player's output voice mask silences the other
+voices and their echo sends; driver commands and envelopes continue running.
+Switching solo rebuilds preview at the audible cursor, closing previously queued
+PCM so it cannot leak the old mix. No sequence bytes or RomProject patches change.
+Renderer tests cover every channel of the 3/6/8-voice layouts, isolation, stereo
+silence, summation of a two-track fixture, worker forwarding and invalid inputs.
+The Snes9x musical regression also compares the solo renderer's pitch with the
+real DSP.
+
+Native music timeline regression: `decodeMusic` first determines each initial
+cycle length, then interprets the native loop/jump commands again up to a common
+horizon. It does not duplicate an intro as though it were the loop body. Repeated
+notes keep original offsets for atomic source editing, and existing step/event
+limits bound execution. `MUSIC_TEMPO_BPM = 156.25 / 256` follows timer 0 at 125 Hz;
+the previous 312.5 factor advanced the cursor twice as fast. MIDI uses the same
+constant. Tests trace the actual SPC note parser for all six MainMenu channels
+past their first cycles and compare source offsets and event times. Runtime
+checks the real Snes9x DSP before, inside and after the channel 6 rest at ticks
+790/900/1180 while verifying the other channels continue playing.
+
+Internal MIDI conversion tests use `music-midi-import.mjs`, separate from the strict legacy
+round-trip reader. It parses and merges SMF channel events before pairing notes,
+handles polyphony, sustain, running status and program changes, and bounds the
+file, chunk reads and event count. Conversion allocates user-selected monophonic
+lanes per source channel, resolves tempo changes into absolute positions at one
+native tempo, clips to an explicit bar range, folds high notes by octaves, and
+splits notes longer than 255 ticks. Voice contention omits notes and is reported
+before confirmation. Native programs are chosen explicitly, not inferred from GM
+numbers. Compilation validates ARAM limits and compression against the selected
+resource capacity; original project bytes are not modified during preparation.
+`MusicMidiImport.vue` is retained but is no longer mounted by the read-only studio. Tests cover
+parser boundaries, sustain, tempo, polyphony, storage, preparation/confirmation
+; an optional `ISSD_MIDI_FIXTURE` checks the user's local
+file without copying it into the repository. The Snes9x regression now imports a
+polyphonic chord MIDI through this converter, allocates two voices, edits one,
+and checks real DSP pitch and PCM after normal ROM loading and standalone SPC.
+
+`spc-preview.mjs` validates an SPC snapshot separately from native sequence
+compatibility. `openSpc` first tries the existing strict `readSpc`; unsupported
+snapshots are returned as external preview data without a sequence or patch.
+The native importer and RomProject driver/resource checks remain unchanged.
+`MusicSpcPreview.vue` reuses MusicPlayback and its worker to execute arbitrary
+SPC700 snapshots, with seconds-based seeking and voice isolation. The parent
+preserves its native song view while the uploaded-file panel is open. The current
+read-only UI calls inspectSpc directly, including for native-compatible files. Metadata is bounded and rendered as escaped text.
+Tests cover classification, malformed headers, compatible imports, draft
+preservation, actual Vue rendering and seek completion. Optional
+`ISSD_SPC_FIXTURE` verifies a local foreign-driver file in both the renderer and
+the Snes9x music runtime without storing it in Git. The headless SPC restore now
+restores CPU flags, IPL/DSP address registers and timer enables/targets from the
+snapshot so a foreign driver can advance without relying on ISSD initialization.
+
+The historical draw regression remains a codec/runtime fixture: two normally
+exported ROMs (editable baseline and one with a note added at tick 900 in the bass
+rest) verify matching frames, source pointers, DSP pitch and ENVX. This does not
+expose editing in the current read-only UI. Loader transfer time varies with
+sequence length, so the fixture identifies events by their ARAM pointers.

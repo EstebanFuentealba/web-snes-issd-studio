@@ -14,7 +14,7 @@ Open-source, browser-based ROM editor for **International Superstar Soccer Delux
 - Customize team groups; add or remove teams in ISS Deluxe.
 - Draw or import pixel art for flags, labels, menus and game graphics.
 - Edit ISS Deluxe scenarios, stadiums and menu text.
-- Preview and export audio samples; replace supported samples from WAV files.
+- Preview and edit voice samples; explore supported SPC700 songs in a read-only Playlist, Song Navigator and Piano Roll; upload SPC files to listen with their original driver and instruments.
 - Autosave locally, undo/redo, back up projects as JSON and export modified ROMs.
 - Test applied changes with the integrated SNES emulator.
 - Use the interface in Spanish, Portuguese or English.
