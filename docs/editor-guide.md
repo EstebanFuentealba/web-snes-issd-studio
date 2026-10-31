@@ -43,6 +43,8 @@ The Pixel Art Maker edits native tiles and palettes for flags, labels, player an
 - Flags use 24 × 16 pixels and up to four colors; small team labels use 32 × 8 pixels.
 - Uniform drawing covers eight player and goalkeeper directions; shared source pixels update together.
 - Uniform, goalkeeper, skin, hair and flag colors use SNES BGR555 palettes. Team colors are isolated automatically; shared sprite artwork still affects its other uses.
+- Expanded ROMs keep the goalkeeper’s native head during matches and respect the engine’s three outfield hairstyle overlays per team; saved hairstyle choices remain in the project. Added team names distribute invisible padding across both rows to avoid missing letters before kickoff. Reopen older projects and export again to apply these repairs.
+- Expanded Studio ROMs retain all four flag colors in the match scoreboard. Opening an older expanded project or exported ROM repairs the native uniform-color override while preserving its edits; export the ROM again and reload the emulator.
 - Compressed resources must fit their storage limits. The group-title atlas has a compressed capacity of 1,850 bytes.
 
 ### Startup, title and mode screens

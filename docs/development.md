@@ -127,8 +127,9 @@ The 56-team format uses a 4 MiB LoROM and metadata version 3 at `$B0FE00`.
 Legacy v1/v2 drafts remain readable and migrate atomically only when team 49
 or a 9–10-character name is requested. Banks C0/C1/C2/C4/C5/C6/C7/C8 own the
 relocated tables, palettes, attributes, names, flags, labels, photo tables and
-code/OAM. Bank C1 uses low-half pointers through LoROM mirrors; a palette
-loader dispatch retains native/global bank-89 palettes. The 57th table record
+code/OAM. Bank C1 uses low-valued private palette handles; both the general loader
+and selector script set bit 15 before reading or transferring their data.
+All accesses use the explicit high half, retaining native/global bank-89 palettes. The 57th table record
 belongs to Challenge, not a playable team. Removed IDs resolve to a live squad.
 
 Name copies are 200 bytes: home `$7ED478..$7ED53F`, away
@@ -139,7 +140,7 @@ The flags avoid the selector’s temporary label output at `$7F4CC0..$7F4E1F`.
 The verified tables, metadata and OAM layout currently support 56 squads. Expanded team-name coordinates finish at `$5468`; small UI frames move
 to `$5470`, before the following object at `$557A`, with native `$2000` plane
 separation. Tests execute injected 65816 routines, including byte stacks,
-DB-sensitive palette DMA and low-half mirrors; integrate with the real SNES
+DB-sensitive palette DMA with unmapped low halves; integrate with the real SNES
 emulator as well. Run `tests/expanded-teams.cjs`, `tests/expanded-teams-cpu.cjs`
 and `tests/wc26-stadiums.cjs` for the new formats and WC26 stadium resources.
 
@@ -163,6 +164,27 @@ The small-label resolver is shared by the selector and handicap loader at
 The HUD name-stride helper returns the computed address in A **and X**,
 matching the native `TAX` instruction it replaces. Runtime tests inspect
 VRAM name tiles and handicap label uploads, rather than only the name pool.
+
+The expanded engine also hooks the five-byte prologue at `$8BD151`. Native
+uniform-indicator refreshes overwrite flag ink 12 at `$7E2D98` and `$7E2DB8`
+with a kit color, changing custom logos when a match starts. The C8 dispatch
+preserves the four loaded flag inks at those two destinations and resumes the
+native routine at `$8BD156` for every other destination. Exact earlier engines
+with the native prologue migrate on project import or ROM reopening, retaining
+all drawings, palettes, squads and groups. No new memory range is reserved.
+`tests/flag-palettes-runtime.cjs`, included in `test:expanded-runtime`, compares
+all pixels of four-color flags in the selector and both match HUD logos. Set
+`ISSD_FLAG_PROJECT=/absolute/path/to/project.json` to additionally verify a local
+project against its original USA ROM (first group, first two teams).
+Set `BSNES_CORE=/absolute/path/to/bsnes2014_accuracy_libretro.dylib` alongside
+`SNES9X_CORE` to run these regressions with that RetroArch core too. Earlier
+expanded engines relied on C1 low-half mirrors accepted by Snes9x; the installed
+bsnes 2014 Accuracy core maps only the high half. Exact prior engines migrate
+both loaders on project/ROM reopening, preserving all palette records. Tests
+check four selector logos, both HUD flags and all sixteen match uniform colors.
+The runner supports `ISSD_PIXEL_FORMAT=1` for that core's XRGB8888 output;
+its native 512-pixel captures are reduced to 256 columns only for comparisons.
+
 Compact names retain native white/gray strokes and add black outline pixels.
 Only exact rasters from the prior generator are upgraded automatically;
 native names and custom pixel artwork remain intact.
@@ -542,3 +564,45 @@ exported ROMs (editable baseline and one with a note added at tick 900 in the ba
 rest) verify matching frames, source pointers, DSP pitch and ENVX. This does not
 expose editing in the current read-only UI. Loader transfer time varies with
 sequence length, so the fixture identifies events by their ARAM pointers.
+
+### Expanded sprite safety
+
+The hair selectors at `$83C930` and `$83CAFE` also run for goalkeepers,
+whose animations do not support the outfield head overlay. The expanded C8
+helper returns zero for position 1 and retains the original hair nibble for
+outfield players. Saved attributes, skin, and palette edits remain unchanged.
+Exact prior expanded engines migrate these two six-byte hooks on reopening.
+
+The native allocator at `$83CAD7` has six descriptors (`$81AF01..$81AF0C`)
+and six VRAM tile IDs (`$01A5,$01A6,$01A7,$01A8,$01B5,$01B6`). Its three-slot
+counter is initialized at **D+$04** but decremented at absolute `$0004`.
+Squads with many custom hairstyles therefore walk beyond both tables. In the
+attached project this produced tile `$0303`, a hair DMA to word `$9030`, and
+VRAM wrapping into the field map at word `$1030`: grass appeared in UI colors.
+
+The expanded helper at `$83CAFE` now bounds the descriptor cursor separately
+for home and away squads. NOPs at `$83CAE3` and `$83CB15` remove the broken
+counter and early return. The allocator still scans all eleven players so D
+reaches `$1000` before processing the away side; simply fixing the counter's
+store would stop that traversal prematurely. Outfield overlays beyond three
+per side use the native head; stored hairstyle choices remain unchanged.
+No new RAM or ROM pool is reserved. Exact earlier expanded engines migrate
+these patches on project import or ROM reopening.
+
+`tests/match-hair-runtime.cjs` runs squads with hairstyles on every player and,
+when `ISSD_FLAG_PROJECT` is set, the attached project. It verifies descriptor
+ownership and VRAM tile IDs, then uses `ISSD_CHECK_FIELD_MAP_FROM` to inspect
+both field tilemaps every frame while moving, passing and pausing. The
+headless runner also accepts `ISSD_LOAD_STATE` for local core-state diagnosis.
+Use a fresh match to validate an exported repair: old emulator save states
+retain already-corrupted descriptors and VRAM.
+
+Blank padding in added team-name frames still consumes the PPU's scanline
+sprite limit. Distribute tile 170 between the two glyph rows, retaining visible
+glyph positions and ordering. This prevents two padded names and flags from
+exceeding the hardware budget on the pre-match screen. Existing expanded
+projects are normalized without redrawing their letters.
+
+The runtime runner accepts `ISSD_CAPTURE_FRAMES` to retain PNG, RAM and VRAM
+snapshots during play. Flag runtime checks now reject goalkeeper head overlays
+and run the attached project beyond kickoff, as well as checking palettes.

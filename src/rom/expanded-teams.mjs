@@ -3,7 +3,7 @@ import {loRom,word,decompress} from './binary.mjs';
 import {TEAM_METADATA,teamCount,teamExists,activeTeamIds,teamDataRom,teamTable,teamPointer,attributeOffset,teamPaletteOffset,hasExtraTeams,hasPhysicalTeams,COMPACT_GLYPH_ATLAS} from './team-count.mjs';
 import {deluxePlayerNameOffset,deluxeText} from './deluxe.mjs';
 import {FLAG_SLOT,LABEL_SLOT,flagMatrix,smallLabelMatrix,encodeTiles,compress} from './graphics.mjs';
-import {labelLayout,labelFrame,extendedLabelLayout,labelLayoutPatch,compactGlyphAtlas,smallTeamNamePatches,bigTeamNamePatches,compatibleTeamLabelSlot,upgradeCompactTeamNamePatches} from './team-labels.mjs';
+import {labelLayout,labelFrame,extendedLabelLayout,labelLayoutPatch,compactGlyphAtlas,smallTeamNamePatches,bigTeamNamePatches,compatibleTeamLabelSlot,upgradeCompactTeamNamePatches,balanceLabelPaddingPatches} from './team-labels.mjs';
 import {TEAM_TABLE_READS} from './team-hooks.mjs';
 import {TEAM_PHOTO_TABLES} from './extra-teams.mjs';
 import {editableGroups,editGroupsPatches} from './group-editor.mjs';
@@ -20,7 +20,7 @@ const formationBase=t=>loRom(0x8bfdd0)+(t-42)*31;
 const tableSize=Object.entries(TABLES).reduce((n,[t])=>n+(LIMIT+1)*step(Number(t)),0);
 const photos=TEAM_PHOTO_TABLES.map(([old,,stride,reads],i)=>[old,E.photos+TEAM_PHOTO_TABLES.slice(0,i).reduce((n,[,,s])=>n+(LIMIT+1)*s,0),stride,reads]);
 const photoSize=photos.reduce((n,[,,s])=>n+(LIMIT+1)*s,0);
-function program(legacy=false,oldNames=false){
+function program(legacy=false,oldNames=false,oldFlagColors=false,oldPaletteMirrors=false,oldSprites=false,oldHairSlots=false){
  const b=[],labels={},fix=[];const emit=(...v)=>b.push(...v),label=n=>labels[n]=b.length,branch=(op,n)=>{emit(op,0);fix.push([b.length-1,n]);},call=n=>emit(0x22,...long(E.code+labels[n]));
  label('attributes');emit(0xda,0x38,0xe9,0,0x80,0xa2,0,0);label('attribute-loop');emit(0xc9,140,0);branch(0x90,'attribute-map');emit(0x38,0xe9,140,0,0xe8,0xe8);branch(0x80,'attribute-loop');label('attribute-map');emit(0x48,0xbf,...long(E.attributes),0x85,0,0x68,0x18,0x65,0,0xfa,0x6b);
  label('match-attributes');emit(0x18,0x69,0x74,0x7f);call('attributes');emit(0x85,0,0x6b);
@@ -35,10 +35,10 @@ function program(legacy=false,oldNames=false){
  label('draw-roster');for(let i=0;i<10;i++)emit(0xa6,0x1a,0xbf,i*2,0,0x7f,0x22,...long(0x808e17));emit(0x6b);
  label('penalty');emit(0xa0,0x58,0x1f);const top=[0,0x2050,0x205d,0x204e,0,0x2040,0x2050,0x2035,0x204a,0],bottom=[0,0x2051,0x205e,0x204f,0,0x2041,0x2051,0x2036,0x204b,0];for(let p=0;p<2;p++)for(let i=0;i<10;i++)emit(0xa9,...short((p?bottom:top)[i]),0x99,i*2+p*20,0);emit(0x6b);
  label('label-buffer');emit(0xc9,96,0);branch(0xb0,'extra-label-buffer');emit(...Array(5).fill(0x0a),0x6b);label('extra-label-buffer');emit(0x38,0xe9,96,0,...Array(5).fill(0x0a),0x18,0x69,0,0x46,0x6b);
- // Original palette pointers are >= $8000. C1 low-half ROM mirrors let
- // relocated palettes use $1000..$2C80 without colliding with native palettes.
+ // Low pointers identify private palettes, but every CPU/DMA read uses the
+ // explicit high half: not every LoROM core maps C1:$0000..$7FFF to ROM.
  label('palette-dispatch');emit(0x48,0x98,0xc9,0,0x80);branch(0x90,'expanded-palette');emit(0x68,0x29,0xfe,0,0xaa,0xbd,0x76,0x91,0x5c,...long(0x80a4f6));label('expanded-palette');emit(0x68);
- emit(0x29,0xfe,0,0xaa,0xbd,0x76,0x91,0x48,0x98,0x4a,0xb0,0x11,0xf4,0xc1,0,0xab,0x28,0xb9,0,0,0xbb,0xe8,0xe8,0x7a,0x54,0x7e,0xc1,0x80,0x0f,0xf4,0xc1,0,0xab,0x28,0xb9,0,0,0xbb,0xe8,0xe8,0x7a,0x54,0x7e,0xc1,0x7a,0xfa,0xab,0x6b);
+ emit(0x29,0xfe,0,0xaa,0xbd,0x76,0x91,0x48,0x98);if(!oldPaletteMirrors)emit(0x09,0,0x80,0xa8);emit(0x4a,0xb0,0x11,0xf4,0xc1,0,0xab,0x28,0xb9,0,0,0xbb,0xe8,0xe8,0x7a,0x54,0x7e,0xc1,0x80,0x0f,0xf4,0xc1,0,0xab,0x28,0xb9,0,0,0xbb,0xe8,0xe8,0x7a,0x54,0x7e,0xc1,0x7a,0xfa,0xab,0x6b);
  // The 2 MiB decoder masks bank bit $40 and uses it as a script flag.
  // Preserve that legacy convention except for our owned compressed pools.
  // This entry runs with an 8-bit accumulator and 16-bit X/Y.
@@ -49,20 +49,36 @@ function program(legacy=false,oldNames=false){
   label('decompress-expanded');emit(0x85,0x0c,0xc8,0xb7,0x0a,0x29,0x80,0x85,5,0x88,0x6b);
   label('decompress-legacy');emit(0x29,0xbf,0x85,0x0c,0xc8,0xb7,0x0a,0x29,0x80,0x85,5,0xbd,2,0,0x29,0x40,0x04,5,0x88,0x6b);
  }
+ // CODE_8BD151 replaces flag ink 12 with a uniform indicator color. Custom
+ // flags use all four inks, so keep their loaded colors at these two HUD
+ // destinations. Every other palette write retains the native routine.
+ if(!oldFlagColors){
+  label('hud-flag-color');emit(0x08,0x48,0xc9,0x98,0x2d);branch(0xf0,'keep-flag-color');emit(0xc9,0xb8,0x2d);branch(0xf0,'keep-flag-color');emit(0x68,0x28,0x85,8,0xa9,0x7e,0,0x5c,...long(0x8bd156));label('keep-flag-color');emit(0x68,0x28,0x6b);
+ }
+ if(!oldPaletteMirrors){label('selector-flag-palette');emit(0xbf,...long(TABLES[0xe7d8]),0x09,0,0x80,0x6b);}
+ // Match head overlays use outfield animation frames. Keep the stored hair
+ // choice, but return no overlay for goalkeepers; preserve X/Y/DB and Z.
+ if(!oldSprites){label('safe-match-hair');emit(0xbd,4,0,0x29,0xf0,0,0xc9,0x10,0);branch(0xf0,'goalkeeper-hair');emit(0xbd,6,0,0x29,15,0,0x6b);label('goalkeeper-hair');emit(0xa9,0,0,0x6b);}
+ // CODE_83CAD7 scans eleven players, but the native tables own only three
+ // overlays per side. Its counter is initialized through D+$04 and decremented
+ // at absolute $0004, so custom squads can overrun both tables. Keep scanning
+ // all eleven objects (D must reach the next squad), but stop assigning slots.
+ if(!oldSprites&&!oldHairSlots){label('bounded-match-hair');emit(0x7b,0xc9,0,0x10);branch(0xb0,'away-hair-slots');emit(0xad,0,0,0xc9,7,0xaf);branch(0x80,'check-hair-slots');label('away-hair-slots');emit(0xad,0,0,0xc9,13,0xaf);label('check-hair-slots');branch(0xb0,'no-hair-slot');call('safe-match-hair');emit(0x6b);label('no-hair-slot');emit(0xa9,0,0,0x6b);}
  for(const [o,n] of fix){const d=labels[n]-o-1;if(d< -128||d>127)throw new Error('Salto de expansión fuera de rango.');b[o]=d&255;}
  const bytes=new Uint8Array(4096).fill(0xea);bytes.set(b);return {bytes,addresses:Object.fromEntries(Object.entries(labels).map(([n,p])=>[n,E.code+p]))};
 }
-const engineSpecs=[[0x83c6bd,5,'match-attributes'],[0x98f82a,6,'preview-attributes'],[0xa49c89,6,'names'],[0xa4bfc8,6,'portrait'],[0xa4bff6,6,'portrait'],[0x80cf2a,70,'both-names'],[0x80cbaf,6,'stride-pair'],[0x80cdf5,5,'stride-roster'],[0x859c6e,5,'stride-player'],[0x80cbe0,60,'draw-name'],[0x859b9e,80,'draw-roster'],[0x80ce87,99,'penalty'],[0x85af50,9,'label-buffer'],[0x85a8e3,9,'label-buffer'],[0x80a4ef,7,'palette-dispatch'],[0x80b76f,25,'decompress-bank']];
-const immediates=[[0x85aeb0,0xc1],[0x83c6d0,0xc2],[0x81da29,0x40,0xd5],[0x80ca36,0x40,0xd5],[0x80cb3a,0x40,0xd5],[0x80cde6,0x40,0xd5],[0x80c9c2,0x58,0x1f],[0x80c9d8,10],[0x80c9cd,0x2c],[0x80cbc8,0x58,0x1f],[0x80cbcd,10],[0x80cc45,20],[0x80ce14,0x58,0x1f],[0x80ce19,10],[0x80cb84,1],[0x80cb8c,0x15],[0x80cb97,20],[0x859a45,10]];
+const engineSpecs=[[0x83c6bd,5,'match-attributes'],[0x98f82a,6,'preview-attributes'],[0xa49c89,6,'names'],[0xa4bfc8,6,'portrait'],[0xa4bff6,6,'portrait'],[0x80cf2a,70,'both-names'],[0x80cbaf,6,'stride-pair'],[0x80cdf5,5,'stride-roster'],[0x859c6e,5,'stride-player'],[0x80cbe0,60,'draw-name'],[0x859b9e,80,'draw-roster'],[0x80ce87,99,'penalty'],[0x85af50,9,'label-buffer'],[0x85a8e3,9,'label-buffer'],[0x80a4ef,7,'palette-dispatch'],[0x80b76f,25,'decompress-bank'],[0x8bd151,5,'hud-flag-color'],[0x83c930,6,'safe-match-hair'],[0x83cafe,6,'safe-match-hair']];
+const hairSlotImmediates=[[0x83cae3,0xea,0xea,0xea,0xea,0xea],[0x83cb15,0xea,0xea,0xea,0xea,0xea]];
+const immediates=[...hairSlotImmediates,[0x85aeb0,0xc1],[0x83c6d0,0xc2],[0x81da29,0x40,0xd5],[0x80ca36,0x40,0xd5],[0x80cb3a,0x40,0xd5],[0x80cde6,0x40,0xd5],[0x80c9c2,0x58,0x1f],[0x80c9d8,10],[0x80c9cd,0x2c],[0x80cbc8,0x58,0x1f],[0x80cbcd,10],[0x80cc45,20],[0x80ce14,0x58,0x1f],[0x80ce19,10],[0x80cb84,1],[0x80cb8c,0x15],[0x80cb97,20],[0x859a45,10]];
 const challengeHooks=[[0x85a5f3,0xc9,114],[0x85a605,0xc9,114],[0x85dc64,0xc9,114],[0x8bbf86,0xc9,112],[0x8bcfcc,0x69,114],[0x8bd024,0x69,114],[0xa4d798,0xa0,112]];
 const smallFrames=[[0x828e47,2],[0x8296bd,2],[0x82f576,12],[0x8ad44c,16],[0x86c64e,3],[0x86c66d,3],[0x86c68c,3],[0x86c6ab,3],[0x8bcdad,3]];
-export function expandedEnginePatches(rom,oldNames=false){
- const c=program(false,oldNames),out=[patch('teams56:code',E.code,c.bytes)],hook=(a,n,name,jump=false)=>{const b=new Uint8Array(n).fill(0xea);b.set([jump?0x5c:0x22,...long(c.addresses[name])]);return b;};
- for(const [a,n,name] of engineSpecs){const b=hook(a,n,name,[0xa49c89,0x80cf2a,0x80a4ef].includes(a));if(a===0x80cbe0)b.set([0x5c,...long(0x808e22)],4);if(a===0x859b9e)b[4]=0x60;if(a===0x80ce87)b.set([0x4c,0x75,0xce],4);out.push(patch(`teams56:hook:${a.toString(16)}`,a,b));}
- for(const [a,...bytes] of immediates)out.push(patch(`teams56:immediate:${a.toString(16)}`,a,bytes));
+export function expandedEnginePatches(rom,oldNames=false,oldFlagColors=false,oldPaletteMirrors=false,oldSprites=false,oldHairSlots=false){
+ const c=program(false,oldNames,oldFlagColors,oldPaletteMirrors,oldSprites,oldHairSlots),out=[patch('teams56:code',E.code,c.bytes)],hook=(a,n,name,jump=false)=>{const b=new Uint8Array(n).fill(0xea);b.set([jump?0x5c:0x22,...long(c.addresses[name])]);return b;};
+ for(const [a,n,name] of engineSpecs){if(oldFlagColors&&name==='hud-flag-color'||oldSprites&&name==='safe-match-hair')continue;const b=hook(a,n,a===0x83cafe&&!oldSprites&&!oldHairSlots?'bounded-match-hair':name,[0xa49c89,0x80cf2a,0x80a4ef,0x8bd151].includes(a));if(a===0x80cbe0)b.set([0x5c,...long(0x808e22)],4);if(a===0x859b9e)b[4]=0x60;if(a===0x80ce87)b.set([0x4c,0x75,0xce],4);out.push(patch(`teams56:hook:${a.toString(16)}`,a,b));}
+ for(const [a,...bytes] of immediates.filter(([a])=>!(oldSprites||oldHairSlots)||!hairSlotImmediates.some(([b])=>a===b)))out.push(patch(`teams56:immediate:${a.toString(16)}`,a,bytes));
  // WC26 centers the 10-tile HUD names one column further left.
  out.push(patch('teams56:hud-columns',0x819471,[0xa3,0x5a,0xb3,0x5a,0x03,0x5b,0x13,0x5b,0x63,0x5b,0x73,0x5b,0xc3,0x5b,0xd3,0x5b]));
- for(const [old,reads] of Object.entries(TEAM_TABLE_READS))for(const a of reads){if([0x80cf3c,0x80cf5f,0xa49cc7].includes(a)||a===0xa4a046)continue;out.push(patch(`teams:read:${a.toString(16)}`,a,[0xbf,...long(TABLES[loRom(Number(old))])]));}
+ for(const [old,reads] of Object.entries(TEAM_TABLE_READS))for(const a of reads){if([0x80cf3c,0x80cf5f,0xa49cc7].includes(a)||a===0xa4a046)continue;out.push(patch(`teams:read:${a.toString(16)}`,a,a===0x85aea8&&!oldPaletteMirrors?[0x22,...long(c.addresses['selector-flag-palette'])]:[0xbf,...long(TABLES[loRom(Number(old))])]));}
  for(const [,next,,reads] of photos)for(const [a,delta] of reads)out.push(patch(`teams:photo-read:${a.toString(16)}`,a,[0xbf,...long(next+delta)]));
  for(const [a,op,n] of challengeHooks)out.push(patch(`teams:challenge:${a.toString(16)}`,a,[op,...short(n)]));
  for(const a of [0x828c21,0x828e49,0x8296b5])out.push(patch(`teams:big-script:${a.toString(16)}`,a,[...long(E.bigLabels),2,a===0x828e49?0xcf:0x4f]));
@@ -80,11 +96,15 @@ const NATIVE_DECOMPRESS_BANK=Uint8Array.from([0xbc,0,0,0xbd,2,0,0x29,0xbf,0x85,0
 export function expandedLoaderUpgradePatches(rom){
  if(!hasExpandedTeams(rom))return [];
  const same=(bytes,at)=>bytes.every((b,i)=>rom[at+i]===b);
- const engine=expandedEnginePatches(rom),oldEngine=expandedEnginePatches(rom,true),oldHook=oldEngine.find(p=>p.id==='teams56:hook:80b76f');
- const legacy=same(program(true,true).bytes,loRom(E.code))&&same(NATIVE_DECOMPRESS_BANK,oldHook.offset),earlier=same(program(false,true).bytes,loRom(E.code))&&same(oldHook.bytes,oldHook.offset);
- const missingHandicap=same(program().bytes,loRom(E.code))&&same(Uint8Array.of(10,10,10,10,10,24,105,0,0),loRom(0x85a8e3));
- const fixes=legacy||earlier||missingHandicap?[...engine.filter(p=>p.id==='teams56:code'||p.id.startsWith('teams56:hook:')||p.id.startsWith('teams56:immediate:')),...structuralPatches(rom).filter(p=>p.id==='teams56:tables'||p.id==='teams56:flag-script')]:[];
- return [...fixes,...upgradeCompactTeamNamePatches(rom,rom)];
+ const engine=expandedEnginePatches(rom),oldEngine=expandedEnginePatches(rom,true,true,true,true),oldHook=oldEngine.find(p=>p.id==='teams56:hook:80b76f');
+ const nativeFlagColor=same(Uint8Array.of(0x85,8,0xa9,0x7e,0),loRom(0x8bd151));
+ const legacy=nativeFlagColor&&same(program(true,true,true,true,true).bytes,loRom(E.code))&&same(NATIVE_DECOMPRESS_BANK,oldHook.offset),earlier=nativeFlagColor&&same(program(false,true,true,true,true).bytes,loRom(E.code))&&same(oldHook.bytes,oldHook.offset);
+ const oldFlagColor=nativeFlagColor&&same(program(false,false,true,true,true).bytes,loRom(E.code));
+ const mirrorHook=expandedEnginePatches(rom,false,false,true,true).find(p=>p.id==='teams56:hook:8bd151'),oldMirrors=same(program(false,false,false,true,true).bytes,loRom(E.code))&&same(mirrorHook.bytes,mirrorHook.offset);
+ const oldSprites=same(program(false,false,false,false,true).bytes,loRom(E.code)),oldHairSlots=same(program(false,false,false,false,false,true).bytes,loRom(E.code));
+ const missingHandicap=(oldFlagColor||oldMirrors||same(program().bytes,loRom(E.code)))&&same(Uint8Array.of(10,10,10,10,10,24,105,0,0),loRom(0x85a8e3));
+ const fixes=legacy||earlier||oldFlagColor||oldMirrors||oldSprites||oldHairSlots||missingHandicap?[...engine.filter(p=>p.id==='teams56:code'||p.id==='teams:read:85aea8'||p.id.startsWith('teams56:hook:')||p.id.startsWith('teams56:immediate:')),...structuralPatches(rom).filter(p=>p.id==='teams56:tables'||p.id==='teams56:flag-script')]:[];
+ return [...fixes,...upgradeCompactTeamNamePatches(rom,rom),...balanceLabelPaddingPatches(rom)];
 }
 export function upgradeExpandedTeamLoader(original,patches){
  if(!hasExpandedTeams(original)&&!patches.some(p=>p.id==='teams:metadata'&&p.bytes[4]===3))return patches;

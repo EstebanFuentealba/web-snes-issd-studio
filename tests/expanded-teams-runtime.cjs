@@ -43,7 +43,12 @@ global.crypto ||= require('node:crypto').webcrypto;
  assert.deepEqual(game.ram.slice(0xd540,0xd608),rom.slice(loRom(EXPANDED.names)+2*200,loRom(EXPANDED.names)+3*200),'The away names must remain separate');
  // Inspect what the PPU actually receives, beyond the copied name pool.
  const name=rom.slice(loRom(EXPANDED.names)+55*200,loRom(EXPANDED.names)+55*200+10);
- for(let i=0;i<10;i++)for(let row=0;row<2;row++)assert.equal(word(game.vram,(0x5b01+row*32+i)*2),0x2000|rom[loRom(0x878000)+name[i]*2+row],`Visible HUD name tile ${row}:${i}`);
+ // Kickoff orientation can put the home squad on either side of the HUD.
+ const nameColumn=[0x5b01,0x5b15].find(base=>Array.from({length:20},(_,n)=>{const i=n%10,row=Math.floor(n/10);return word(game.vram,(base+row*32+i)*2)===(0x2000|rom[loRom(0x878000)+name[i]*2+row]);}).every(Boolean));assert.ok(nameColumn,'All twenty visible HUD name tiles must match the ten-character home name');
+ await require('./flag-palettes-runtime.cjs')(core);
+ if(process.env.BSNES_CORE)await require('./flag-palettes-runtime.cjs')(process.env.BSNES_CORE,{pixelFormat:1,tag:'bsnes-'});
+ await require('./match-hair-runtime.cjs')(core);
+ if(process.env.BSNES_CORE)await require('./match-hair-runtime.cjs')(process.env.BSNES_CORE,{pixelFormat:1,tag:'bsnes-'});
  await require('./kits-runtime.cjs')(core);
  await require('./music-runtime.cjs')(core);
  await require('./audio-stretch-runtime.cjs')(core);

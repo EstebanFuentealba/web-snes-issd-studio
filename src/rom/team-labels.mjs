@@ -78,7 +78,7 @@ export function bigTeamNamePatches(original,current,team,name) {
   // anchor: center their text in the native 80-pixel name area instead.
   const left=team>=42||!currentText?Math.max(0,Math.floor((80-width)/2)):Math.max(0,Math.min(nativeLeft,80-width));
   const sprites=plan.parts.slice().reverse().flatMap(part=>part.text===' '?[]:part.text.length===2?[[left+positions[part.x]+4,8,part.tile,26]]:part.text==='.'?[[left+positions[part.x],12,186,10]]:[[left+positions[part.x],12,part.tile+16,10],[left+positions[part.x],4,part.tile,10]]);
-  while(sprites.length<frame.count)sprites.push([left,4,170,10]);
+  while(sprites.length<frame.count){const top=sprites.filter(s=>s[1]===4).length,bottom=sprites.filter(s=>s[1]===12).length;sprites.push([left,top<=bottom?4:12,170,10]);}
   // Reuse native positions and paired glyphs whenever the new text fits the
   // same grouping. This preserves kerning and the compressed byte budget.
   const groups=[];
@@ -319,4 +319,18 @@ function czechPunctuationPatches(original,current,period){
 export function validateCzechFont(bytes,original){
   const matrix=tiles(decompress(bytes,0),4,16),native=tiles(decompress(original,loRom(CZECH_FONT_ADDRESS)),4,16);
   if(matrix.length!==native.length||matrix.some((row,y)=>row.some((p,x)=>!(y>=11&&y<14&&x>=120&&x<123)&&p!==native[y][x])))throw new Error('Solo se puede cambiar la puntuación de Czech Rep.');
+}
+
+// Transparent padding still consumes the SNES per-scanline sprite budget.
+// Balance only blank tiles; preserve every visible glyph and its priority.
+export function balanceLabelPaddingPatches(rom){
+ const layout=labelLayout(rom);let changed=false;
+ for(let t=42;t<layout.data[0];t++){
+  if(!teamExists(rom,t))continue;
+  const f=labelFrame(layout,t),sprites=frameSprites(layout,f),padding=sprites.filter(s=>s[2]===170&&s[3]===10);
+  let top=sprites.filter(s=>s[2]!==170&&s[1]===4).length,bottom=sprites.filter(s=>s[2]!==170&&s[1]===12).length;
+  for(const s of padding){const y=top<=bottom?4:12;if(s[1]!==y){s[1]=y;changed=true;}if(y===4)top++;else bottom++;}
+  writeFrameSprites(layout,f,sprites);
+ }
+ return changed?[labelLayoutPatch(rom,layout,true)]:[];
 }
